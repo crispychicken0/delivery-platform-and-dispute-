@@ -20,7 +20,6 @@
             --hover-shadow: 0 8px 25px rgba(0,0,0,0.15);
             --transition: all 0.3s ease;
         }
-
         /* Dark Mode Variables */
         [data-theme="dark"] {
             --light-bg: #1a1a1a;
@@ -32,14 +31,12 @@
             --input-bg: #2c3e50;
             --border-color: #34495e;
         }
-
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background-color: var(--light-bg);
             color: var(--text-color, #333);
             transition: var(--transition);
         }
-
         /* Animated Header */
         .main-header {
             background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
@@ -50,7 +47,6 @@
             position: relative;
             overflow: hidden;
         }
-
         .main-header::before {
             content: '';
             position: absolute;
@@ -61,12 +57,10 @@
             background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
             animation: pulse 4s ease-in-out infinite;
         }
-
         @keyframes pulse {
             0%, 100% { transform: scale(1); opacity: 0.5; }
             50% { transform: scale(1.1); opacity: 0.3; }
         }
-
         /* Enhanced Cards */
         .stats-card {
             border-radius: 15px;
@@ -78,12 +72,10 @@
             position: relative;
             overflow: hidden;
         }
-
         [data-theme="dark"] .stats-card {
             background: var(--card-bg);
             color: var(--text-color);
         }
-
         .stats-card::before {
             content: '';
             position: absolute;
@@ -96,46 +88,38 @@
             transform-origin: left;
             transition: transform 0.3s ease;
         }
-
         .stats-card:hover::before {
             transform: scaleX(1);
         }
-
         .stats-card:hover {
             transform: translateY(-8px);
             box-shadow: var(--hover-shadow);
         }
-
         .stats-card .card-body {
             padding: 1.5rem;
             position: relative;
             z-index: 1;
         }
-
         .stats-card h5 {
             font-size: 0.9rem;
             font-weight: 600;
             margin-bottom: 0.5rem;
             opacity: 0.8;
         }
-
         .stats-card h3 {
             font-weight: 700;
             margin-bottom: 0;
             font-size: 2rem;
         }
-
         .stats-card .icon {
             font-size: 2.5rem;
             opacity: 0.8;
             transition: var(--transition);
         }
-
         .stats-card:hover .icon {
             transform: scale(1.1);
             opacity: 1;
         }
-
         /* Enhanced Form Section */
         .form-section {
             background: white;
@@ -145,35 +129,29 @@
             margin-bottom: 2rem;
             transition: var(--transition);
         }
-
         [data-theme="dark"] .form-section {
             background: var(--card-bg);
         }
-
         .form-section:hover {
             box-shadow: var(--hover-shadow);
         }
-
         .form-control, .form-select {
             border-radius: 10px;
             border: 2px solid #e0e0e0;
             transition: var(--transition);
             background: white;
         }
-
         [data-theme="dark"] .form-control,
         [data-theme="dark"] .form-select {
             background: var(--input-bg);
             border-color: var(--border-color);
             color: var(--text-color);
         }
-
         .form-control:focus, .form-select:focus {
             border-color: var(--secondary-color);
             box-shadow: 0 0 0 0.2rem rgba(52, 152, 219, 0.25);
             transform: translateY(-2px);
         }
-
         .btn {
             border-radius: 10px;
             padding: 0.6rem 1.2rem;
@@ -182,7 +160,6 @@
             position: relative;
             overflow: hidden;
         }
-
         .btn::before {
             content: '';
             position: absolute;
@@ -195,12 +172,10 @@
             transform: translate(-50%, -50%);
             transition: width 0.6s, height 0.6s;
         }
-
         .btn:active::before {
             width: 300px;
             height: 300px;
         }
-
         /* Enhanced Table */
         .table-container {
             background: white;
@@ -210,19 +185,15 @@
             margin-bottom: 2rem;
             transition: var(--transition);
         }
-
         [data-theme="dark"] .table-container {
             background: var(--card-bg);
         }
-
         .table-container:hover {
             box-shadow: var(--hover-shadow);
         }
-
         .table {
             margin-bottom: 0;
         }
-
         .table thead th {
             background-color: var(--primary-color);
             color: white;
@@ -234,23 +205,19 @@
             z-index: 10;
             padding: 1rem;
         }
-
         .table tbody tr {
             transition: var(--transition);
             border-radius: 10px;
         }
-
         .table tbody tr:hover {
             background-color: rgba(52, 152, 219, 0.1);
             transform: scale(1.01);
             box-shadow: 0 4px 15px rgba(0,0,0,0.1);
         }
-
         .table tbody td {
             padding: 1rem;
             vertical-align: middle;
         }
-
         /* Enhanced Status Badges */
         .status-badge {
             font-size: 0.85rem;
@@ -262,23 +229,19 @@
             gap: 0.5rem;
             transition: var(--transition);
         }
-
         .status-badge:hover {
             transform: scale(1.05);
         }
-
         .status-progress {
             background: linear-gradient(135deg, #f39c12, #e67e22);
             color: white;
             box-shadow: 0 4px 15px rgba(243, 156, 18, 0.3);
         }
-
         .status-deducted {
             background: linear-gradient(135deg, #e74c3c, #c0392b);
             color: white;
             box-shadow: 0 4px 15px rgba(231, 76, 60, 0.3);
         }
-
         /* Enhanced Buttons */
         .btn-template {
             background: linear-gradient(135deg, var(--warning-color), #e67e22);
@@ -291,20 +254,16 @@
             position: relative;
             overflow: hidden;
         }
-
         .btn-template:hover {
             transform: translateY(-2px);
             box-shadow: 0 8px 20px rgba(243, 156, 18, 0.4);
         }
-
         .btn-template i {
             transition: var(--transition);
         }
-
         .btn-template:hover i {
             transform: translateX(3px);
         }
-
         /* Enhanced Modal */
         .modal-content {
             border-radius: 20px;
@@ -312,24 +271,20 @@
             box-shadow: 0 20px 60px rgba(0,0,0,0.3);
             border: none;
         }
-
         .modal-header {
             background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
             color: white;
             border: none;
             padding: 1.5rem;
         }
-
         .modal-body {
             background: var(--light-bg);
             border-radius: 0 0 20px 20px;
             padding: 2rem;
         }
-
         [data-theme="dark"] .modal-body {
             background: var(--card-bg);
         }
-
         /* Template Container */
         .template-container {
             background: white;
@@ -340,17 +295,14 @@
             position: relative;
             transition: var(--transition);
         }
-
         [data-theme="dark"] .template-container {
             background: var(--card-bg);
             border-color: var(--border-color);
         }
-
         .template-container:hover {
             border-color: var(--secondary-color);
             box-shadow: 0 8px 25px rgba(52, 152, 219, 0.15);
         }
-
         .copy-btn {
             position: absolute;
             top: 15px;
@@ -364,12 +316,10 @@
             transition: var(--transition);
             z-index: 10;
         }
-
         .copy-btn:hover {
             transform: translateY(-2px);
             box-shadow: 0 8px 20px rgba(52, 152, 219, 0.4);
         }
-
         .template-content {
             font-family: 'Courier New', monospace;
             line-height: 1.8;
@@ -380,12 +330,10 @@
             border-radius: 10px;
             border-left: 4px solid var(--secondary-color);
         }
-
         [data-theme="dark"] .template-content {
             background: var(--input-bg);
             color: var(--text-color);
         }
-
         /* Enhanced Reason Tags */
         .reason-tag {
             display: inline-flex;
@@ -402,57 +350,47 @@
             white-space: nowrap;
             transition: var(--transition);
         }
-
         .reason-tag:hover {
             transform: scale(1.05);
         }
-
         .reason-tag i {
             font-size: 0.9rem;
         }
-
         .reason-wrong {
             background: linear-gradient(135deg, #ffebee, #ffcdd2);
             color: #c62828;
             box-shadow: 0 4px 15px rgba(198, 40, 40, 0.2);
         }
-
         .reason-missing {
             background: linear-gradient(135deg, #e8f5e9, #c8e6c9);
             color: #2e7d32;
             box-shadow: 0 4px 15px rgba(46, 125, 50, 0.2);
         }
-
         .reason-delay {
             background: linear-gradient(135deg, #fff3e0, #ffe0b2);
             color: #e65100;
             box-shadow: 0 4px 15px rgba(230, 81, 0, 0.2);
         }
-
         .reason-quality {
             background: linear-gradient(135deg, #f3e5f5, #e1bee7);
             color: #7b1fa2;
             box-shadow: 0 4px 15px rgba(123, 31, 162, 0.2);
         }
-
         .reason-tech {
             background: linear-gradient(135deg, #e1f5fe, #b3e5fc);
             color: #0277bd;
             box-shadow: 0 4px 15px rgba(2, 119, 189, 0.2);
         }
-
         .reason-hygiene {
             background: linear-gradient(135deg, #fbe9e7, #ffccbc);
             color: #d84315;
             box-shadow: 0 4px 15px rgba(216, 67, 21, 0.2);
         }
-
         .reason-damaged {
             background: linear-gradient(135deg, #e8eaf6, #c5cae9);
             color: #3949ab;
             box-shadow: 0 4px 15px rgba(57, 73, 171, 0.2);
         }
-
         /* Enhanced Company Badges */
         .company-badge {
             display: inline-flex;
@@ -465,39 +403,32 @@
             margin-left: 0.5rem;
             transition: var(--transition);
         }
-
         .company-badge:hover {
             transform: scale(1.05);
         }
-
         .company-badge i {
             font-size: 0.9rem;
         }
-
         .company-noon {
             background: linear-gradient(135deg, #e3f2fd, #bbdefb);
             color: #1565c0;
             box-shadow: 0 4px 15px rgba(21, 101, 192, 0.2);
         }
-
         .company-careem {
             background: linear-gradient(135deg, #fce4ec, #f8bbd0);
             color: #c2185b;
             box-shadow: 0 4px 15px rgba(194, 24, 91, 0.2);
         }
-
         .company-talabat {
             background: linear-gradient(135deg, #f3e5f5, #e1bee7);
             color: #7b1fa2;
             box-shadow: 0 4px 15px rgba(123, 31, 162, 0.2);
         }
-
         .company-deliveroo {
             background: linear-gradient(135deg, #e0f2f1, #b2dfdb);
             color: #00796b;
             box-shadow: 0 4px 15px rgba(0, 121, 107, 0.2);
         }
-
         /* Enhanced Footer */
         .footer {
             background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
@@ -508,7 +439,6 @@
             position: relative;
             overflow: hidden;
         }
-
         .footer::before {
             content: '';
             position: absolute;
@@ -518,7 +448,6 @@
             height: 4px;
             background: linear-gradient(90deg, var(--warning-color), var(--success-color));
         }
-
         /* Enhanced Toast Notifications */
         .toast-container {
             position: fixed;
@@ -526,7 +455,6 @@
             left: 20px;
             z-index: 1050;
         }
-
         .custom-toast {
             background: white;
             color: var(--text-color);
@@ -539,12 +467,10 @@
             animation: slideIn 0.5s ease-out;
             border-left: 4px solid var(--success-color);
         }
-
         [data-theme="dark"] .custom-toast {
             background: var(--card-bg);
             border-left-color: var(--success-color);
         }
-
         @keyframes slideIn {
             from {
                 transform: translateX(-100%) rotate(-5deg);
@@ -555,24 +481,19 @@
                 opacity: 1;
             }
         }
-
         .custom-toast i {
             font-size: 1.8rem;
             margin-left: 1rem;
         }
-
         .custom-toast.success {
             border-left-color: var(--success-color);
         }
-
         .custom-toast.warning {
             border-left-color: var(--warning-color);
         }
-
         .custom-toast.error {
             border-left-color: var(--danger-color);
         }
-
         /* Enhanced Filter Section */
         .filter-section {
             background: white;
@@ -582,15 +503,12 @@
             margin-bottom: 2rem;
             transition: var(--transition);
         }
-
         [data-theme="dark"] .filter-section {
             background: var(--card-bg);
         }
-
         .filter-section:hover {
             box-shadow: var(--hover-shadow);
         }
-
         .filter-btn {
             background: var(--secondary-color);
             color: white;
@@ -602,7 +520,6 @@
             position: relative;
             overflow: hidden;
         }
-
         .filter-btn::before {
             content: '';
             position: absolute;
@@ -615,23 +532,19 @@
             transform: translate(-50%, -50%);
             transition: width 0.6s, height 0.6s;
         }
-
         .filter-btn:active::before {
             width: 300px;
             height: 300px;
         }
-
         .filter-btn:hover {
             background: var(--primary-color);
             transform: translateY(-2px);
             box-shadow: 0 8px 20px rgba(44, 62, 80, 0.3);
         }
-
         .filter-btn.active {
             background: var(--primary-color);
             box-shadow: inset 0 4px 10px rgba(0,0,0,0.2);
         }
-
         /* Enhanced Objection Options */
         .objection-type-selector {
             background: white;
@@ -641,12 +554,10 @@
             margin-bottom: 1.5rem;
             transition: var(--transition);
         }
-
         [data-theme="dark"] .objection-type-selector {
             background: var(--card-bg);
             border-color: var(--border-color);
         }
-
         .objection-option {
             cursor: pointer;
             padding: 1rem;
@@ -656,33 +567,27 @@
             transition: var(--transition);
             background: #f8f9fa;
         }
-
         [data-theme="dark"] .objection-option {
             background: var(--input-bg);
         }
-
         .objection-option:hover {
             background: rgba(52, 152, 219, 0.1);
             transform: translateX(5px);
         }
-
         .objection-option.selected {
             border-color: var(--secondary-color);
             background: rgba(52, 152, 219, 0.15);
             box-shadow: 0 4px 15px rgba(52, 152, 219, 0.2);
         }
-
         .objection-option i {
             font-size: 1.8rem;
             margin-left: 0.8rem;
             color: var(--secondary-color);
             transition: var(--transition);
         }
-
         .objection-option:hover i {
             transform: scale(1.1);
         }
-
         /* Enhanced Video Evidence Section */
         .video-link-section {
             margin-top: 1.5rem;
@@ -692,27 +597,22 @@
             border: 2px solid #e0e0e0;
             transition: var(--transition);
         }
-
         [data-theme="dark"] .video-link-section {
             background: var(--input-bg);
             border-color: var(--border-color);
         }
-
         .video-link-section:hover {
             border-color: var(--secondary-color);
             box-shadow: 0 8px 25px rgba(52, 152, 219, 0.15);
         }
-
         .video-link-input {
             margin-bottom: 0.8rem;
         }
-
         .video-link-input label {
             font-weight: 600;
             margin-bottom: 0.5rem;
             color: var(--primary-color);
         }
-
         /* Dark Mode Toggle */
         .theme-toggle {
             position: fixed;
@@ -725,15 +625,12 @@
             box-shadow: 0 4px 15px rgba(0,0,0,0.2);
             transition: var(--transition);
         }
-
         [data-theme="dark"] .theme-toggle {
             background: var(--card-bg);
         }
-
         .theme-toggle:hover {
             transform: scale(1.05);
         }
-
         .theme-toggle button {
             border: none;
             background: none;
@@ -741,11 +638,9 @@
             color: var(--primary-color);
             transition: var(--transition);
         }
-
         .theme-toggle button:hover {
             transform: rotate(180deg);
         }
-
         /* Loading Animation */
         .loading {
             display: inline-block;
@@ -756,18 +651,15 @@
             border-radius: 50%;
             animation: spin 1s linear infinite;
         }
-
         @keyframes spin {
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
-
         /* Tab Navigation */
         .nav-tabs {
             border-bottom: 2px solid var(--secondary-color);
             margin-bottom: 2rem;
         }
-
         .nav-tabs .nav-link {
             color: var(--text-color);
             border: none;
@@ -777,41 +669,33 @@
             font-weight: 600;
             transition: var(--transition);
         }
-
         .nav-tabs .nav-link:hover {
             border-color: transparent;
             color: var(--secondary-color);
         }
-
         .nav-tabs .nav-link.active {
             color: var(--secondary-color);
             background: transparent;
             border-color: var(--secondary-color);
         }
-
         /* Tab Content */
         .tab-content {
             animation: fadeIn 0.5s ease-in;
         }
-
         /* Careem Refund Specific Styles */
         .careem-stats-card {
             background: linear-gradient(135deg, #fce4ec, #f8bbd0);
             color: #c2185b;
         }
-
         .careem-stats-card .icon {
             color: #c2185b;
         }
-
         .careem-stats-card::before {
             background: linear-gradient(90deg, #c2185b, #880e4f);
         }
-
         .careem-table-container {
             border-left: 5px solid #c2185b;
         }
-
         /* Responsive Improvements */
         @media (max-width: 768px) {
             .stats-card {
@@ -831,7 +715,6 @@
                 font-size: 0.8rem;
             }
         }
-
         /* Hover Effects for Links */
         .image-link {
             color: var(--secondary-color);
@@ -840,7 +723,6 @@
             transition: var(--transition);
             position: relative;
         }
-
         .image-link::after {
             content: '';
             position: absolute;
@@ -851,15 +733,12 @@
             background: var(--secondary-color);
             transition: width 0.3s ease;
         }
-
         .image-link:hover::after {
             width: 100%;
         }
-
         .image-link:hover {
             color: var(--primary-color);
         }
-
         /* Enhanced Badge */
         .badge-video {
             background: linear-gradient(135deg, #0d6efd, #0056b3);
@@ -871,65 +750,52 @@
             box-shadow: 0 4px 15px rgba(13, 110, 253, 0.3);
             animation: pulse 2s ease-in-out infinite;
         }
-
         /* Scrollbar Styling */
         ::-webkit-scrollbar {
             width: 10px;
         }
-
         ::-webkit-scrollbar-track {
             background: #f1f1f1;
             border-radius: 10px;
         }
-
         [data-theme="dark"] ::-webkit-scrollbar-track {
             background: var(--card-bg);
         }
-
         ::-webkit-scrollbar-thumb {
             background: var(--secondary-color);
             border-radius: 10px;
         }
-
         ::-webkit-scrollbar-thumb:hover {
             background: var(--primary-color);
         }
-
         /* Animations */
         .fade-in {
             animation: fadeIn 0.5s ease-in;
         }
-
         @keyframes fadeIn {
             from { opacity: 0; transform: translateY(20px); }
             to { opacity: 1; transform: translateY(0); }
         }
-
         .slide-up {
             animation: slideUp 0.5s ease-out;
         }
-
         @keyframes slideUp {
             from { transform: translateY(30px); opacity: 0; }
             to { transform: translateY(0); opacity: 1; }
         }
-
         /* Tooltip Styling */
         .tooltip {
             font-size: 0.85rem;
         }
-
         /* Focus Styles */
         .btn:focus, .form-control:focus, .form-select:focus {
             outline: none;
             box-shadow: 0 0 0 0.2rem rgba(52, 152, 219, 0.25);
         }
-
         /* Active States */
         .btn:active {
             transform: scale(0.98);
         }
-
         /* Loading State */
         .loading-overlay {
             position: fixed;
@@ -943,11 +809,9 @@
             align-items: center;
             z-index: 9999;
         }
-
         [data-theme="dark"] .loading-overlay {
             background: rgba(0, 0, 0, 0.9);
         }
-
         .loading-spinner {
             width: 50px;
             height: 50px;
@@ -956,7 +820,6 @@
             border-radius: 50%;
             animation: spin 1s linear infinite;
         }
-
         /* File Upload Area */
         .upload-area {
             border: 2px dashed var(--secondary-color);
@@ -967,18 +830,15 @@
             cursor: pointer;
             background: rgba(52, 152, 219, 0.05);
         }
-
         .upload-area:hover {
             border-color: var(--primary-color);
             background: rgba(52, 152, 219, 0.1);
             transform: translateY(-5px);
         }
-
         .upload-area.dragover {
             background: rgba(52, 152, 219, 0.2);
             border-color: var(--primary-color);
         }
-
         .upload-area i {
             font-size: 3rem;
             color: var(--secondary-color);
@@ -993,7 +853,6 @@
             <i class="bi bi-moon-fill" id="themeIcon"></i>
         </button>
     </div>
-
     <!-- Header -->
     <header class="main-header fade-in">
         <div class="container">
@@ -1017,7 +876,6 @@
             </div>
         </div>
     </header>
-
     <div class="container">
         <!-- Statistics Cards -->
         <div class="row slide-up">
@@ -1074,7 +932,6 @@
                 </div>
             </div>
         </div>
-
         <!-- Careem Refunds Statistics -->
         <div class="row slide-up">
             <div class="col-md-3 col-sm-6">
@@ -1130,7 +987,6 @@
                 </div>
             </div>
         </div>
-
         <!-- Tab Navigation -->
         <ul class="nav nav-tabs" id="mainTabs" role="tablist">
             <li class="nav-item" role="presentation">
@@ -1144,7 +1000,6 @@
                 </button>
             </li>
         </ul>
-
         <!-- Tab Content -->
         <div class="tab-content" id="mainTabContent">
             <!-- Orders Tab -->
@@ -1266,7 +1121,6 @@
                         </div>
                     </form>
                 </div>
-
                 <!-- Filters Section -->
                 <div class="filter-section slide-up">
                     <div class="row align-items-center">
@@ -1298,7 +1152,6 @@
                         </div>
                     </div>
                 </div>
-
                 <!-- Orders Table -->
                 <div class="table-container slide-up">
                     <div class="d-flex justify-content-between align-items-center mb-4">
@@ -1342,7 +1195,6 @@
                     </div>
                 </div>
             </div>
-
             <!-- Careem Refunds Tab -->
             <div class="tab-pane fade" id="careem" role="tabpanel">
                 <!-- File Upload Section -->
@@ -1358,7 +1210,6 @@
                         </button>
                     </div>
                 </div>
-
                 <!-- Filters Section -->
                 <div class="filter-section slide-up">
                     <div class="row align-items-center">
@@ -1387,7 +1238,6 @@
                         </div>
                     </div>
                 </div>
-
                 <!-- Careem Refunds Table -->
                 <div class="table-container careem-table-container slide-up">
                     <div class="d-flex justify-content-between align-items-center mb-4">
@@ -1431,7 +1281,6 @@
             </div>
         </div>
     </div>
-
     <!-- Template Modal -->
     <div class="modal fade" id="templateModal" tabindex="-1" aria-labelledby="templateModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-lg">
@@ -1545,10 +1394,8 @@
             </div>
         </div>
     </div>
-
     <!-- Toast Notification -->
     <div class="toast-container" id="toastContainer"></div>
-
     <!-- Footer -->
     <footer class="footer">
         <div class="container">
@@ -1556,7 +1403,6 @@
             <p class="mb-0 mt-1 opacity-75">Developed by Restaurant Management Team</p>
         </div>
     </footer>
-
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         // Initialize data
@@ -1582,9 +1428,7 @@ files.fm`
             careem: {
                 subject: 'Dispute for Order [ORDER_ID]',
                 content: `Dear Careem Team,
-
 We are writing to dispute the refund for Order [ORDER_ID] placed on [ORDER_DATE].
-
 Order Details:
 - Order ID: [ORDER_ID]
 - Order Date: [ORDER_DATE]
@@ -1592,259 +1436,187 @@ Order Details:
 - Basket Amount: [BASKET_AMOUNT]
 - Refund Amount: [REFUND_AMOUNT]
 - Status: [STATUS]
-
 After thorough investigation, we find the customer complaint to be incorrect:
-
 Customer Complaint: [COMPLAINT]
-
 Our internal review shows:
 - The order was prepared according to specifications
 - All items were included as ordered
 - Quality standards were maintained
 - The order was complete when handed to the driver
-
 No supporting evidence has been provided to validate this complaint.
-
 We request immediate reversal of this refund as it is unjustified.
-
 Best regards,
 [BRANCH] Management`
             },
             wrong: {
                 subject: 'Dispute for Order [REFERENCE]',
                 content: `Dear [COMPANY] Team,
-
 We are writing to dispute the adjustment for Order [REFERENCE] (Order #[ORDER_ID]) from [BRANCH] regarding "[REASON]".
-
 Order Details:
 - Reference ID: [REFERENCE]
 - Order Number: [ORDER_ID]
 - Branch: [BRANCH]
 - Date: [DATE]
-
 After thorough investigation, we find the customer complaint to be incorrect:
-
 Customer Complaint: [COMPLAINT]
-
 Our internal review shows:
 - The order was prepared according to specifications
 - All items were included as ordered
 - Quality standards were maintained
 - The order was complete when handed to the driver
-
 No supporting evidence has been provided to validate this complaint.
-
 We request immediate reversal of this adjustment as it is unjustified.
-
 Best regards,
 [BRANCH] Management`
             },
             missing: {
                 subject: 'Dispute for Order [REFERENCE]',
                 content: `Dear [COMPANY] Team,
-
 We are writing to dispute the adjustment for Order [REFERENCE] (Order #[ORDER_ID]) from [BRANCH] regarding "[REASON]".
-
 Order Details:
 - Reference ID: [REFERENCE]
 - Order Number: [ORDER_ID]
 - Branch: [BRANCH]
 - Date: [DATE]
-
 After thorough investigation, we find the customer complaint to be incorrect:
-
 Customer Complaint: [COMPLAINT]
-
 Our internal review shows:
 - The order was prepared with all items included
 - All items were properly packaged
 - Quality standards were maintained
 - The order was complete when handed to the driver
-
 No supporting evidence has been provided to validate this complaint.
-
 We request immediate reversal of this adjustment as it is unjustified.
-
 Best regards,
 [BRANCH] Management`
             },
             delay: {
                 subject: 'Dispute for Order [REFERENCE]',
                 content: `Dear [COMPANY] Team,
-
 We are writing to dispute the adjustment for Order [REFERENCE] (Order #[ORDER_ID]) from [BRANCH] regarding "[REASON]".
-
 Order Details:
 - Reference ID: [REFERENCE]
 - Order Number: [ORDER_ID]
 - Branch: [BRANCH]
 - Date: [DATE]
-
 After thorough investigation, we find the customer complaint to be incorrect:
-
 Customer Complaint: [COMPLAINT]
-
 Our internal review shows:
 - The order was prepared within the standard time
 - The order was ready for pickup at the scheduled time
 - Quality standards were maintained
 - The order was handed over to the driver on time
-
 No supporting evidence has been provided to validate this complaint.
-
 We request immediate reversal of this adjustment as it is unjustified.
-
 Best regards,
 [BRANCH] Management`
             },
             quality: {
                 subject: 'Dispute for Order [REFERENCE]',
                 content: `Dear [COMPANY] Team,
-
 We are writing to dispute the adjustment for Order [REFERENCE] (Order #[ORDER_ID]) from [BRANCH] regarding "[REASON]".
-
 Order Details:
 - Reference ID: [REFERENCE]
 - Order Number: [ORDER_ID]
 - Branch: [BRANCH]
 - Date: [DATE]
-
 After thorough investigation, we find the customer complaint to be incorrect:
-
 Customer Complaint: [COMPLAINT]
-
 Our internal review shows:
 - The order was prepared according to quality standards
 - Fresh ingredients were used
 - Proper cooking temperatures were maintained
 - Quality checks were performed before packaging
-
 No supporting evidence has been provided to validate this complaint.
-
 We request immediate reversal of this adjustment as it is unjustified.
-
 Best regards,
 [BRANCH] Management`
             },
             tech: {
                 subject: 'Dispute for Order [REFERENCE]',
                 content: `Dear [COMPANY] Team,
-
 We are writing to dispute the adjustment for Order [REFERENCE] (Order #[ORDER_ID]) from [BRANCH] regarding "[REASON]".
-
 Order Details:
 - Reference ID: [REFERENCE]
 - Order Number: [ORDER_ID]
 - Branch: [BRANCH]
 - Date: [DATE]
-
 After thorough investigation, we find the customer complaint to be incorrect:
-
 Customer Complaint: [COMPLAINT]
-
 Our internal review shows:
 - The order was prepared and handed over without issues
 - Any technical issues occurred after the order left our outlet
 - Our systems were functioning properly at the time of order preparation
-
 No supporting evidence has been provided to validate this complaint.
-
 We request immediate reversal of this adjustment as it is unjustified.
-
 Best regards,
 [BRANCH] Management`
             },
             hygiene: {
                 subject: 'Dispute for Order [REFERENCE]',
                 content: `Dear [COMPANY] Team,
-
 We are writing to dispute the adjustment for Order [REFERENCE] (Order #[ORDER_ID]) from [BRANCH] regarding "[REASON]".
-
 Order Details:
 - Reference ID: [REFERENCE]
 - Order Number: [ORDER_ID]
 - Branch: [BRANCH]
 - Date: [DATE]
-
 After thorough investigation, we find the customer complaint to be incorrect:
-
 Customer Complaint: [COMPLAINT]
-
 Our internal review shows:
 - The order was prepared following strict hygiene protocols
 - Our kitchen maintains high cleanliness standards
 - Staff follow proper hygiene procedures
 - Regular health inspections are conducted
-
 No supporting evidence has been provided to validate this complaint.
-
 We request immediate reversal of this adjustment as it is unjustified.
-
 Best regards,
 [BRANCH] Management`
             },
             damaged: {
                 subject: 'Dispute for Order [REFERENCE]',
                 content: `Dear [COMPANY] Team,
-
 We are writing to dispute the adjustment for Order [REFERENCE] (Order #[ORDER_ID]) from [BRANCH] regarding "[REASON]".
-
 Order Details:
 - Reference ID: [REFERENCE]
 - Order Number: [ORDER_ID]
 - Branch: [BRANCH]
 - Date: [DATE]
-
 After thorough investigation, we find the customer complaint to be incorrect:
-
 Customer Complaint: [COMPLAINT]
-
 Our internal review shows:
 - The order was prepared and packaged with care
 - All items were properly secured to prevent damage
 - The order was complete when handed to the driver
 - Proper handling procedures were followed
-
 No supporting evidence has been provided to validate this complaint.
-
 We request immediate reversal of this adjustment as it is unjustified.
-
 Best regards,
 [BRANCH] Management`
             },
             clarification: {
                 subject: 'Clarification for Order [REFERENCE]',
                 content: `Dear [COMPANY] Team,
-
 We are seeking clarification regarding the adjustment made to Order [REFERENCE] (Order #[ORDER_ID]) from [BRANCH] regarding "[REASON]".
-
 Order Details:
 - Reference ID: [REFERENCE]
 - Order Number: [ORDER_ID]
 - Branch: [BRANCH]
 - Date: [DATE]
-
 We have received notification of an adjustment but require additional information:
-
 Customer Complaint: [COMPLAINT]
-
 We need clarification on:
 - What specific issue was reported?
 - Was any evidence provided by the customer?
 - Can you share the details of the complaint?
 - How does this relate to our outlet's operations?
-
 Our internal records show the order was processed correctly.
-
 Please provide the necessary details so we can investigate this matter thoroughly.
-
 Thank you for your assistance.
-
 Sincerely,
 [BRANCH] Team`
             }
         };
-
         // Careem reason mapping
         const careemReasonMapping = {
             "Missing or unavailable items (Main item)": "missing",
@@ -1856,10 +1628,9 @@ Sincerely,
             "Foul Smell": "quality",
             "Food is overcooked/burnt": "quality"
         };
-
         // Load data from LocalStorage on page load
         document.addEventListener('DOMContentLoaded', function() {
-            loadPersisted();
+            loadTheme();
             loadData();
             loadCareemData();
             updateDateTime();
@@ -1881,7 +1652,6 @@ Sincerely,
                 }, 100);
             });
         });
-
         // Setup event listeners
         function setupEventListeners() {
             // Form submission
@@ -1903,7 +1673,6 @@ Sincerely,
                     }, 10);
                 });
             });
-
             // Careem filter buttons
             document.querySelectorAll('[data-careem-filter]').forEach(btn => {
                 btn.addEventListener('click', function() {
@@ -1920,7 +1689,6 @@ Sincerely,
                     }, 10);
                 });
             });
-
             // File upload for Careem
             const careemFileInput = document.getElementById('careemFileInput');
             const careemUploadArea = document.getElementById('careemUploadArea');
@@ -1948,7 +1716,6 @@ Sincerely,
                 }
             });
         }
-
         // Toggle theme
         function toggleTheme() {
             const html = document.documentElement;
@@ -1964,7 +1731,6 @@ Sincerely,
                 localStorage.setItem('theme', 'dark');
             }
         }
-
         // Load saved theme
         function loadTheme() {
             const savedTheme = localStorage.getItem('theme');
@@ -1975,7 +1741,6 @@ Sincerely,
                 themeIcon.className = 'bi bi-sun-fill';
             }
         }
-
         // Update date and time
         function updateDateTime() {
             const now = new Date();
@@ -1985,7 +1750,6 @@ Sincerely,
             document.getElementById('currentDate').textContent = now.toLocaleDateString('en-US', dateOptions);
             document.getElementById('currentTime').textContent = now.toLocaleTimeString('en-US', timeOptions);
         }
-
         // Handle form submission
         function handleFormSubmit(e) {
             e.preventDefault();
@@ -2037,7 +1801,6 @@ Sincerely,
                 }, 100);
             }, 500);
         }
-
         // Handle Careem file upload
         function handleCareemFileUpload(e) {
             const file = e.target.files[0];
@@ -2085,7 +1848,6 @@ Sincerely,
             };
             reader.readAsArrayBuffer(file);
         }
-
         // Get filename from URL
         function getFilenameFromUrl(url) {
             try {
@@ -2095,14 +1857,12 @@ Sincerely,
                 return last.includes('.') ? last : (last ? last + '.mp4' : '');
             } catch { return ''; }
         }
-
         // Format date
         function formatDate(dateStr) {
             if (!dateStr) return '';
             const date = new Date(dateStr);
             return date.toISOString().slice(0, 16);
         }
-
         // Render orders table
         function renderOrders() {
             const tbody = document.getElementById('ordersTableBody');
@@ -2157,7 +1917,6 @@ Sincerely,
                 }, index * 50);
             });
         }
-
         // Render Careem refunds table
         function renderCareemRefunds() {
             const tbody = document.getElementById('careemRefundsTableBody');
@@ -2205,7 +1964,6 @@ Sincerely,
                 }, index * 50);
             });
         }
-
         // Format display date
         function formatDisplayDate(dateStr) {
             if (!dateStr) return '';
@@ -2218,7 +1976,6 @@ Sincerely,
                 minute: '2-digit'
             });
         }
-
         // Get reason badge
         function getReasonBadge(reason) {
             if (!reason) return '-';
@@ -2248,7 +2005,6 @@ Sincerely,
             
             return `<span class="reason-tag ${className}" title="${reason}"><i class="${icon}"></i>${reason}</span>`;
         }
-
         // Get Careem reason badge
         function getCareemReasonBadge(reason) {
             if (!reason) return '-';
@@ -2284,7 +2040,6 @@ Sincerely,
             
             return `<span class="reason-tag ${className}" title="${reason}"><i class="${icon}"></i>${reason}</span>`;
         }
-
         // Get company badge
         function getCompanyBadge(company) {
             if (!company) return '-';
@@ -2300,7 +2055,6 @@ Sincerely,
             
             return `<span class="company-badge ${className}"><i class="${icon}"></i>${company}</span>`;
         }
-
         // Update statistics
         function updateStatistics() {
             // Add animation to stat cards
@@ -2322,7 +2076,6 @@ Sincerely,
             const adjustmentValue = orders.reduce((sum, o) => sum + o.adjustment, 0);
             document.getElementById('adjustmentValue').textContent = '-' + adjustmentValue.toFixed(2) + ' AED';
         }
-
         // Update Careem statistics
         function updateCareemStatistics() {
             document.getElementById('totalCareemRefunds').textContent = careemRefunds.length;
@@ -2336,7 +2089,6 @@ Sincerely,
             const pendingDisputes = careemRefunds.filter(r => !r.disputed && r.status === 'Deducted');
             document.getElementById('pendingDisputes').textContent = pendingDisputes.length;
         }
-
         // Select objection type
         function selectObjectionType(element) {
             document.querySelectorAll('.objection-option').forEach(opt => {
@@ -2349,7 +2101,6 @@ Sincerely,
             // Add pulse animation
             element.style.animation = 'pulse 0.5s ease-in-out';
         }
-
         // Open template modal
         function openTemplateModal(orderId) {
             const order = orders.find(o => o.id === orderId);
@@ -2399,7 +2150,6 @@ Sincerely,
             const modal = new bootstrap.Modal(document.getElementById('templateModal'));
             modal.show();
         }
-
         // Open Careem template modal
         function openCareemTemplateModal(refundId) {
             const refund = careemRefunds.find(r => r.id === refundId);
@@ -2441,7 +2191,6 @@ Sincerely,
             const modal = new bootstrap.Modal(document.getElementById('templateModal'));
             modal.show();
         }
-
         // Update template content based on company, objection type, and reason
         function updateTemplateContent() {
             const company = document.getElementById('modalCompany').value;
@@ -2499,7 +2248,6 @@ Sincerely,
             
             document.getElementById('templateContent').textContent = content;
         }
-
         // Update Careem template content
         function updateCareemTemplateContent(refund) {
             const company = 'Careem';
@@ -2530,7 +2278,6 @@ Sincerely,
             
             document.getElementById('templateContent').textContent = content;
         }
-
         // Copy template to clipboard
         function copyTemplate() {
             const content = document.getElementById('templateContent').textContent;
@@ -2540,7 +2287,6 @@ Sincerely,
                 showToast('Failed to copy text, please copy manually', 'error');
             });
         }
-
         // Persist video evidence
         function persistVideoEvidence() {
             const refId = document.getElementById('modalRefId').textContent.trim();
@@ -2568,7 +2314,6 @@ Sincerely,
             localStorage.setItem('videoEvidence', JSON.stringify(window.videoEvidence));
             saveData();
         }
-
         // Send email (opens default email client)
         function sendEmail() {
             persistVideoEvidence();
@@ -2603,7 +2348,6 @@ Sincerely,
             showToast('Opening email client...', 'success');
             bootstrap.Modal.getInstance(document.getElementById('templateModal')).hide();
         }
-
         // Delete order
         function deleteOrder(orderId) {
             if (confirm('Are you sure you want to delete this order?')) {
@@ -2622,7 +2366,6 @@ Sincerely,
                 }, 300);
             }
         }
-
         // Delete Careem refund
         function deleteCareemRefund(refundId) {
             if (confirm('Are you sure you want to delete this Careem refund?')) {
@@ -2641,7 +2384,6 @@ Sincerely,
                 }, 300);
             }
         }
-
         // Clear all data
         function clearAllData() {
             if (confirm('Are you sure you want to clear all data? This action cannot be undone.')) {
@@ -2653,7 +2395,6 @@ Sincerely,
                 showToast('All data cleared!', 'warning');
             }
         }
-
         // Clear Careem data
         function clearCareemData() {
             if (confirm('Are you sure you want to clear all Careem refund data? This action cannot be undone.')) {
@@ -2664,7 +2405,6 @@ Sincerely,
                 showToast('Careem data cleared!', 'warning');
             }
         }
-
         // Export to Excel
         function exportToExcel() {
             showToast('Preparing Excel export...', 'success');
@@ -2692,6 +2432,132 @@ Sincerely,
                 showToast('Excel file exported successfully!', 'success');
             }, 500);
         }
-
+        // Export to CSV
+        function exportCSV() {
+            showToast('Preparing CSV export...', 'success');
+            
+            setTimeout(() => {
+                let csvContent = "Reference ID,Order Number,Order Date,Branch,Company,Order Amount,Adjust Amount,Adjustment Reason,Customer Complaint,Video URL,Video Filename,Status\n";
+                
+                orders.forEach(o => {
+                    csvContent += `${o.refId},${o.orderNumber},"${formatDisplayDate(o.date)}",${o.branch},${o.company},${o.amount},${o.adjustment},"${o.reason}","${o.complaint}","${o.videoUrl || ''}","${o.videoFilename || ''}",${o.status}\n`;
+                });
+                
+                const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+                const link = document.createElement("a");
+                const url = URL.createObjectURL(blob);
+                link.setAttribute("href", url);
+                link.setAttribute("download", "orders_report.csv");
+                link.style.visibility = 'hidden';
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                
+                showToast('CSV file exported successfully!', 'success');
+            }, 500);
+        }
         // Export Careem to Excel
         function exportCareemToExcel() {
+            showToast('Preparing Excel export...', 'success');
+            
+            setTimeout(() => {
+                const ws = XLSX.utils.json_to_sheet(careemRefunds.map(r => ({
+                    'Order ID': r.orderId,
+                    'Order Date & Time': r.orderDateTime,
+                    'Refund Date & Time': r.refundDateTime,
+                    'Basket Amount': r.basketAmount,
+                    'Refund Amount': r.refundAmount,
+                    'Status': r.status,
+                    'Reason': r.reason,
+                    'Disputed': r.disputed ? 'Yes' : 'No'
+                })));
+                
+                const wb = XLSX.utils.book_new();
+                XLSX.utils.book_append_sheet(wb, ws, 'Careem Refunds');
+                XLSX.writeFile(wb, 'careem_refunds_report.xlsx');
+                
+                showToast('Excel file exported successfully!', 'success');
+            }, 500);
+        }
+        // Export Careem to CSV
+        function exportCareemToCSV() {
+            showToast('Preparing CSV export...', 'success');
+            
+            setTimeout(() => {
+                let csvContent = "Order ID,Order Date & Time,Refund Date & Time,Basket Amount,Refund Amount,Status,Reason,Disputed\n";
+                
+                careemRefunds.forEach(r => {
+                    csvContent += `${r.orderId},"${r.orderDateTime}","${r.refundDateTime}",${r.basketAmount},${r.refundAmount},${r.status},"${r.reason}",${r.disputed ? 'Yes' : 'No'}\n`;
+                });
+                
+                const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+                const link = document.createElement("a");
+                const url = URL.createObjectURL(blob);
+                link.setAttribute("href", url);
+                link.setAttribute("download", "careem_refunds_report.csv");
+                link.style.visibility = 'hidden';
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                
+                showToast('CSV file exported successfully!', 'success');
+            }, 500);
+        }
+        // Show toast notification
+        function showToast(message, type = 'success') {
+            const toastContainer = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            toast.className = `custom-toast ${type}`;
+            
+            let icon = '';
+            switch(type) {
+                case 'success': icon = 'bi-check-circle-fill'; break;
+                case 'error': icon = 'bi-x-circle-fill'; break;
+                case 'warning': icon = 'bi-exclamation-triangle-fill'; break;
+            }
+            
+            toast.innerHTML = `<i class="bi ${icon}"></i>${message}`;
+            toastContainer.appendChild(toast);
+            
+            // Auto remove after 3 seconds
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                toast.style.transform = 'translateX(-100%)';
+                setTimeout(() => {
+                    toastContainer.removeChild(toast);
+                }, 300);
+            }, 3000);
+        }
+        // Save data to LocalStorage
+        function saveData() {
+            localStorage.setItem('orderManagementData', JSON.stringify(orders));
+        }
+        // Load data from LocalStorage
+        function loadData() {
+            const data = localStorage.getItem('orderManagementData');
+            if (data) {
+                orders = JSON.parse(data);
+            }
+            
+            // Load video evidence
+            const videoData = localStorage.getItem('videoEvidence');
+            if (videoData) {
+                window.videoEvidence = JSON.parse(videoData);
+            } else {
+                window.videoEvidence = [];
+            }
+        }
+        // Save Careem data to LocalStorage
+        function saveCareemData() {
+            localStorage.setItem('careemRefunds', JSON.stringify(careemRefunds));
+        }
+        // Load Careem data from LocalStorage
+        function loadCareemData() {
+            const data = localStorage.getItem('careemRefunds');
+            if (data) {
+                careemRefunds = JSON.parse(data);
+            }
+        }
+    </script>
+</body>
+</html>
