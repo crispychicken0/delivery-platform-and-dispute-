@@ -19,6 +19,7 @@
             --card-shadow: 0 4px 15px rgba(0,0,0,0.08);
             --hover-shadow: 0 8px 25px rgba(0,0,0,0.15);
             --transition: all 0.3s ease;
+            --cancel-color: #e74c3c;
         }
         /* Dark Mode Variables */
         [data-theme="dark"] {
@@ -119,6 +120,20 @@
         .stats-card:hover .icon {
             transform: scale(1.1);
             opacity: 1;
+        }
+        /* Canceled Orders Card */
+        .cancel-stats-card {
+            background: linear-gradient(135deg, #f8d7da, #f5c6cb);
+            color: #721c24;
+        }
+        .cancel-stats-card .icon {
+            color: #721c24;
+        }
+        .cancel-stats-card::before {
+            background: linear-gradient(90deg, #e74c3c, #c0392b);
+        }
+        .cancel-table-container {
+            border-left: 5px solid #e74c3c;
         }
         /* Enhanced Form Section */
         .form-section {
@@ -242,6 +257,11 @@
             color: white;
             box-shadow: 0 4px 15px rgba(231, 76, 60, 0.3);
         }
+        .status-cancelled {
+            background: linear-gradient(135deg, #e74c3c, #c0392b);
+            color: white;
+            box-shadow: 0 4px 15px rgba(231, 76, 60, 0.3);
+        }
         /* Enhanced Buttons */
         .btn-template {
             background: linear-gradient(135deg, var(--warning-color), #e67e22);
@@ -263,6 +283,36 @@
         }
         .btn-template:hover i {
             transform: translateX(3px);
+        }
+        .btn-cancel {
+            background: linear-gradient(135deg, #e74c3c, #c0392b);
+            color: white;
+            border: none;
+            padding: 0.6rem 1.2rem;
+            border-radius: 10px;
+            font-size: 0.85rem;
+            transition: var(--transition);
+            position: relative;
+            overflow: hidden;
+        }
+        .btn-cancel:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(231, 76, 60, 0.4);
+        }
+        .btn-report {
+            background: linear-gradient(135deg, #6f42c1, #563d7c);
+            color: white;
+            border: none;
+            padding: 0.6rem 1.2rem;
+            border-radius: 10px;
+            font-size: 0.85rem;
+            transition: var(--transition);
+            position: relative;
+            overflow: hidden;
+        }
+        .btn-report:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(111, 66, 193, 0.4);
         }
         /* Enhanced Modal */
         .modal-content {
@@ -696,6 +746,40 @@
         .careem-table-container {
             border-left: 5px solid #c2185b;
         }
+        /* Import Only Badge */
+        .import-only-badge {
+            background: linear-gradient(135deg, #d1ecf1, #bee5eb);
+            color: #0c5460;
+            border-radius: 12px;
+            padding: 0.3rem 0.8rem;
+            font-size: 0.75rem;
+            margin-left: 0.8rem;
+            box-shadow: 0 4px 15px rgba(13, 110, 253, 0.3);
+        }
+        /* Report Options */
+        .report-option {
+            background: white;
+            border: 2px solid #e0e0e0;
+            border-radius: 12px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            transition: var(--transition);
+            cursor: pointer;
+        }
+        [data-theme="dark"] .report-option {
+            background: var(--card-bg);
+            border-color: var(--border-color);
+        }
+        .report-option:hover {
+            border-color: var(--secondary-color);
+            background: rgba(52, 152, 219, 0.05);
+            transform: translateY(-3px);
+        }
+        .report-option.selected {
+            border-color: var(--secondary-color);
+            background: rgba(52, 152, 219, 0.1);
+            box-shadow: 0 4px 15px rgba(52, 152, 219, 0.2);
+        }
         /* Responsive Improvements */
         @media (max-width: 768px) {
             .stats-card {
@@ -710,7 +794,7 @@
                 font-size: 0.9rem;
             }
             
-            .btn-template {
+            .btn-template, .btn-cancel, .btn-report {
                 padding: 0.4rem 0.8rem;
                 font-size: 0.8rem;
             }
@@ -932,6 +1016,61 @@
                 </div>
             </div>
         </div>
+        <!-- Canceled Orders Statistics -->
+        <div class="row slide-up">
+            <div class="col-md-3 col-sm-6">
+                <div class="card stats-card cancel-stats-card">
+                    <div class="card-body d-flex justify-content-between align-items-center">
+                        <div>
+                            <h5>Canceled Orders</h5>
+                            <h3 id="totalCanceledOrders">0</h3>
+                        </div>
+                        <div class="icon">
+                            <i class="bi bi-x-circle"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 col-sm-6">
+                <div class="card stats-card cancel-stats-card">
+                    <div class="card-body d-flex justify-content-between align-items-center">
+                        <div>
+                            <h5>Canceled Value</h5>
+                            <h3 id="canceledValue">0 AED</h3>
+                        </div>
+                        <div class="icon">
+                            <i class="bi bi-cash-stack"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 col-sm-6">
+                <div class="card stats-card cancel-stats-card">
+                    <div class="card-body d-flex justify-content-between align-items-center">
+                        <div>
+                            <h5>Today Canceled</h5>
+                            <h3 id="todayCanceledOrders">0</h3>
+                        </div>
+                        <div class="icon">
+                            <i class="bi bi-calendar-x"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 col-sm-6">
+                <div class="card stats-card cancel-stats-card">
+                    <div class="card-body d-flex justify-content-between align-items-center">
+                        <div>
+                            <h5>This Week</h5>
+                            <h3 id="weekCanceledOrders">0</h3>
+                        </div>
+                        <div class="icon">
+                            <i class="bi bi-calendar-week"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
         <!-- Careem Refunds Statistics -->
         <div class="row slide-up">
             <div class="col-md-3 col-sm-6">
@@ -995,8 +1134,14 @@
                 </button>
             </li>
             <li class="nav-item" role="presentation">
+                <button class="nav-link" id="canceled-tab" data-bs-toggle="tab" data-bs-target="#canceled" type="button" role="tab">
+                    <i class="bi bi-x-circle me-2"></i>Canceled Orders
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
                 <button class="nav-link" id="careem-tab" data-bs-toggle="tab" data-bs-target="#careem" type="button" role="tab">
                     <i class="bi bi-car-front me-2"></i>Careem Refunds
+                    <span class="import-only-badge">Import Only</span>
                 </button>
             </li>
         </ul>
@@ -1195,11 +1340,79 @@
                     </div>
                 </div>
             </div>
+            <!-- Canceled Orders Tab -->
+            <div class="tab-pane fade" id="canceled" role="tabpanel">
+                <!-- Filters Section -->
+                <div class="filter-section slide-up">
+                    <div class="row align-items-center">
+                        <div class="col-md-6">
+                            <h5 class="mb-0"><i class="bi bi-funnel-fill me-2"></i>Filter by:</h5>
+                        </div>
+                        <div class="col-md-6 text-md-end mt-3 mt-md-0">
+                            <button class="filter-btn active" data-cancel-filter="all">
+                                <i class="bi bi-grid-3x3-gap me-1"></i>All
+                            </button>
+                            <button class="filter-btn" data-cancel-filter="today">
+                                <i class="bi bi-calendar-day me-1"></i>Today
+                            </button>
+                            <button class="filter-btn" data-cancel-filter="week">
+                                <i class="bi bi-calendar-week me-1"></i>This Week
+                            </button>
+                            <button class="filter-btn" data-cancel-filter="month">
+                                <i class="bi bi-calendar-month me-1"></i>This Month
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <!-- Canceled Orders Table -->
+                <div class="table-container cancel-table-container slide-up">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <h4 class="mb-0"><i class="bi bi-x-circle me-2"></i>Canceled Orders</h4>
+                        <div>
+                            <button class="btn btn-sm btn-outline-secondary me-2" onclick="exportCanceledToExcel()">
+                                <i class="bi bi-download me-1"></i>Export Excel
+                            </button>
+                            <button class="btn btn-sm btn-outline-primary" onclick="exportCanceledToCSV()">
+                                <i class="bi bi-file-earmark-spreadsheet me-1"></i>Export CSV
+                            </button>
+                            <button class="btn btn-sm btn-outline-primary" onclick="window.print()">
+                                <i class="bi bi-printer me-1"></i>Print Report
+                            </button>
+                            <button class="btn btn-sm btn-outline-danger ms-2" onclick="clearCanceledData()">
+                                <i class="bi bi-trash me-1"></i>Clear All
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="table-responsive">
+                        <table class="table table-hover" id="canceledOrdersTable">
+                            <thead>
+                                <tr>
+                                    <th>Branch</th>
+                                    <th>Order #</th>
+                                    <th>Reference</th>
+                                    <th>Cancellation Date</th>
+                                    <th>Amount</th>
+                                    <th>Reason</th>
+                                    <th>Company</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="canceledOrdersTableBody">
+                                <!-- Canceled orders will be dynamically added here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
             <!-- Careem Refunds Tab -->
             <div class="tab-pane fade" id="careem" role="tabpanel">
                 <!-- File Upload Section -->
                 <div class="form-section slide-up">
-                    <h5 class="mb-3"><i class="bi bi-cloud-upload-fill me-2"></i>Import Careem Refunds Data</h5>
+                    <h5 class="mb-3">
+                        <i class="bi bi-cloud-upload-fill me-2"></i>Import Careem Refunds Data
+                        <span class="import-only-badge">Manual entry not available</span>
+                    </h5>
                     <div class="upload-area" id="careemUploadArea">
                         <i class="bi bi-file-earmark-spreadsheet"></i>
                         <p class="mb-2">Drag & drop your Careem refunds Excel/CSV file here</p>
@@ -1251,6 +1464,9 @@
                             </button>
                             <button class="btn btn-sm btn-outline-primary" onclick="window.print()">
                                 <i class="bi bi-printer me-1"></i>Print Report
+                            </button>
+                            <button class="btn btn-report btn-sm ms-2" onclick="openCareemReportModal()">
+                                <i class="bi bi-file-earmark-text me-1"></i>Generate Report
                             </button>
                             <button class="btn btn-sm btn-outline-danger ms-2" onclick="clearCareemData()">
                                 <i class="bi bi-trash me-1"></i>Clear All
@@ -1394,6 +1610,158 @@
             </div>
         </div>
     </div>
+    <!-- Cancel Order Modal -->
+    <div class="modal fade" id="cancelOrderModal" tabindex="-1" aria-labelledby="cancelOrderModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header bg-danger text-white">
+                    <h5 class="modal-title" id="cancelOrderModalLabel">
+                        <i class="bi bi-x-circle me-2"></i>Cancel Order
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label"><strong>Order Number:</strong></label>
+                            <span id="cancelOrderNumber" class="form-control-plaintext"></span>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label"><strong>Reference ID:</strong></label>
+                            <span id="cancelRefId" class="form-control-plaintext"></span>
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label"><strong>Branch:</strong></label>
+                            <span id="cancelBranch" class="form-control-plaintext"></span>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label"><strong>Amount:</strong></label>
+                            <span id="cancelAmount" class="form-control-plaintext"></span>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="cancelReason" class="form-label"><strong>Cancellation Reason:</strong></label>
+                        <select class="form-select" id="cancelReason" required>
+                            <option value="">Select Reason</option>
+                            <option value="Customer request">Customer request</option>
+                            <option value="Item unavailable">Item unavailable</option>
+                            <option value="Technical issue">Technical issue</option>
+                            <option value="Payment issue">Payment issue</option>
+                            <option value="Duplicate order">Duplicate order</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="cancelNotes" class="form-label"><strong>Additional Notes:</strong></label>
+                        <textarea class="form-control" id="cancelNotes" rows="3"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="bi bi-x-circle me-1"></i>Close
+                    </button>
+                    <button type="button" class="btn btn-danger" onclick="confirmCancelOrder()">
+                        <i class="bi bi-check-circle me-1"></i>Confirm Cancellation
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Careem Report Modal -->
+    <div class="modal fade" id="careemReportModal" tabindex="-1" aria-labelledby="careemReportModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="careemReportModalLabel">
+                        <i class="bi bi-file-earmark-text me-2"></i>Generate Careem Refunds Report
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="reportStartDate" class="form-label"><strong>Start Date:</strong></label>
+                            <input type="date" class="form-control" id="reportStartDate">
+                        </div>
+                        <div class="col-md-6">
+                            <label for="reportEndDate" class="form-label"><strong>End Date:</strong></label>
+                            <input type="date" class="form-control" id="reportEndDate">
+                        </div>
+                    </div>
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="reportStatus" class="form-label"><strong>Status:</strong></label>
+                            <select class="form-select" id="reportStatus">
+                                <option value="all">All Statuses</option>
+                                <option value="Deducted">Deducted</option>
+                                <option value="Pending">Pending</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="reportReason" class="form-label"><strong>Reason:</strong></label>
+                            <select class="form-select" id="reportReason">
+                                <option value="all">All Reasons</option>
+                                <option value="missing">Missing Item</option>
+                                <option value="damaged">Spilled/Damaged</option>
+                                <option value="quality">Quality Issue</option>
+                                <option value="wrong">Wrong Item</option>
+                                <option value="hygiene">Hygiene</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-12">
+                            <label class="form-label"><strong>Report Options:</strong></label>
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <div class="report-option" id="reportSummary" onclick="selectReportOption(this)">
+                                        <i class="bi bi-file-text me-2"></i>
+                                        <strong>Summary Report</strong>
+                                        <p class="mb-0 small text-muted">Basic statistics and overview</p>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="report-option" id="reportDetailed" onclick="selectReportOption(this)">
+                                        <i class="bi bi-list-ul me-2"></i>
+                                        <strong>Detailed Report</strong>
+                                        <p class="mb-0 small text-muted">Complete list of all refunds</p>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="report-option" id="reportFinancial" onclick="selectReportOption(this)">
+                                        <i class="bi bi-cash-stack me-2"></i>
+                                        <strong>Financial Report</strong>
+                                        <p class="mb-0 small text-muted">Financial analysis and totals</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="template-container">
+                        <button class="copy-btn" onclick="copyCareemReport()">
+                            <i class="bi bi-clipboard me-1"></i>Copy Text
+                        </button>
+                        <div class="template-content" id="careemReportContent">
+                            <!-- Report content will be generated here -->
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="bi bi-x-circle me-1"></i>Close
+                    </button>
+                    <button type="button" class="btn btn-primary" onclick="sendCareemReport()">
+                        <i class="bi bi-send-fill me-1"></i>Send Email
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
     <!-- Toast Notification -->
     <div class="toast-container" id="toastContainer"></div>
     <!-- Footer -->
@@ -1407,10 +1775,14 @@
     <script>
         // Initialize data
         let orders = [];
+        let canceledOrders = [];
         let careemRefunds = [];
         let currentFilter = 'all';
+        let currentCancelFilter = 'all';
         let currentCareemFilter = 'all';
         let selectedObjectionType = 'pre-prepared';
+        let currentCancelOrderId = null;
+        let selectedReportOption = 'reportSummary';
         
         // Templates object
         const templates = {
@@ -1632,12 +2004,15 @@ Sincerely,
         document.addEventListener('DOMContentLoaded', function() {
             loadTheme();
             loadData();
+            loadCanceledData();
             loadCareemData();
             updateDateTime();
             setInterval(updateDateTime, 60000);
             updateStatistics();
+            updateCanceledStatistics();
             updateCareemStatistics();
             renderOrders();
+            renderCanceledOrders();
             renderCareemRefunds();
             setupEventListeners();
             
@@ -1660,19 +2035,38 @@ Sincerely,
             // Filter buttons
             document.querySelectorAll('.filter-btn').forEach(btn => {
                 btn.addEventListener('click', function() {
-                    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
-                    this.classList.add('active');
-                    currentFilter = this.getAttribute('data-filter');
-                    renderOrders();
+                    // Handle orders filters
+                    if (this.getAttribute('data-filter')) {
+                        document.querySelectorAll('[data-filter]').forEach(b => b.classList.remove('active'));
+                        this.classList.add('active');
+                        currentFilter = this.getAttribute('data-filter');
+                        renderOrders();
+                        
+                        // Add animation to table
+                        const tableContainer = document.querySelector('.table-container');
+                        tableContainer.style.animation = 'none';
+                        setTimeout(() => {
+                            tableContainer.style.animation = 'fadeIn 0.5s ease-in';
+                        }, 10);
+                    }
                     
-                    // Add animation to table
-                    const tableContainer = document.querySelector('.table-container');
-                    tableContainer.style.animation = 'none';
-                    setTimeout(() => {
-                        tableContainer.style.animation = 'fadeIn 0.5s ease-in';
-                    }, 10);
+                    // Handle canceled orders filters
+                    if (this.getAttribute('data-cancel-filter')) {
+                        document.querySelectorAll('[data-cancel-filter]').forEach(b => b.classList.remove('active'));
+                        this.classList.add('active');
+                        currentCancelFilter = this.getAttribute('data-cancel-filter');
+                        renderCanceledOrders();
+                        
+                        // Add animation to table
+                        const tableContainer = document.querySelector('.cancel-table-container');
+                        tableContainer.style.animation = 'none';
+                        setTimeout(() => {
+                            tableContainer.style.animation = 'fadeIn 0.5s ease-in';
+                        }, 10);
+                    }
                 });
             });
+            
             // Careem filter buttons
             document.querySelectorAll('[data-careem-filter]').forEach(btn => {
                 btn.addEventListener('click', function() {
@@ -1689,6 +2083,7 @@ Sincerely,
                     }, 10);
                 });
             });
+            
             // File upload for Careem
             const careemFileInput = document.getElementById('careemFileInput');
             const careemUploadArea = document.getElementById('careemUploadArea');
@@ -1899,10 +2294,69 @@ Sincerely,
                     <td>${getReasonBadge(order.reason)}</td>
                     <td>${getCompanyBadge(order.company)}</td>
                     <td class="action-cell">
+                        <button class="btn btn-cancel btn-sm me-1" onclick="openCancelOrderModal(${order.id})">
+                            <i class="bi bi-x-circle me-1"></i>Cancel
+                        </button>
                         <button class="btn btn-template btn-sm" onclick="openTemplateModal(${order.id})">
                             <i class="bi bi-envelope-paper-fill me-1"></i>Template
                         </button>
                         <button class="btn btn-sm btn-outline-danger" onclick="deleteOrder(${order.id})">
+                            <i class="bi bi-trash"></i>
+                        </button>
+                    </td>
+                `;
+                tbody.appendChild(row);
+                
+                // Animate row appearance
+                setTimeout(() => {
+                    row.style.transition = 'all 0.3s ease';
+                    row.style.opacity = '1';
+                    row.style.transform = 'translateY(0)';
+                }, index * 50);
+            });
+        }
+        // Render canceled orders table
+        function renderCanceledOrders() {
+            const tbody = document.getElementById('canceledOrdersTableBody');
+            tbody.innerHTML = '';
+            
+            let filteredOrders = canceledOrders;
+            if (currentCancelFilter !== 'all') {
+                const now = new Date();
+                const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+                const weekStart = new Date(today);
+                weekStart.setDate(today.getDate() - today.getDay());
+                const monthStart = new Date(today.getFullYear(), today.getMonth(), 1);
+                
+                filteredOrders = canceledOrders.filter(order => {
+                    const cancelDate = new Date(order.cancellationDate);
+                    switch(currentCancelFilter) {
+                        case 'today': 
+                            return cancelDate >= today;
+                        case 'week': 
+                            return cancelDate >= weekStart;
+                        case 'month': 
+                            return cancelDate >= monthStart;
+                        default: 
+                            return true;
+                    }
+                });
+            }
+            
+            filteredOrders.forEach((order, index) => {
+                const row = document.createElement('tr');
+                row.style.opacity = '0';
+                row.style.transform = 'translateY(20px)';
+                row.innerHTML = `
+                    <td>${order.branch}</td>
+                    <td>${order.orderNumber}</td>
+                    <td>${order.refId}</td>
+                    <td>${formatDisplayDate(order.cancellationDate)}</td>
+                    <td>${order.amount.toFixed(2)} AED</td>
+                    <td>${getCancelReasonBadge(order.cancelReason)}</td>
+                    <td>${getCompanyBadge(order.company)}</td>
+                    <td class="action-cell">
+                        <button class="btn btn-sm btn-outline-danger" onclick="deleteCanceledOrder(${order.id})">
                             <i class="bi bi-trash"></i>
                         </button>
                     </td>
@@ -2005,6 +2459,41 @@ Sincerely,
             
             return `<span class="reason-tag ${className}" title="${reason}"><i class="${icon}"></i>${reason}</span>`;
         }
+        // Get cancel reason badge
+        function getCancelReasonBadge(reason) {
+            if (!reason) return '-';
+            
+            let className = '';
+            let icon = '';
+            
+            switch(reason) {
+                case 'Customer request':
+                    className = 'reason-wrong';
+                    icon = 'bi bi-person';
+                    break;
+                case 'Item unavailable':
+                    className = 'reason-missing';
+                    icon = 'bi bi-box';
+                    break;
+                case 'Technical issue':
+                    className = 'reason-tech';
+                    icon = 'bi bi-gear';
+                    break;
+                case 'Payment issue':
+                    className = 'reason-damaged';
+                    icon = 'bi bi-credit-card';
+                    break;
+                case 'Duplicate order':
+                    className = 'reason-delay';
+                    icon = 'bi bi-files';
+                    break;
+                default:
+                    className = 'reason-quality';
+                    icon = 'bi bi-question-circle';
+            }
+            
+            return `<span class="reason-tag ${className}" title="${reason}"><i class="${icon}"></i>${reason}</span>`;
+        }
         // Get Careem reason badge
         function getCareemReasonBadge(reason) {
             if (!reason) return '-';
@@ -2075,6 +2564,31 @@ Sincerely,
             
             const adjustmentValue = orders.reduce((sum, o) => sum + o.adjustment, 0);
             document.getElementById('adjustmentValue').textContent = '-' + adjustmentValue.toFixed(2) + ' AED';
+        }
+        // Update canceled orders statistics
+        function updateCanceledStatistics() {
+            document.getElementById('totalCanceledOrders').textContent = canceledOrders.length;
+            
+            const canceledValue = canceledOrders.reduce((sum, o) => sum + o.amount, 0);
+            document.getElementById('canceledValue').textContent = '-' + canceledValue.toFixed(2) + ' AED';
+            
+            // Calculate today's canceled orders
+            const now = new Date();
+            const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+            const todayCanceled = canceledOrders.filter(order => {
+                const cancelDate = new Date(order.cancellationDate);
+                return cancelDate >= today;
+            });
+            document.getElementById('todayCanceledOrders').textContent = todayCanceled.length;
+            
+            // Calculate this week's canceled orders
+            const weekStart = new Date(today);
+            weekStart.setDate(today.getDate() - today.getDay());
+            const weekCanceled = canceledOrders.filter(order => {
+                const cancelDate = new Date(order.cancellationDate);
+                return cancelDate >= weekStart;
+            });
+            document.getElementById('weekCanceledOrders').textContent = weekCanceled.length;
         }
         // Update Careem statistics
         function updateCareemStatistics() {
@@ -2150,414 +2664,35 @@ Sincerely,
             const modal = new bootstrap.Modal(document.getElementById('templateModal'));
             modal.show();
         }
-        // Open Careem template modal
-        function openCareemTemplateModal(refundId) {
-            const refund = careemRefunds.find(r => r.id === refundId);
-            if (!refund) return;
+        // Open cancel order modal
+        function openCancelOrderModal(orderId) {
+            const order = orders.find(o => o.id === orderId);
+            if (!order) return;
+            
+            currentCancelOrderId = orderId;
             
             // Set modal data
-            document.getElementById('modalRefId').textContent = refund.orderId;
-            document.getElementById('modalOrderId').textContent = refund.orderId;
-            document.getElementById('modalBranch').textContent = 'Branch'; // This would need to be mapped from order data
-            document.getElementById('modalDate').textContent = refund.orderDateTime;
-            document.getElementById('modalReason').textContent = refund.reason || '-';
-            document.getElementById('modalCompany').value = 'Careem';
+            document.getElementById('cancelOrderNumber').textContent = order.orderNumber;
+            document.getElementById('cancelRefId').textContent = order.refId;
+            document.getElementById('cancelBranch').textContent = order.branch;
+            document.getElementById('cancelAmount').textContent = order.amount.toFixed(2) + ' AED';
             
-            // Display complaint
-            const complaintDiv = document.getElementById('modalComplaint');
-            complaintDiv.innerHTML = `Refund Amount: ${refund.refundAmount.toFixed(2)} AED<br>Status: ${refund.status}`;
-            
-            // Set video evidence
-            const videoUrl = '';
-            let videoFilename = '';
-            document.getElementById('modalVideoUrl').value = videoUrl;
-            document.getElementById('modalVideoFilename').value = videoFilename;
-            
-            // Reset objection type selection
-            document.querySelectorAll('.objection-option').forEach(opt => {
-                opt.classList.remove('selected');
-            });
-            document.querySelector('.objection-option[data-type="pre-prepared"]').classList.add('selected');
-            selectedObjectionType = 'pre-prepared';
-            
-            // Update template content
-            updateCareemTemplateContent(refund);
-            
-            // Add video badge if video exists
-            const modalLabel = document.getElementById('templateModalLabel');
-            modalLabel.innerHTML = `<i class="bi bi-envelope-paper-fill me-2"></i>Dispute Template`;
+            // Reset form
+            document.getElementById('cancelReason').value = '';
+            document.getElementById('cancelNotes').value = '';
             
             // Show modal
-            const modal = new bootstrap.Modal(document.getElementById('templateModal'));
+            const modal = new bootstrap.Modal(document.getElementById('cancelOrderModal'));
             modal.show();
         }
-        // Update template content based on company, objection type, and reason
-        function updateTemplateContent() {
-            const company = document.getElementById('modalCompany').value;
-            const refId = document.getElementById('modalRefId').textContent;
-            const orderId = document.getElementById('modalOrderId').textContent;
-            const branch = document.getElementById('modalBranch').textContent;
-            const date = document.getElementById('modalDate').textContent;
-            const reason = document.getElementById('modalReason').textContent;
-            const complaint = document.getElementById('modalComplaint').textContent;
-            const videoUrl = document.getElementById('modalVideoUrl').value;
-            const videoFilename = document.getElementById('modalVideoFilename').value;
+        // Confirm cancel order
+        function confirmCancelOrder() {
+            const cancelReason = document.getElementById('cancelReason').value;
+            const cancelNotes = document.getElementById('cancelNotes').value;
             
-            let template = '';
-            const reasonLower = reason.toLowerCase();
-            
-            // Select template based on company and objection type
-            if (company === 'Noon' && selectedObjectionType === 'pre-prepared') {
-                template = templates.noon;
-            } else if (company === 'Careem' && selectedObjectionType === 'pre-prepared') {
-                template = templates.careem;
-            } else if (selectedObjectionType === 'clarification') {
-                template = templates.clarification;
-            } else {
-                // Select template based on reason type
-                if (reasonLower.includes('wrong')) {
-                    template = templates.wrong;
-                } else if (reasonLower.includes('missing')) {
-                    template = templates.missing;
-                } else if (reasonLower.includes('delay')) {
-                    template = templates.delay;
-                } else if (reasonLower.includes('quality')) {
-                    template = templates.quality;
-                } else if (reasonLower.includes('tech')) {
-                    template = templates.tech;
-                } else if (reasonLower.includes('hygiene')) {
-                    template = templates.hygiene;
-                } else if (reasonLower.includes('damaged') || reasonLower.includes('spilled')) {
-                    template = templates.damaged;
-                } else {
-                    template = templates.wrong; // Default template
-                }
+            if (!cancelReason) {
+                showToast('Please select a cancellation reason', 'warning');
+                return;
             }
             
-            // Replace placeholders
-            let content = template.content
-                .replaceAll('[REFERENCE]', refId)
-                .replaceAll('[ORDER_ID]', orderId)
-                .replaceAll('[BRANCH]', branch)
-                .replaceAll('[DATE]', date)
-                .replaceAll('[REASON]', reason)
-                .replaceAll('[COMPANY]', company)
-                .replaceAll('[COMPLAINT]', complaint)
-                .replaceAll('[VIDEO_URL]', videoUrl || '—')
-                .replaceAll('[VIDEO_FILENAME]', videoFilename || '—');
-            
-            document.getElementById('templateContent').textContent = content;
-        }
-        // Update Careem template content
-        function updateCareemTemplateContent(refund) {
-            const company = 'Careem';
-            const orderId = refund.orderId;
-            const orderDate = refund.orderDateTime;
-            const refundDate = refund.refundDateTime;
-            const basketAmount = refund.basketAmount;
-            const refundAmount = refund.refundAmount;
-            const status = refund.status;
-            const reason = refund.reason;
-            const complaint = `Refund Amount: ${refundAmount.toFixed(2)} AED\nStatus: ${status}`;
-            const videoUrl = '';
-            const videoFilename = '';
-            
-            let template = templates.careem;
-            
-            // Replace placeholders
-            let content = template.content
-                .replaceAll('[ORDER_ID]', orderId)
-                .replaceAll('[ORDER_DATE]', orderDate)
-                .replaceAll('[REFUND_DATE]', refundDate)
-                .replaceAll('[BASKET_AMOUNT]', basketAmount.toFixed(2))
-                .replaceAll('[REFUND_AMOUNT]', refundAmount.toFixed(2))
-                .replaceAll('[STATUS]', status)
-                .replaceAll('[COMPLAINT]', complaint)
-                .replaceAll('[VIDEO_URL]', videoUrl || '—')
-                .replaceAll('[VIDEO_FILENAME]', videoFilename || '—');
-            
-            document.getElementById('templateContent').textContent = content;
-        }
-        // Copy template to clipboard
-        function copyTemplate() {
-            const content = document.getElementById('templateContent').textContent;
-            navigator.clipboard.writeText(content).then(() => {
-                showToast('Text copied successfully!', 'success');
-            }).catch(err => {
-                showToast('Failed to copy text, please copy manually', 'error');
-            });
-        }
-        // Persist video evidence
-        function persistVideoEvidence() {
-            const refId = document.getElementById('modalRefId').textContent.trim();
-            const videoUrl = document.getElementById('modalVideoUrl').value.trim();
-            const videoFilename = document.getElementById('modalVideoFilename').value.trim() || getFilenameFromUrl(videoUrl);
-            
-            // Update orders array
-            const idx = orders.findIndex(o => o.refId === refId);
-            if (idx >= 0) {
-                orders[idx].videoUrl = videoUrl;
-                orders[idx].videoFilename = videoFilename;
-            }
-            
-            // Update video evidence storage
-            if (!window.videoEvidence) window.videoEvidence = [];
-            const vIdx = window.videoEvidence.findIndex(v => v.reference === refId);
-            if (vIdx >= 0) {
-                window.videoEvidence[vIdx].videoUrl = videoUrl;
-                window.videoEvidence[vIdx].videoFilename = videoFilename;
-            } else {
-                window.videoEvidence.push({ reference: refId, videoUrl, videoFilename });
-            }
-            
-            // Save to LocalStorage
-            localStorage.setItem('videoEvidence', JSON.stringify(window.videoEvidence));
-            saveData();
-        }
-        // Send email (opens default email client)
-        function sendEmail() {
-            persistVideoEvidence();
-            
-            const company = document.getElementById('modalCompany').value;
-            const content = document.getElementById('templateContent').textContent;
-            
-            // Get email addresses based on company
-            let email = '';
-            switch(company) {
-                case 'Noon':
-                    email = 'support@noon.com';
-                    break;
-                case 'Careem':
-                    email = 'restaurants@careem.com';
-                    break;
-                case 'Talabat':
-                    email = 'support@talabat.com';
-                    break;
-                case 'Deliveroo':
-                    email = 'restaurants@deliveroo.ae';
-                    break;
-            }
-            
-            // Create mailto link
-            const subject = document.getElementById('templateModalLabel').innerText.replace('Video Attached', '').trim();
-            const mailtoLink = `mailto:${email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(content)}`;
-            
-            // Open email client
-            window.location.href = mailtoLink;
-            
-            showToast('Opening email client...', 'success');
-            bootstrap.Modal.getInstance(document.getElementById('templateModal')).hide();
-        }
-        // Delete order
-        function deleteOrder(orderId) {
-            if (confirm('Are you sure you want to delete this order?')) {
-                // Add fade out animation
-                const row = event.target.closest('tr');
-                row.style.transition = 'all 0.3s ease';
-                row.style.opacity = '0';
-                row.style.transform = 'translateX(-100%)';
-                
-                setTimeout(() => {
-                    orders = orders.filter(o => o.id !== orderId);
-                    saveData();
-                    renderOrders();
-                    updateStatistics();
-                    showToast('Order deleted successfully!', 'success');
-                }, 300);
-            }
-        }
-        // Delete Careem refund
-        function deleteCareemRefund(refundId) {
-            if (confirm('Are you sure you want to delete this Careem refund?')) {
-                // Add fade out animation
-                const row = event.target.closest('tr');
-                row.style.transition = 'all 0.3s ease';
-                row.style.opacity = '0';
-                row.style.transform = 'translateX(-100%)';
-                
-                setTimeout(() => {
-                    careemRefunds = careemRefunds.filter(r => r.id !== refundId);
-                    saveCareemData();
-                    renderCareemRefunds();
-                    updateCareemStatistics();
-                    showToast('Careem refund deleted successfully!', 'success');
-                }, 300);
-            }
-        }
-        // Clear all data
-        function clearAllData() {
-            if (confirm('Are you sure you want to clear all data? This action cannot be undone.')) {
-                orders = [];
-                localStorage.removeItem('orderManagementData');
-                localStorage.removeItem('videoEvidence');
-                renderOrders();
-                updateStatistics();
-                showToast('All data cleared!', 'warning');
-            }
-        }
-        // Clear Careem data
-        function clearCareemData() {
-            if (confirm('Are you sure you want to clear all Careem refund data? This action cannot be undone.')) {
-                careemRefunds = [];
-                localStorage.removeItem('careemRefunds');
-                renderCareemRefunds();
-                updateCareemStatistics();
-                showToast('Careem data cleared!', 'warning');
-            }
-        }
-        // Export to Excel
-        function exportToExcel() {
-            showToast('Preparing Excel export...', 'success');
-            
-            setTimeout(() => {
-                const ws = XLSX.utils.json_to_sheet(orders.map(o => ({
-                    'Reference ID': o.refId,
-                    'Order Number': o.orderNumber,
-                    'Order Date': formatDisplayDate(o.date),
-                    'Branch': o.branch,
-                    'Company': o.company,
-                    'Order Amount': o.amount,
-                    'Adjust Amount': o.adjustment,
-                    'Adjustment Reason': o.reason,
-                    'Customer Complaint': o.complaint,
-                    'Video URL': o.videoUrl || '',
-                    'Video Filename': o.videoFilename || '',
-                    'Status': o.status
-                })));
-                
-                const wb = XLSX.utils.book_new();
-                XLSX.utils.book_append_sheet(wb, ws, 'Orders');
-                XLSX.writeFile(wb, 'orders_report.xlsx');
-                
-                showToast('Excel file exported successfully!', 'success');
-            }, 500);
-        }
-        // Export to CSV
-        function exportCSV() {
-            showToast('Preparing CSV export...', 'success');
-            
-            setTimeout(() => {
-                let csvContent = "Reference ID,Order Number,Order Date,Branch,Company,Order Amount,Adjust Amount,Adjustment Reason,Customer Complaint,Video URL,Video Filename,Status\n";
-                
-                orders.forEach(o => {
-                    csvContent += `${o.refId},${o.orderNumber},"${formatDisplayDate(o.date)}",${o.branch},${o.company},${o.amount},${o.adjustment},"${o.reason}","${o.complaint}","${o.videoUrl || ''}","${o.videoFilename || ''}",${o.status}\n`;
-                });
-                
-                const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-                const link = document.createElement("a");
-                const url = URL.createObjectURL(blob);
-                link.setAttribute("href", url);
-                link.setAttribute("download", "orders_report.csv");
-                link.style.visibility = 'hidden';
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
-                
-                showToast('CSV file exported successfully!', 'success');
-            }, 500);
-        }
-        // Export Careem to Excel
-        function exportCareemToExcel() {
-            showToast('Preparing Excel export...', 'success');
-            
-            setTimeout(() => {
-                const ws = XLSX.utils.json_to_sheet(careemRefunds.map(r => ({
-                    'Order ID': r.orderId,
-                    'Order Date & Time': r.orderDateTime,
-                    'Refund Date & Time': r.refundDateTime,
-                    'Basket Amount': r.basketAmount,
-                    'Refund Amount': r.refundAmount,
-                    'Status': r.status,
-                    'Reason': r.reason,
-                    'Disputed': r.disputed ? 'Yes' : 'No'
-                })));
-                
-                const wb = XLSX.utils.book_new();
-                XLSX.utils.book_append_sheet(wb, ws, 'Careem Refunds');
-                XLSX.writeFile(wb, 'careem_refunds_report.xlsx');
-                
-                showToast('Excel file exported successfully!', 'success');
-            }, 500);
-        }
-        // Export Careem to CSV
-        function exportCareemToCSV() {
-            showToast('Preparing CSV export...', 'success');
-            
-            setTimeout(() => {
-                let csvContent = "Order ID,Order Date & Time,Refund Date & Time,Basket Amount,Refund Amount,Status,Reason,Disputed\n";
-                
-                careemRefunds.forEach(r => {
-                    csvContent += `${r.orderId},"${r.orderDateTime}","${r.refundDateTime}",${r.basketAmount},${r.refundAmount},${r.status},"${r.reason}",${r.disputed ? 'Yes' : 'No'}\n`;
-                });
-                
-                const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-                const link = document.createElement("a");
-                const url = URL.createObjectURL(blob);
-                link.setAttribute("href", url);
-                link.setAttribute("download", "careem_refunds_report.csv");
-                link.style.visibility = 'hidden';
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
-                
-                showToast('CSV file exported successfully!', 'success');
-            }, 500);
-        }
-        // Show toast notification
-        function showToast(message, type = 'success') {
-            const toastContainer = document.getElementById('toastContainer');
-            const toast = document.createElement('div');
-            toast.className = `custom-toast ${type}`;
-            
-            let icon = '';
-            switch(type) {
-                case 'success': icon = 'bi-check-circle-fill'; break;
-                case 'error': icon = 'bi-x-circle-fill'; break;
-                case 'warning': icon = 'bi-exclamation-triangle-fill'; break;
-            }
-            
-            toast.innerHTML = `<i class="bi ${icon}"></i>${message}`;
-            toastContainer.appendChild(toast);
-            
-            // Auto remove after 3 seconds
-            setTimeout(() => {
-                toast.style.opacity = '0';
-                toast.style.transform = 'translateX(-100%)';
-                setTimeout(() => {
-                    toastContainer.removeChild(toast);
-                }, 300);
-            }, 3000);
-        }
-        // Save data to LocalStorage
-        function saveData() {
-            localStorage.setItem('orderManagementData', JSON.stringify(orders));
-        }
-        // Load data from LocalStorage
-        function loadData() {
-            const data = localStorage.getItem('orderManagementData');
-            if (data) {
-                orders = JSON.parse(data);
-            }
-            
-            // Load video evidence
-            const videoData = localStorage.getItem('videoEvidence');
-            if (videoData) {
-                window.videoEvidence = JSON.parse(videoData);
-            } else {
-                window.videoEvidence = [];
-            }
-        }
-        // Save Careem data to LocalStorage
-        function saveCareemData() {
-            localStorage.setItem('careemRefunds', JSON.stringify(careemRefunds));
-        }
-        // Load Careem data from LocalStorage
-        function loadCareemData() {
-            const data = localStorage.getItem('careemRefunds');
-            if (data) {
-                careemRefunds = JSON.parse(data);
-            }
-        }
-    </script>
-</body>
-</html>
+            const order = orders.find(o
