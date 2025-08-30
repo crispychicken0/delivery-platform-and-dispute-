@@ -15,68 +15,208 @@
             --danger-color: #e74c3c;
             --warning-color: #f39c12;
             --light-bg: #f8f9fa;
+            --dark-bg: #1a1a1a;
+            --card-shadow: 0 4px 15px rgba(0,0,0,0.08);
+            --hover-shadow: 0 8px 25px rgba(0,0,0,0.15);
+            --transition: all 0.3s ease;
+        }
+
+        /* Dark Mode Variables */
+        [data-theme="dark"] {
+            --light-bg: #1a1a1a;
+            --primary-color: #3498db;
+            --secondary-color: #2980b9;
+            --text-color: #ecf0f1;
+            --card-bg: #2c3e50;
+            --table-bg: #34495e;
+            --input-bg: #2c3e50;
+            --border-color: #34495e;
         }
 
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background-color: var(--light-bg);
-            color: #333;
+            color: var(--text-color, #333);
+            transition: var(--transition);
         }
 
+        /* Animated Header */
         .main-header {
             background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
             color: white;
             padding: 2rem 0;
             margin-bottom: 2rem;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            box-shadow: var(--card-shadow);
+            position: relative;
+            overflow: hidden;
         }
 
+        .main-header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+            animation: pulse 4s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); opacity: 0.5; }
+            50% { transform: scale(1.1); opacity: 0.3; }
+        }
+
+        /* Enhanced Cards */
         .stats-card {
-            border-radius: 10px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
-            transition: transform 0.3s;
+            border-radius: 15px;
+            box-shadow: var(--card-shadow);
+            transition: var(--transition);
             border: none;
             margin-bottom: 1.5rem;
+            background: white;
+            position: relative;
+            overflow: hidden;
+        }
+
+        [data-theme="dark"] .stats-card {
+            background: var(--card-bg);
+            color: var(--text-color);
+        }
+
+        .stats-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: linear-gradient(90deg, var(--secondary-color), var(--primary-color));
+            transform: scaleX(0);
+            transform-origin: left;
+            transition: transform 0.3s ease;
+        }
+
+        .stats-card:hover::before {
+            transform: scaleX(1);
         }
 
         .stats-card:hover {
-            transform: translateY(-5px);
+            transform: translateY(-8px);
+            box-shadow: var(--hover-shadow);
         }
 
         .stats-card .card-body {
             padding: 1.5rem;
+            position: relative;
+            z-index: 1;
         }
 
         .stats-card h5 {
             font-size: 0.9rem;
             font-weight: 600;
             margin-bottom: 0.5rem;
+            opacity: 0.8;
         }
 
         .stats-card h3 {
             font-weight: 700;
             margin-bottom: 0;
+            font-size: 2rem;
         }
 
         .stats-card .icon {
-            font-size: 2rem;
+            font-size: 2.5rem;
             opacity: 0.8;
+            transition: var(--transition);
         }
 
+        .stats-card:hover .icon {
+            transform: scale(1.1);
+            opacity: 1;
+        }
+
+        /* Enhanced Form Section */
         .form-section {
             background: white;
-            border-radius: 10px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
-            padding: 1.5rem;
+            border-radius: 15px;
+            box-shadow: var(--card-shadow);
+            padding: 2rem;
             margin-bottom: 2rem;
+            transition: var(--transition);
         }
 
+        [data-theme="dark"] .form-section {
+            background: var(--card-bg);
+        }
+
+        .form-section:hover {
+            box-shadow: var(--hover-shadow);
+        }
+
+        .form-control, .form-select {
+            border-radius: 10px;
+            border: 2px solid #e0e0e0;
+            transition: var(--transition);
+            background: white;
+        }
+
+        [data-theme="dark"] .form-control,
+        [data-theme="dark"] .form-select {
+            background: var(--input-bg);
+            border-color: var(--border-color);
+            color: var(--text-color);
+        }
+
+        .form-control:focus, .form-select:focus {
+            border-color: var(--secondary-color);
+            box-shadow: 0 0 0 0.2rem rgba(52, 152, 219, 0.25);
+            transform: translateY(-2px);
+        }
+
+        .btn {
+            border-radius: 10px;
+            padding: 0.6rem 1.2rem;
+            font-weight: 600;
+            transition: var(--transition);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.2);
+            transform: translate(-50%, -50%);
+            transition: width 0.6s, height 0.6s;
+        }
+
+        .btn:active::before {
+            width: 300px;
+            height: 300px;
+        }
+
+        /* Enhanced Table */
         .table-container {
             background: white;
-            border-radius: 10px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
-            padding: 1.5rem;
+            border-radius: 15px;
+            box-shadow: var(--card-shadow);
+            padding: 2rem;
             margin-bottom: 2rem;
+            transition: var(--transition);
+        }
+
+        [data-theme="dark"] .table-container {
+            background: var(--card-bg);
+        }
+
+        .table-container:hover {
+            box-shadow: var(--hover-shadow);
         }
 
         .table {
@@ -92,138 +232,282 @@
             position: sticky;
             top: 0;
             z-index: 10;
+            padding: 1rem;
         }
 
         .table tbody tr {
-            transition: background-color 0.2s;
+            transition: var(--transition);
+            border-radius: 10px;
         }
 
         .table tbody tr:hover {
-            background-color: #f1f8ff;
+            background-color: rgba(52, 152, 219, 0.1);
+            transform: scale(1.01);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
         }
 
+        .table tbody td {
+            padding: 1rem;
+            vertical-align: middle;
+        }
+
+        /* Enhanced Status Badges */
         .status-badge {
             font-size: 0.85rem;
-            padding: 0.4rem 0.8rem;
+            padding: 0.5rem 1rem;
             border-radius: 20px;
             font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: var(--transition);
         }
 
-        .status-progress {
-            background-color: #fff3cd;
-            color: #856404;
-        }
-
-        .btn-template {
-            background-color: var(--warning-color);
-            color: white;
-            border: none;
-            padding: 0.4rem 0.8rem;
-            border-radius: 5px;
-            font-size: 0.85rem;
-            transition: all 0.3s;
-            margin: 0.2rem;
-        }
-
-        .btn-template:hover {
-            background-color: #e67e22;
+        .status-badge:hover {
             transform: scale(1.05);
         }
 
-        .modal-header {
-            background-color: var(--primary-color);
+        .status-progress {
+            background: linear-gradient(135deg, #f39c12, #e67e22);
             color: white;
+            box-shadow: 0 4px 15px rgba(243, 156, 18, 0.3);
+        }
+
+        /* Enhanced Buttons */
+        .btn-template {
+            background: linear-gradient(135deg, var(--warning-color), #e67e22);
+            color: white;
+            border: none;
+            padding: 0.6rem 1.2rem;
+            border-radius: 10px;
+            font-size: 0.85rem;
+            transition: var(--transition);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-template:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(243, 156, 18, 0.4);
+        }
+
+        .btn-template i {
+            transition: var(--transition);
+        }
+
+        .btn-template:hover i {
+            transform: translateX(3px);
+        }
+
+        /* Enhanced Modal */
+        .modal-content {
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            border: none;
+        }
+
+        .modal-header {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            border: none;
+            padding: 1.5rem;
         }
 
         .modal-body {
-            background-color: #f8f9fa;
-            border-radius: 0 0 10px 10px;
+            background: var(--light-bg);
+            border-radius: 0 0 20px 20px;
+            padding: 2rem;
         }
 
+        [data-theme="dark"] .modal-body {
+            background: var(--card-bg);
+        }
+
+        /* Template Container */
         .template-container {
             background: white;
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            padding: 1.5rem;
-            margin-top: 1rem;
+            border: 2px solid #e0e0e0;
+            border-radius: 15px;
+            padding: 2rem;
+            margin-top: 1.5rem;
             position: relative;
+            transition: var(--transition);
+        }
+
+        [data-theme="dark"] .template-container {
+            background: var(--card-bg);
+            border-color: var(--border-color);
+        }
+
+        .template-container:hover {
+            border-color: var(--secondary-color);
+            box-shadow: 0 8px 25px rgba(52, 152, 219, 0.15);
         }
 
         .copy-btn {
             position: absolute;
-            top: 10px;
-            left: 10px;
-            background-color: var(--secondary-color);
+            top: 15px;
+            left: 15px;
+            background: linear-gradient(135deg, var(--secondary-color), #2980b9);
             color: white;
             border: none;
-            border-radius: 5px;
-            padding: 0.3rem 0.8rem;
+            border-radius: 10px;
+            padding: 0.5rem 1rem;
             font-size: 0.85rem;
-            transition: all 0.3s;
+            transition: var(--transition);
+            z-index: 10;
         }
 
         .copy-btn:hover {
-            background-color: #2980b9;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(52, 152, 219, 0.4);
         }
 
         .template-content {
             font-family: 'Courier New', monospace;
-            line-height: 1.6;
+            line-height: 1.8;
             white-space: pre-wrap;
-            margin-top: 1rem;
+            margin-top: 1.5rem;
+            padding: 1.5rem;
+            background: #f8f9fa;
+            border-radius: 10px;
+            border-left: 4px solid var(--secondary-color);
         }
 
+        [data-theme="dark"] .template-content {
+            background: var(--input-bg);
+            color: var(--text-color);
+        }
+
+        /* Enhanced Reason Tags */
         .reason-tag {
-            display: inline-block;
-            padding: 0.2rem 0.6rem;
-            border-radius: 15px;
-            font-size: 0.8rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.4rem 1rem;
+            border-radius: 20px;
+            font-size: 0.85rem;
             font-weight: 600;
             margin-left: 0.5rem;
             max-width: 200px;
             overflow: hidden;
             text-overflow: ellipsis;
             white-space: nowrap;
+            transition: var(--transition);
+        }
+
+        .reason-tag:hover {
+            transform: scale(1.05);
+        }
+
+        .reason-tag i {
+            font-size: 0.9rem;
         }
 
         .reason-wrong {
-            background-color: #ffebee;
+            background: linear-gradient(135deg, #ffebee, #ffcdd2);
             color: #c62828;
+            box-shadow: 0 4px 15px rgba(198, 40, 40, 0.2);
         }
 
         .reason-missing {
-            background-color: #e8f5e9;
+            background: linear-gradient(135deg, #e8f5e9, #c8e6c9);
             color: #2e7d32;
+            box-shadow: 0 4px 15px rgba(46, 125, 50, 0.2);
         }
 
         .reason-delay {
-            background-color: #fff3e0;
+            background: linear-gradient(135deg, #fff3e0, #ffe0b2);
             color: #e65100;
+            box-shadow: 0 4px 15px rgba(230, 81, 0, 0.2);
         }
 
         .reason-quality {
-            background-color: #f3e5f5;
+            background: linear-gradient(135deg, #f3e5f5, #e1bee7);
             color: #7b1fa2;
+            box-shadow: 0 4px 15px rgba(123, 31, 162, 0.2);
         }
 
         .reason-tech {
-            background-color: #e1f5fe;
+            background: linear-gradient(135deg, #e1f5fe, #b3e5fc);
             color: #0277bd;
+            box-shadow: 0 4px 15px rgba(2, 119, 189, 0.2);
         }
 
         .reason-hygiene {
-            background-color: #fbe9e7;
+            background: linear-gradient(135deg, #fbe9e7, #ffccbc);
             color: #d84315;
+            box-shadow: 0 4px 15px rgba(216, 67, 21, 0.2);
         }
 
+        /* Enhanced Company Badges */
+        .company-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.4rem 1rem;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            margin-left: 0.5rem;
+            transition: var(--transition);
+        }
+
+        .company-badge:hover {
+            transform: scale(1.05);
+        }
+
+        .company-badge i {
+            font-size: 0.9rem;
+        }
+
+        .company-noon {
+            background: linear-gradient(135deg, #e3f2fd, #bbdefb);
+            color: #1565c0;
+            box-shadow: 0 4px 15px rgba(21, 101, 192, 0.2);
+        }
+
+        .company-careem {
+            background: linear-gradient(135deg, #fce4ec, #f8bbd0);
+            color: #c2185b;
+            box-shadow: 0 4px 15px rgba(194, 24, 91, 0.2);
+        }
+
+        .company-talabat {
+            background: linear-gradient(135deg, #f3e5f5, #e1bee7);
+            color: #7b1fa2;
+            box-shadow: 0 4px 15px rgba(123, 31, 162, 0.2);
+        }
+
+        .company-deliveroo {
+            background: linear-gradient(135deg, #e0f2f1, #b2dfdb);
+            color: #00796b;
+            box-shadow: 0 4px 15px rgba(0, 121, 107, 0.2);
+        }
+
+        /* Enhanced Footer */
         .footer {
-            background-color: var(--primary-color);
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
             color: white;
             text-align: center;
-            padding: 1.5rem 0;
+            padding: 2rem 0;
             margin-top: 3rem;
+            position: relative;
+            overflow: hidden;
         }
 
+        .footer::before {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: linear-gradient(90deg, var(--warning-color), var(--success-color));
+        }
+
+        /* Enhanced Toast Notifications */
         .toast-container {
             position: fixed;
             bottom: 20px;
@@ -232,173 +516,396 @@
         }
 
         .custom-toast {
-            background-color: var(--success-color);
-            color: white;
-            padding: 1rem;
-            border-radius: 8px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            background: white;
+            color: var(--text-color);
+            padding: 1.2rem 1.5rem;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
             display: flex;
             align-items: center;
             margin-bottom: 0.5rem;
-            animation: slideIn 0.3s ease-out;
+            animation: slideIn 0.5s ease-out;
+            border-left: 4px solid var(--success-color);
+        }
+
+        [data-theme="dark"] .custom-toast {
+            background: var(--card-bg);
+            border-left-color: var(--success-color);
         }
 
         @keyframes slideIn {
             from {
-                transform: translateX(-100%);
+                transform: translateX(-100%) rotate(-5deg);
                 opacity: 0;
             }
             to {
-                transform: translateX(0);
+                transform: translateX(0) rotate(0);
                 opacity: 1;
             }
         }
 
         .custom-toast i {
-            font-size: 1.5rem;
-            margin-left: 0.8rem;
+            font-size: 1.8rem;
+            margin-left: 1rem;
         }
 
+        .custom-toast.success {
+            border-left-color: var(--success-color);
+        }
+
+        .custom-toast.warning {
+            border-left-color: var(--warning-color);
+        }
+
+        .custom-toast.error {
+            border-left-color: var(--danger-color);
+        }
+
+        /* Enhanced Filter Section */
         .filter-section {
             background: white;
-            border-radius: 10px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+            border-radius: 15px;
+            box-shadow: var(--card-shadow);
             padding: 1.5rem;
             margin-bottom: 2rem;
+            transition: var(--transition);
+        }
+
+        [data-theme="dark"] .filter-section {
+            background: var(--card-bg);
+        }
+
+        .filter-section:hover {
+            box-shadow: var(--hover-shadow);
         }
 
         .filter-btn {
-            background-color: var(--secondary-color);
+            background: var(--secondary-color);
             color: white;
             border: none;
-            padding: 0.5rem 1rem;
-            border-radius: 5px;
+            padding: 0.6rem 1.2rem;
+            border-radius: 10px;
             margin-left: 0.5rem;
-            transition: all 0.3s;
+            transition: var(--transition);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .filter-btn::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.2);
+            transform: translate(-50%, -50%);
+            transition: width 0.6s, height 0.6s;
+        }
+
+        .filter-btn:active::before {
+            width: 300px;
+            height: 300px;
         }
 
         .filter-btn:hover {
-            background-color: #2980b9;
+            background: var(--primary-color);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(44, 62, 80, 0.3);
         }
 
         .filter-btn.active {
-            background-color: var(--primary-color);
+            background: var(--primary-color);
+            box-shadow: inset 0 4px 10px rgba(0,0,0,0.2);
         }
 
-        .adjustment-amount {
-            font-weight: 700;
-            color: var(--danger-color);
-        }
-
-        .order-details {
-            font-size: 0.9rem;
-            color: #666;
-        }
-
-        .action-cell {
-            white-space: nowrap;
-        }
-
-        .table-responsive {
-            max-height: 600px;
-            overflow-y: auto;
-        }
-
-        .company-badge {
-            display: inline-block;
-            padding: 0.2rem 0.6rem;
-            border-radius: 15px;
-            font-size: 0.8rem;
-            font-weight: 600;
-            margin-left: 0.5rem;
-        }
-
-        .company-noon {
-            background-color: #e3f2fd;
-            color: #1565c0;
-        }
-
-        .company-careem {
-            background-color: #fce4ec;
-            color: #c2185b;
-        }
-
-        .company-talabat {
-            background-color: #f3e5f5;
-            color: #7b1fa2;
-        }
-
-        .company-deliveroo {
-            background-color: #e0f2f1;
-            color: #00796b;
-        }
-
+        /* Enhanced Objection Options */
         .objection-type-selector {
             background: white;
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            padding: 1rem;
-            margin-bottom: 1rem;
+            border: 2px solid #e0e0e0;
+            border-radius: 15px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            transition: var(--transition);
+        }
+
+        [data-theme="dark"] .objection-type-selector {
+            background: var(--card-bg);
+            border-color: var(--border-color);
         }
 
         .objection-option {
             cursor: pointer;
-            padding: 0.8rem;
+            padding: 1rem;
             border: 2px solid transparent;
-            border-radius: 8px;
-            margin-bottom: 0.5rem;
-            transition: all 0.3s;
+            border-radius: 12px;
+            margin-bottom: 0.8rem;
+            transition: var(--transition);
+            background: #f8f9fa;
+        }
+
+        [data-theme="dark"] .objection-option {
+            background: var(--input-bg);
         }
 
         .objection-option:hover {
-            background-color: #f8f9fa;
+            background: rgba(52, 152, 219, 0.1);
+            transform: translateX(5px);
         }
 
         .objection-option.selected {
             border-color: var(--secondary-color);
-            background-color: rgba(52, 152, 219, 0.1);
+            background: rgba(52, 152, 219, 0.15);
+            box-shadow: 0 4px 15px rgba(52, 152, 219, 0.2);
         }
 
         .objection-option i {
-            font-size: 1.5rem;
-            margin-left: 0.5rem;
+            font-size: 1.8rem;
+            margin-left: 0.8rem;
             color: var(--secondary-color);
+            transition: var(--transition);
         }
 
-        .complaint-preview {
-            max-height: 100px;
-            overflow-y: auto;
-            font-size: 0.85rem;
-            color: #666;
-            border: 1px solid #eee;
-            border-radius: 4px;
+        .objection-option:hover i {
+            transform: scale(1.1);
+        }
+
+        /* Enhanced Video Evidence Section */
+        .video-link-section {
+            margin-top: 1.5rem;
+            padding: 1.5rem;
+            background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+            border-radius: 15px;
+            border: 2px solid #e0e0e0;
+            transition: var(--transition);
+        }
+
+        [data-theme="dark"] .video-link-section {
+            background: var(--input-bg);
+            border-color: var(--border-color);
+        }
+
+        .video-link-section:hover {
+            border-color: var(--secondary-color);
+            box-shadow: 0 8px 25px rgba(52, 152, 219, 0.15);
+        }
+
+        .video-link-input {
+            margin-bottom: 0.8rem;
+        }
+
+        .video-link-input label {
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: var(--primary-color);
+        }
+
+        /* Dark Mode Toggle */
+        .theme-toggle {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+            background: white;
+            border-radius: 50px;
             padding: 0.5rem;
-            background-color: #f9f9f9;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            transition: var(--transition);
         }
 
+        [data-theme="dark"] .theme-toggle {
+            background: var(--card-bg);
+        }
+
+        .theme-toggle:hover {
+            transform: scale(1.05);
+        }
+
+        .theme-toggle button {
+            border: none;
+            background: none;
+            font-size: 1.5rem;
+            color: var(--primary-color);
+            transition: var(--transition);
+        }
+
+        .theme-toggle button:hover {
+            transform: rotate(180deg);
+        }
+
+        /* Loading Animation */
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid var(--secondary-color);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Responsive Improvements */
+        @media (max-width: 768px) {
+            .stats-card {
+                margin-bottom: 1rem;
+            }
+            
+            .stats-card h3 {
+                font-size: 1.5rem;
+            }
+            
+            .table-responsive {
+                font-size: 0.9rem;
+            }
+            
+            .btn-template {
+                padding: 0.4rem 0.8rem;
+                font-size: 0.8rem;
+            }
+        }
+
+        /* Hover Effects for Links */
         .image-link {
             color: var(--secondary-color);
             text-decoration: none;
             font-size: 0.85rem;
+            transition: var(--transition);
+            position: relative;
+        }
+
+        .image-link::after {
+            content: '';
+            position: absolute;
+            bottom: -2px;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background: var(--secondary-color);
+            transition: width 0.3s ease;
+        }
+
+        .image-link:hover::after {
+            width: 100%;
         }
 
         .image-link:hover {
-            text-decoration: underline;
+            color: var(--primary-color);
         }
 
+        /* Enhanced Badge */
         .badge-video {
-            background: #0d6efd;
+            background: linear-gradient(135deg, #0d6efd, #0056b3);
             color: #fff;
             border-radius: 12px;
-            padding: .2rem .5rem;
-            font-size: .75rem;
-            margin-right: 0.5rem;
+            padding: 0.3rem 0.8rem;
+            font-size: 0.75rem;
+            margin-right: 0.8rem;
+            box-shadow: 0 4px 15px rgba(13, 110, 253, 0.3);
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        /* Scrollbar Styling */
+        ::-webkit-scrollbar {
+            width: 10px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 10px;
+        }
+
+        [data-theme="dark"] ::-webkit-scrollbar-track {
+            background: var(--card-bg);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--secondary-color);
+            border-radius: 10px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--primary-color);
+        }
+
+        /* Animations */
+        .fade-in {
+            animation: fadeIn 0.5s ease-in;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .slide-up {
+            animation: slideUp 0.5s ease-out;
+        }
+
+        @keyframes slideUp {
+            from { transform: translateY(30px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        /* Tooltip Styling */
+        .tooltip {
+            font-size: 0.85rem;
+        }
+
+        /* Focus Styles */
+        .btn:focus, .form-control:focus, .form-select:focus {
+            outline: none;
+            box-shadow: 0 0 0 0.2rem rgba(52, 152, 219, 0.25);
+        }
+
+        /* Active States */
+        .btn:active {
+            transform: scale(0.98);
+        }
+
+        /* Loading State */
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.9);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+        }
+
+        [data-theme="dark"] .loading-overlay {
+            background: rgba(0, 0, 0, 0.9);
+        }
+
+        .loading-spinner {
+            width: 50px;
+            height: 50px;
+            border: 5px solid #f3f3f3;
+            border-top: 5px solid var(--secondary-color);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
         }
     </style>
 </head>
 <body>
+    <!-- Theme Toggle -->
+    <div class="theme-toggle">
+        <button onclick="toggleTheme()" class="btn" title="Toggle Dark Mode">
+            <i class="bi bi-moon-fill" id="themeIcon"></i>
+        </button>
+    </div>
+
     <!-- Header -->
-    <header class="main-header">
+    <header class="main-header fade-in">
         <div class="container">
             <div class="row align-items-center">
                 <div class="col-md-6">
@@ -423,7 +930,7 @@
 
     <div class="container">
         <!-- Statistics Cards -->
-        <div class="row">
+        <div class="row slide-up">
             <div class="col-md-3 col-sm-6">
                 <div class="card stats-card">
                     <div class="card-body d-flex justify-content-between align-items-center">
@@ -479,7 +986,7 @@
         </div>
 
         <!-- Manual Entry Form -->
-        <div class="form-section">
+        <div class="form-section slide-up">
             <h5 class="mb-3"><i class="bi bi-plus-circle-fill me-2"></i>Add New Order</h5>
             <form id="orderForm">
                 <div class="row">
@@ -597,25 +1104,39 @@
         </div>
 
         <!-- Filters Section -->
-        <div class="filter-section">
+        <div class="filter-section slide-up">
             <div class="row align-items-center">
                 <div class="col-md-6">
                     <h5 class="mb-0"><i class="bi bi-funnel-fill me-2"></i>Filter by:</h5>
                 </div>
                 <div class="col-md-6 text-md-end mt-3 mt-md-0">
-                    <button class="filter-btn active" data-filter="all">All</button>
-                    <button class="filter-btn" data-filter="wrong">Wrong Order</button>
-                    <button class="filter-btn" data-filter="missing">Missing Item</button>
-                    <button class="filter-btn" data-filter="delay">Delay</button>
-                    <button class="filter-btn" data-filter="quality">Quality</button>
-                    <button class="filter-btn" data-filter="tech">Tech Issue</button>
-                    <button class="filter-btn" data-filter="hygiene">Hygiene</button>
+                    <button class="filter-btn active" data-filter="all">
+                        <i class="bi bi-grid-3x3-gap me-1"></i>All
+                    </button>
+                    <button class="filter-btn" data-filter="wrong">
+                        <i class="bi bi-x-circle me-1"></i>Wrong Order
+                    </button>
+                    <button class="filter-btn" data-filter="missing">
+                        <i class="bi bi-dash-circle me-1"></i>Missing Item
+                    </button>
+                    <button class="filter-btn" data-filter="delay">
+                        <i class="bi bi-clock-history me-1"></i>Delay
+                    </button>
+                    <button class="filter-btn" data-filter="quality">
+                        <i class="bi bi-star-half me-1"></i>Quality
+                    </button>
+                    <button class="filter-btn" data-filter="tech">
+                        <i class="bi bi-gear me-1"></i>Tech Issue
+                    </button>
+                    <button class="filter-btn" data-filter="hygiene">
+                        <i class="bi bi-shield-exclamation me-1"></i>Hygiene
+                    </button>
                 </div>
             </div>
         </div>
 
         <!-- Orders Table -->
-        <div class="table-container">
+        <div class="table-container slide-up">
             <div class="d-flex justify-content-between align-items-center mb-4">
                 <h4 class="mb-0"><i class="bi bi-table me-2"></i>Orders & Adjustments</h4>
                 <div>
@@ -761,7 +1282,9 @@
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="bi bi-x-circle me-1"></i>Close
+                    </button>
                     <button type="button" class="btn btn-primary" onclick="sendEmail()">
                         <i class="bi bi-send-fill me-1"></i>Send Email
                     </button>
@@ -1016,6 +1539,17 @@ Sincerely,
             updateStatistics();
             renderOrders();
             setupEventListeners();
+            
+            // Add fade-in animation to elements
+            document.querySelectorAll('.fade-in, .slide-up').forEach(el => {
+                el.style.opacity = '0';
+                el.style.transform = 'translateY(20px)';
+                setTimeout(() => {
+                    el.style.transition = 'all 0.5s ease';
+                    el.style.opacity = '1';
+                    el.style.transform = 'translateY(0)';
+                }, 100);
+            });
         });
 
         // Setup event listeners
@@ -1030,8 +1564,42 @@ Sincerely,
                     this.classList.add('active');
                     currentFilter = this.getAttribute('data-filter');
                     renderOrders();
+                    
+                    // Add animation to table
+                    const tableContainer = document.querySelector('.table-container');
+                    tableContainer.style.animation = 'none';
+                    setTimeout(() => {
+                        tableContainer.style.animation = 'fadeIn 0.5s ease-in';
+                    }, 10);
                 });
             });
+        }
+
+        // Toggle theme
+        function toggleTheme() {
+            const html = document.documentElement;
+            const themeIcon = document.getElementById('themeIcon');
+            
+            if (html.getAttribute('data-theme') === 'dark') {
+                html.removeAttribute('data-theme');
+                themeIcon.className = 'bi bi-moon-fill';
+                localStorage.setItem('theme', 'light');
+            } else {
+                html.setAttribute('data-theme', 'dark');
+                themeIcon.className = 'bi bi-sun-fill';
+                localStorage.setItem('theme', 'dark');
+            }
+        }
+
+        // Load saved theme
+        function loadTheme() {
+            const savedTheme = localStorage.getItem('theme');
+            const themeIcon = document.getElementById('themeIcon');
+            
+            if (savedTheme === 'dark') {
+                document.documentElement.setAttribute('data-theme', 'dark');
+                themeIcon.className = 'bi bi-sun-fill';
+            }
         }
 
         // Update date and time
@@ -1048,30 +1616,52 @@ Sincerely,
         function handleFormSubmit(e) {
             e.preventDefault();
             
-            const order = {
-                id: Date.now(),
-                refId: document.getElementById('refId').value,
-                orderNumber: document.getElementById('orderNumber').value,
-                date: document.getElementById('orderDate').value,
-                branch: document.getElementById('branch').value,
-                company: document.getElementById('company').value,
-                amount: parseFloat(document.getElementById('orderAmount').value),
-                adjustment: parseFloat(document.getElementById('adjustment').value) || 0,
-                reason: document.getElementById('adjustmentReason').value,
-                complaint: document.getElementById('customerComplaint').value,
-                videoUrl: document.getElementById('videoUrl').value,
-                videoFilename: document.getElementById('videoFilename').value || getFilenameFromUrl(document.getElementById('videoUrl').value),
-                status: document.getElementById('status').value
-            };
+            // Add loading state
+            const submitBtn = e.target.querySelector('button[type="submit"]');
+            const originalText = submitBtn.innerHTML;
+            submitBtn.innerHTML = '<span class="loading"></span> Adding...';
+            submitBtn.disabled = true;
             
-            orders.push(order);
-            saveData();
-            renderOrders();
-            updateStatistics();
-            
-            // Reset form
-            e.target.reset();
-            showToast('Order added successfully!', 'success');
+            setTimeout(() => {
+                const order = {
+                    id: Date.now(),
+                    refId: document.getElementById('refId').value,
+                    orderNumber: document.getElementById('orderNumber').value,
+                    date: document.getElementById('orderDate').value,
+                    branch: document.getElementById('branch').value,
+                    company: document.getElementById('company').value,
+                    amount: parseFloat(document.getElementById('orderAmount').value),
+                    adjustment: parseFloat(document.getElementById('adjustment').value) || 0,
+                    reason: document.getElementById('adjustmentReason').value,
+                    complaint: document.getElementById('customerComplaint').value,
+                    videoUrl: document.getElementById('videoUrl').value,
+                    videoFilename: document.getElementById('videoFilename').value || getFilenameFromUrl(document.getElementById('videoUrl').value),
+                    status: document.getElementById('status').value
+                };
+                
+                orders.push(order);
+                saveData();
+                renderOrders();
+                updateStatistics();
+                
+                // Reset form
+                e.target.reset();
+                
+                // Restore button
+                submitBtn.innerHTML = originalText;
+                submitBtn.disabled = false;
+                
+                // Show success message
+                showToast('Order added successfully!', 'success');
+                
+                // Add animation to new row
+                setTimeout(() => {
+                    const newRow = document.querySelector('#ordersTableBody tr:first-child');
+                    if (newRow) {
+                        newRow.style.animation = 'slideUp 0.5s ease-out';
+                    }
+                }, 100);
+            }, 500);
         }
 
         // Get filename from URL
@@ -1112,8 +1702,10 @@ Sincerely,
                 });
             }
             
-            filteredOrders.forEach(order => {
+            filteredOrders.forEach((order, index) => {
                 const row = document.createElement('tr');
+                row.style.opacity = '0';
+                row.style.transform = 'translateY(20px)';
                 row.innerHTML = `
                     <td><span class="status-badge status-progress">${order.status}</span></td>
                     <td>${order.branch}</td>
@@ -1134,6 +1726,13 @@ Sincerely,
                     </td>
                 `;
                 tbody.appendChild(row);
+                
+                // Animate row appearance
+                setTimeout(() => {
+                    row.style.transition = 'all 0.3s ease';
+                    row.style.opacity = '1';
+                    row.style.transform = 'translateY(0)';
+                }, index * 50);
             });
         }
 
@@ -1155,26 +1754,57 @@ Sincerely,
             if (!reason) return '-';
             const lowerReason = reason.toLowerCase();
             let className = '';
+            let icon = '';
             
-            if (lowerReason.includes('wrong')) className = 'reason-wrong';
-            else if (lowerReason.includes('missing')) className = 'reason-missing';
-            else if (lowerReason.includes('delay')) className = 'reason-delay';
-            else if (lowerReason.includes('quality')) className = 'reason-quality';
-            else if (lowerReason.includes('tech')) className = 'reason-tech';
-            else if (lowerReason.includes('hygiene')) className = 'reason-hygiene';
+            if (lowerReason.includes('wrong')) {
+                className = 'reason-wrong';
+                icon = 'bi bi-x-circle';
+            } else if (lowerReason.includes('missing')) {
+                className = 'reason-missing';
+                icon = 'bi bi-dash-circle';
+            } else if (lowerReason.includes('delay')) {
+                className = 'reason-delay';
+                icon = 'bi bi-clock-history';
+            } else if (lowerReason.includes('quality')) {
+                className = 'reason-quality';
+                icon = 'bi bi-star-half';
+            } else if (lowerReason.includes('tech')) {
+                className = 'reason-tech';
+                icon = 'bi bi-gear';
+            } else if (lowerReason.includes('hygiene')) {
+                className = 'reason-hygiene';
+                icon = 'bi bi-shield-exclamation';
+            }
             
-            return `<span class="reason-tag ${className}" title="${reason}">${reason}</span>`;
+            return `<span class="reason-tag ${className}" title="${reason}"><i class="${icon}"></i>${reason}</span>`;
         }
 
         // Get company badge
         function getCompanyBadge(company) {
             if (!company) return '-';
             const className = `company-${company.toLowerCase()}`;
-            return `<span class="company-badge ${className}">${company}</span>`;
+            let icon = '';
+            
+            switch(company.toLowerCase()) {
+                case 'noon': icon = 'bi bi-bag-check'; break;
+                case 'careem': icon = 'bi bi-car-front'; break;
+                case 'talabat': icon = 'bi bi-shop'; break;
+                case 'deliveroo': icon = 'bi bi-bicycle'; break;
+            }
+            
+            return `<span class="company-badge ${className}"><i class="${icon}"></i>${company}</span>`;
         }
 
         // Update statistics
         function updateStatistics() {
+            // Add animation to stat cards
+            document.querySelectorAll('.stats-card h3').forEach((el, index) => {
+                el.style.animation = 'none';
+                setTimeout(() => {
+                    el.style.animation = 'fadeIn 0.5s ease-in';
+                }, index * 100);
+            });
+            
             document.getElementById('totalOrders').textContent = orders.length;
             
             const adjustments = orders.filter(o => o.adjustment > 0);
@@ -1195,6 +1825,9 @@ Sincerely,
             element.classList.add('selected');
             selectedObjectionType = element.getAttribute('data-type');
             updateTemplateContent();
+            
+            // Add pulse animation
+            element.style.animation = 'pulse 0.5s ease-in-out';
         }
 
         // Open template modal
@@ -1307,7 +1940,7 @@ Sincerely,
             navigator.clipboard.writeText(content).then(() => {
                 showToast('Text copied successfully!', 'success');
             }).catch(err => {
-                showToast('Failed to copy text, please copy manually', 'danger');
+                showToast('Failed to copy text, please copy manually', 'error');
             });
         }
 
@@ -1377,11 +2010,19 @@ Sincerely,
         // Delete order
         function deleteOrder(orderId) {
             if (confirm('Are you sure you want to delete this order?')) {
-                orders = orders.filter(o => o.id !== orderId);
-                saveData();
-                renderOrders();
-                updateStatistics();
-                showToast('Order deleted successfully!', 'success');
+                // Add fade out animation
+                const row = event.target.closest('tr');
+                row.style.transition = 'all 0.3s ease';
+                row.style.opacity = '0';
+                row.style.transform = 'translateX(-100%)';
+                
+                setTimeout(() => {
+                    orders = orders.filter(o => o.id !== orderId);
+                    saveData();
+                    renderOrders();
+                    updateStatistics();
+                    showToast('Order deleted successfully!', 'success');
+                }, 300);
             }
         }
 
@@ -1399,65 +2040,73 @@ Sincerely,
 
         // Export to Excel
         function exportToExcel() {
-            const ws = XLSX.utils.json_to_sheet(orders.map(o => ({
-                'Reference ID': o.refId,
-                'Order Number': o.orderNumber,
-                'Order Date': formatDisplayDate(o.date),
-                'Branch': o.branch,
-                'Company': o.company,
-                'Order Amount': o.amount,
-                'Adjust Amount': o.adjustment,
-                'Adjustment Reason': o.reason,
-                'Customer Complaint': o.complaint,
-                'Video URL': o.videoUrl || '',
-                'Video Filename': o.videoFilename || '',
-                'Status': o.status
-            })));
+            showToast('Preparing Excel export...', 'success');
             
-            const wb = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(wb, ws, 'Orders');
-            XLSX.writeFile(wb, 'orders_report.xlsx');
-            
-            showToast('Excel file exported successfully!', 'success');
+            setTimeout(() => {
+                const ws = XLSX.utils.json_to_sheet(orders.map(o => ({
+                    'Reference ID': o.refId,
+                    'Order Number': o.orderNumber,
+                    'Order Date': formatDisplayDate(o.date),
+                    'Branch': o.branch,
+                    'Company': o.company,
+                    'Order Amount': o.amount,
+                    'Adjust Amount': o.adjustment,
+                    'Adjustment Reason': o.reason,
+                    'Customer Complaint': o.complaint,
+                    'Video URL': o.videoUrl || '',
+                    'Video Filename': o.videoFilename || '',
+                    'Status': o.status
+                })));
+                
+                const wb = XLSX.utils.book_new();
+                XLSX.utils.book_append_sheet(wb, ws, 'Orders');
+                XLSX.writeFile(wb, 'orders_report.xlsx');
+                
+                showToast('Excel file exported successfully!', 'success');
+            }, 500);
         }
 
         // Export to CSV
         function exportCSV() {
-            const headers = ['Branch', 'OrderId', 'Reference', 'Date', 'Amount', 'Adjustment', 'Reason', 'VideoURL', 'VideoFilename'];
-            const data = orders.map(r => ([
-                r.branch, 
-                r.orderNumber, 
-                r.refId, 
-                formatDisplayDate(r.date), 
-                r.amount, 
-                r.adjustment, 
-                r.reason,
-                (r.videoUrl || ''), 
-                (r.videoFilename || '')
-            ]));
+            showToast('Preparing CSV export...', 'success');
             
-            const csv = [headers, ...data].map(a => 
-                a.map(v => `"${String(v).replace(/"/g,'""')}"`).join(',')
-            ).join('\n');
-            
-            const blob = new Blob([csv], {type:'text/csv;charset=utf-8;'});
-            const a = document.createElement('a');
-            a.href = URL.createObjectURL(blob);
-            a.download = 'orders_with_video.csv';
-            a.click();
-            
-            showToast('CSV file exported successfully!', 'success');
+            setTimeout(() => {
+                const headers = ['Branch', 'OrderId', 'Reference', 'Date', 'Amount', 'Adjustment', 'Reason', 'VideoURL', 'VideoFilename'];
+                const data = orders.map(r => ([
+                    r.branch, 
+                    r.orderNumber, 
+                    r.refId, 
+                    formatDisplayDate(r.date), 
+                    r.amount, 
+                    r.adjustment, 
+                    r.reason,
+                    (r.videoUrl || ''), 
+                    (r.videoFilename || '')
+                ]));
+                
+                const csv = [headers, ...data].map(a => 
+                    a.map(v => `"${String(v).replace(/"/g,'""')}"`).join(',')
+                ).join('\n');
+                
+                const blob = new Blob([csv], {type:'text/csv;charset=utf-8;'});
+                const a = document.createElement('a');
+                a.href = URL.createObjectURL(blob);
+                a.download = 'orders_with_video.csv';
+                a.click();
+                
+                showToast('CSV file exported successfully!', 'success');
+            }, 500);
         }
 
         // Show toast notification
         function showToast(message, type = 'success') {
             const toastContainer = document.getElementById('toastContainer');
             const toast = document.createElement('div');
-            toast.className = 'custom-toast';
+            toast.className = `custom-toast ${type}`;
             
             const icon = type === 'success' ? 'bi-check-circle-fill' : 
                          type === 'warning' ? 'bi-exclamation-triangle-fill' : 
-                         'bi-x-circle-fill';
+                         type === 'error' ? 'bi-x-circle-fill' : 'bi-info-circle-fill';
             
             toast.innerHTML = `
                 <i class="bi ${icon}"></i>
@@ -1468,7 +2117,9 @@ Sincerely,
             
             // Remove toast after 3 seconds
             setTimeout(() => {
+                toast.style.transition = 'all 0.3s ease';
                 toast.style.opacity = '0';
+                toast.style.transform = 'translateX(-100%) rotate(-5deg)';
                 setTimeout(() => {
                     toastContainer.removeChild(toast);
                 }, 300);
@@ -1492,6 +2143,7 @@ Sincerely,
         function loadPersisted() {
             try {
                 window.videoEvidence = JSON.parse(localStorage.getItem('videoEvidence') || '[]');
+                loadTheme();
             } catch { 
                 window.videoEvidence = []; 
             }
