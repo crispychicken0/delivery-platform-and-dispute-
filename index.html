@@ -386,15 +386,13 @@
             text-decoration: underline;
         }
 
-        .video-link-section {
-            margin-top: 1rem;
-            padding: 1rem;
-            background-color: #f8f9fa;
-            border-radius: 8px;
-        }
-
-        .video-link-input {
-            margin-bottom: 0.5rem;
+        .badge-video {
+            background: #0d6efd;
+            color: #fff;
+            border-radius: 12px;
+            padding: .2rem .5rem;
+            font-size: .75rem;
+            margin-right: 0.5rem;
         }
     </style>
 </head>
@@ -567,10 +565,18 @@
                     </div>
                     <div class="col-md-2">
                         <div class="mb-3">
-                            <label class="form-label">Video Evidence URL</label>
-                            <input type="text" class="form-control" id="videoEvidence" placeholder="Video URL">
+                            <label class="form-label">Video URL</label>
+                            <input type="url" class="form-control" id="videoUrl" placeholder="https://...">
                         </div>
                     </div>
+                    <div class="col-md-2">
+                        <div class="mb-3">
+                            <label class="form-label">Video Filename</label>
+                            <input type="text" class="form-control" id="videoFilename" placeholder="video.mp4">
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
                     <div class="col-md-2">
                         <div class="mb-3">
                             <label class="form-label">Status</label>
@@ -581,9 +587,7 @@
                             </select>
                         </div>
                     </div>
-                </div>
-                <div class="row">
-                    <div class="col-12 d-flex justify-content-end">
+                    <div class="col-10 d-flex justify-content-end align-items-end">
                         <button type="submit" class="btn btn-primary">
                             <i class="bi bi-plus-lg me-1"></i>Add Order
                         </button>
@@ -617,6 +621,9 @@
                 <div>
                     <button class="btn btn-sm btn-outline-secondary me-2" onclick="exportToExcel()">
                         <i class="bi bi-download me-1"></i>Export Excel
+                    </button>
+                    <button class="btn btn-sm btn-outline-primary" onclick="exportCSV()">
+                        <i class="bi bi-file-earmark-spreadsheet me-1"></i>Export CSV
                     </button>
                     <button class="btn btn-sm btn-outline-primary" onclick="window.print()">
                         <i class="bi bi-printer me-1"></i>Print Report
@@ -734,16 +741,15 @@
                         </div>
                     </div>
                     
-                    <!-- Video Evidence Section -->
-                    <div class="video-link-section">
-                        <h6><i class="bi bi-camera-video-fill me-2"></i>Video Evidence</h6>
-                        <div class="video-link-input">
-                            <label class="form-label">Video URL:</label>
-                            <input type="text" class="form-control" id="modalVideoUrl" placeholder="Enter video URL" onchange="updateTemplateContent()">
+                    <!-- Video Evidence Fields -->
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-8">
+                            <label class="form-label"><strong>Video Evidence URL</strong></label>
+                            <input id="modalVideoUrl" type="url" class="form-control" placeholder="https://.../evidence.mp4">
                         </div>
-                        <div class="video-link-input">
-                            <label class="form-label">Video Filename:</label>
-                            <input type="text" class="form-control" id="modalVideoName" placeholder="Enter video filename" onchange="updateTemplateContent()">
+                        <div class="col-md-4">
+                            <label class="form-label"><strong>Video Filename (mp4)</strong></label>
+                            <input id="modalVideoFilename" type="text" class="form-control" placeholder="evidence.mp4">
                         </div>
                     </div>
                     
@@ -781,9 +787,229 @@
         let orders = [];
         let currentFilter = 'all';
         let selectedObjectionType = 'pre-prepared';
+        
+        // Templates object
+        const templates = {
+            noon: {
+                subject: 'Objection for Order [REFERENCE]',
+                content: `Dear Noon Team,
+We are writing to confirm that Order [REFERENCE] from [BRANCH] was fully prepared and accurately handed over to the assigned driver. As evidence, we have attached a video recording that clearly shows the complete order, including all items being transferred. The video also includes accurate timing details for verification.
+Adjustment Reason: "[REASON]"
+Attached video recording:
+[VIDEO_URL]
+mp4: [VIDEO_FILENAME]
+Visit this link to play the video: [VIDEO_FILENAME]
+files.fm`
+            },
+            wrong: {
+                subject: 'Dispute for Order [REFERENCE]',
+                content: `Dear [COMPANY] Team,
+
+We are writing to dispute the adjustment for Order [REFERENCE] (Order #[ORDER_ID]) from [BRANCH] regarding "[REASON]".
+
+Order Details:
+- Reference ID: [REFERENCE]
+- Order Number: [ORDER_ID]
+- Branch: [BRANCH]
+- Date: [DATE]
+
+After thorough investigation, we find the customer complaint to be incorrect:
+
+Customer Complaint: [COMPLAINT]
+
+Our internal review shows:
+- The order was prepared according to specifications
+- All items were included as ordered
+- Quality standards were maintained
+- The order was complete when handed to the driver
+
+No supporting evidence has been provided to validate this complaint.
+
+We request immediate reversal of this adjustment as it is unjustified.
+
+Best regards,
+[BRANCH] Management`
+            },
+            missing: {
+                subject: 'Dispute for Order [REFERENCE]',
+                content: `Dear [COMPANY] Team,
+
+We are writing to dispute the adjustment for Order [REFERENCE] (Order #[ORDER_ID]) from [BRANCH] regarding "[REASON]".
+
+Order Details:
+- Reference ID: [REFERENCE]
+- Order Number: [ORDER_ID]
+- Branch: [BRANCH]
+- Date: [DATE]
+
+After thorough investigation, we find the customer complaint to be incorrect:
+
+Customer Complaint: [COMPLAINT]
+
+Our internal review shows:
+- The order was prepared with all items included
+- All items were properly packaged
+- Quality standards were maintained
+- The order was complete when handed to the driver
+
+No supporting evidence has been provided to validate this complaint.
+
+We request immediate reversal of this adjustment as it is unjustified.
+
+Best regards,
+[BRANCH] Management`
+            },
+            delay: {
+                subject: 'Dispute for Order [REFERENCE]',
+                content: `Dear [COMPANY] Team,
+
+We are writing to dispute the adjustment for Order [REFERENCE] (Order #[ORDER_ID]) from [BRANCH] regarding "[REASON]".
+
+Order Details:
+- Reference ID: [REFERENCE]
+- Order Number: [ORDER_ID]
+- Branch: [BRANCH]
+- Date: [DATE]
+
+After thorough investigation, we find the customer complaint to be incorrect:
+
+Customer Complaint: [COMPLAINT]
+
+Our internal review shows:
+- The order was prepared within the standard time
+- The order was ready for pickup at the scheduled time
+- Quality standards were maintained
+- The order was handed over to the driver on time
+
+No supporting evidence has been provided to validate this complaint.
+
+We request immediate reversal of this adjustment as it is unjustified.
+
+Best regards,
+[BRANCH] Management`
+            },
+            quality: {
+                subject: 'Dispute for Order [REFERENCE]',
+                content: `Dear [COMPANY] Team,
+
+We are writing to dispute the adjustment for Order [REFERENCE] (Order #[ORDER_ID]) from [BRANCH] regarding "[REASON]".
+
+Order Details:
+- Reference ID: [REFERENCE]
+- Order Number: [ORDER_ID]
+- Branch: [BRANCH]
+- Date: [DATE]
+
+After thorough investigation, we find the customer complaint to be incorrect:
+
+Customer Complaint: [COMPLAINT]
+
+Our internal review shows:
+- The order was prepared according to quality standards
+- Fresh ingredients were used
+- Proper cooking temperatures were maintained
+- Quality checks were performed before packaging
+
+No supporting evidence has been provided to validate this complaint.
+
+We request immediate reversal of this adjustment as it is unjustified.
+
+Best regards,
+[BRANCH] Management`
+            },
+            tech: {
+                subject: 'Dispute for Order [REFERENCE]',
+                content: `Dear [COMPANY] Team,
+
+We are writing to dispute the adjustment for Order [REFERENCE] (Order #[ORDER_ID]) from [BRANCH] regarding "[REASON]".
+
+Order Details:
+- Reference ID: [REFERENCE]
+- Order Number: [ORDER_ID]
+- Branch: [BRANCH]
+- Date: [DATE]
+
+After thorough investigation, we find the customer complaint to be incorrect:
+
+Customer Complaint: [COMPLAINT]
+
+Our internal review shows:
+- The order was prepared and handed over without issues
+- Any technical issues occurred after the order left our outlet
+- Our systems were functioning properly at the time of order preparation
+
+No supporting evidence has been provided to validate this complaint.
+
+We request immediate reversal of this adjustment as it is unjustified.
+
+Best regards,
+[BRANCH] Management`
+            },
+            hygiene: {
+                subject: 'Dispute for Order [REFERENCE]',
+                content: `Dear [COMPANY] Team,
+
+We are writing to dispute the adjustment for Order [REFERENCE] (Order #[ORDER_ID]) from [BRANCH] regarding "[REASON]".
+
+Order Details:
+- Reference ID: [REFERENCE]
+- Order Number: [ORDER_ID]
+- Branch: [BRANCH]
+- Date: [DATE]
+
+After thorough investigation, we find the customer complaint to be incorrect:
+
+Customer Complaint: [COMPLAINT]
+
+Our internal review shows:
+- The order was prepared following strict hygiene protocols
+- Our kitchen maintains high cleanliness standards
+- Staff follow proper hygiene procedures
+- Regular health inspections are conducted
+
+No supporting evidence has been provided to validate this complaint.
+
+We request immediate reversal of this adjustment as it is unjustified.
+
+Best regards,
+[BRANCH] Management`
+            },
+            clarification: {
+                subject: 'Clarification for Order [REFERENCE]',
+                content: `Dear [COMPANY] Team,
+
+We are seeking clarification regarding the adjustment made to Order [REFERENCE] (Order #[ORDER_ID]) from [BRANCH] regarding "[REASON]".
+
+Order Details:
+- Reference ID: [REFERENCE]
+- Order Number: [ORDER_ID]
+- Branch: [BRANCH]
+- Date: [DATE]
+
+We have received notification of an adjustment but require additional information:
+
+Customer Complaint: [COMPLAINT]
+
+We need clarification on:
+- What specific issue was reported?
+- Was any evidence provided by the customer?
+- Can you share the details of the complaint?
+- How does this relate to our outlet's operations?
+
+Our internal records show the order was processed correctly.
+
+Please provide the necessary details so we can investigate this matter thoroughly.
+
+Thank you for your assistance.
+
+Sincerely,
+[BRANCH] Team`
+            }
+        };
 
         // Load data from LocalStorage on page load
         document.addEventListener('DOMContentLoaded', function() {
+            loadPersisted();
             loadData();
             updateDateTime();
             setInterval(updateDateTime, 60000);
@@ -833,7 +1059,8 @@
                 adjustment: parseFloat(document.getElementById('adjustment').value) || 0,
                 reason: document.getElementById('adjustmentReason').value,
                 complaint: document.getElementById('customerComplaint').value,
-                videoEvidence: document.getElementById('videoEvidence').value,
+                videoUrl: document.getElementById('videoUrl').value,
+                videoFilename: document.getElementById('videoFilename').value || getFilenameFromUrl(document.getElementById('videoUrl').value),
                 status: document.getElementById('status').value
             };
             
@@ -845,6 +1072,16 @@
             // Reset form
             e.target.reset();
             showToast('Order added successfully!', 'success');
+        }
+
+        // Get filename from URL
+        function getFilenameFromUrl(url) {
+            try {
+                if (!url) return '';
+                const u = new URL(url);
+                const last = u.pathname.split('/').filter(Boolean).pop() || '';
+                return last.includes('.') ? last : (last ? last + '.mp4' : '');
+            } catch { return ''; }
         }
 
         // Format date
@@ -982,9 +1219,10 @@
             }
             
             // Set video evidence
-            document.getElementById('modalVideoUrl').value = order.videoEvidence || '';
-            document.getElementById('modalVideoName').value = order.videoEvidence ? 
-                order.videoEvidence.split('/').pop() : '';
+            const videoUrl = order.videoUrl || '';
+            let videoFilename = order.videoFilename || getFilenameFromUrl(videoUrl);
+            document.getElementById('modalVideoUrl').value = videoUrl;
+            document.getElementById('modalVideoFilename').value = videoFilename;
             
             // Reset objection type selection
             document.querySelectorAll('.objection-option').forEach(opt => {
@@ -995,6 +1233,14 @@
             
             // Update template content
             updateTemplateContent();
+            
+            // Add video badge if video exists
+            const hasVideo = !!(videoUrl && videoFilename);
+            const modalLabel = document.getElementById('templateModalLabel');
+            modalLabel.innerHTML = `<i class="bi bi-envelope-paper-fill me-2"></i>Dispute Template`;
+            if (hasVideo) {
+                modalLabel.innerHTML += ' <span class="badge-video">Video Attached</span>';
+            }
             
             // Show modal
             const modal = new bootstrap.Modal(document.getElementById('templateModal'));
@@ -1011,800 +1257,48 @@
             const reason = document.getElementById('modalReason').textContent;
             const complaint = document.getElementById('modalComplaint').textContent;
             const videoUrl = document.getElementById('modalVideoUrl').value;
-            const videoName = document.getElementById('modalVideoName').value;
+            const videoFilename = document.getElementById('modalVideoFilename').value;
             
             let template = '';
             const reasonLower = reason.toLowerCase();
             
-            // Generate template based on company, objection type, and reason
-            if (company === 'Noon') {
-                if (selectedObjectionType === 'pre-prepared') {
-                    if (reasonLower.includes('wrong')) {
-                        // Use the specific Noon template format provided by the user
-                        template = `Dear Noon Team,
-We are writing to confirm that Order ${refId}"from ${branch} was fully prepared and accurately handed over to the assigned driver. As evidence, we have attached a video recording that clearly shows the complete order, including all items being transferred. The video also includes accurate timing details for verification.
-Adjustment Reason: "${reason}"
-Attached video recording:
-${videoUrl}
-mp4: ${videoName}
-Visit this link to play the video: ${videoName}
-files.fm`;
-                    } else if (reasonLower.includes('missing')) {
-                        template = `Dear Noon Team,
-We are writing to confirm that Order ${refId}"from ${branch} was fully prepared and accurately handed over to the assigned driver. As evidence, we have attached a video recording that clearly shows the complete order, including all items being transferred. The video also includes accurate timing details for verification.
-Adjustment Reason: "${reason}"
-Attached video recording:
-${videoUrl}
-mp4: ${videoName}
-Visit this link to play the video: ${videoName}
-files.fm`;
-                    } else if (reasonLower.includes('delay')) {
-                        template = `Dear Noon Team,
-We are writing to confirm that Order ${refId}"from ${branch} was fully prepared and accurately handed over to the assigned driver. As evidence, we have attached a video recording that clearly shows the complete order, including all items being transferred. The video also includes accurate timing details for verification.
-Adjustment Reason: "${reason}"
-Attached video recording:
-${videoUrl}
-mp4: ${videoName}
-Visit this link to play the video: ${videoName}
-files.fm`;
-                    } else if (reasonLower.includes('quality')) {
-                        template = `Dear Noon Team,
-We are writing to confirm that Order ${refId}"from ${branch} was fully prepared and accurately handed over to the assigned driver. As evidence, we have attached a video recording that clearly shows the complete order, including all items being transferred. The video also includes accurate timing details for verification.
-Adjustment Reason: "${reason}"
-Attached video recording:
-${videoUrl}
-mp4: ${videoName}
-Visit this link to play the video: ${videoName}
-files.fm`;
-                    } else if (reasonLower.includes('tech')) {
-                        template = `Dear Noon Team,
-We are writing to confirm that Order ${refId}"from ${branch} was fully prepared and accurately handed over to the assigned driver. As evidence, we have attached a video recording that clearly shows the complete order, including all items being transferred. The video also includes accurate timing details for verification.
-Adjustment Reason: "${reason}"
-Attached video recording:
-${videoUrl}
-mp4: ${videoName}
-Visit this link to play the video: ${videoName}
-files.fm`;
-                    } else if (reasonLower.includes('hygiene')) {
-                        template = `Dear Noon Team,
-We are writing to confirm that Order ${refId}"from ${branch} was fully prepared and accurately handed over to the assigned driver. As evidence, we have attached a video recording that clearly shows the complete order, including all items being transferred. The video also includes accurate timing details for verification.
-Adjustment Reason: "${reason}"
-Attached video recording:
-${videoUrl}
-mp4: ${videoName}
-Visit this link to play the video: ${videoName}
-files.fm`;
-                    }
-                } else if (selectedObjectionType === 'incorrect-complaint') {
-                    template = `Dear Noon Team,
-
-We are writing to dispute the adjustment for Order "${refId}" from "${branch}" regarding "${reason}".
-
-Order Details:
-- Reference ID: ${refId}
-- Order Number: ${orderId}
-- Branch: ${branch}
-- Date: ${date}
-
-After thorough investigation, we find the customer complaint to be incorrect:
-
-Customer Complaint: ${complaint}
-
-Our internal review shows:
-- The order was prepared according to specifications
-- All items were included as ordered
-- Quality standards were maintained
-- The order was complete when handed to the driver
-
-No supporting evidence has been provided to validate this complaint.
-
-We request immediate reversal of this adjustment as it is unjustified.
-
-Best regards,
-${branch} Management`;
-                } else if (selectedObjectionType === 'clarification') {
-                    template = `Dear Noon Team,
-
-We are seeking clarification regarding the adjustment made to Order "${refId}" from "${branch}" for "${reason}".
-
-Order Details:
-- Reference ID: ${refId}
-- Order Number: ${orderId}
-- Branch: ${branch}
-- Date: ${date}
-
-We have received notification of an adjustment but require additional information:
-
-Customer Complaint: ${complaint}
-
-We need clarification on:
-- What specific issue was reported?
-- Was any evidence provided by the customer?
-- Can you share the details of the complaint?
-- How does this relate to our outlet's operations?
-
-Our internal records show the order was processed correctly.
-
-Please provide the necessary details so we can investigate this matter thoroughly.
-
-Thank you for your assistance.
-
-Sincerely,
-${branch} Team`;
-                }
-            } else if (company === 'Careem') {
-                if (selectedObjectionType === 'pre-prepared') {
-                    if (reasonLower.includes('wrong')) {
-                        template = `Dear Careem Team,
-
-We are writing regarding Order ${refId} (Order #${orderId}) from ${branch} on ${date} regarding "Wrong order or item delivered".
-
-This order was fully prepared and handed over to the driver exactly as per the customer's request. We have video evidence showing:
-- Complete order preparation as ordered
-- Accurate packaging of all items
-- Timely handover to driver
-- Correct timing of delivery
-
-Order Information:
-- Reference: ${refId}
-- Order Number: ${orderId}
-- Branch: ${branch}
-- Date: ${date}
-
-Customer Complaint: ${complaint}
-
-Video Evidence: ${videoUrl}
-
-The order was ready for pickup at the scheduled time without any errors from our side.
-
-We request an investigation into this adjustment and its reversal if unjustified.
-
-Best regards,
-${branch} Management`;
-                    } else if (reasonLower.includes('missing')) {
-                        template = `Dear Careem Team,
-
-We are writing regarding Order ${refId} (Order #${orderId}) from ${branch} on ${date} regarding "Missing item".
-
-This order was fully prepared with all items included and handed over to the driver. Our evidence shows:
-- Complete order preparation with all items
-- Proper packaging including all ordered items
-- Timely handover to driver
-- Complete order verification before handover
-
-Order Information:
-- Reference: ${refId}
-- Order Number: ${orderId}
-- Branch: ${branch}
-- Date: ${date}
-
-Customer Complaint: ${complaint}
-
-Video Evidence: ${videoUrl}
-
-All items were included in the order when it left our outlet.
-
-We request an investigation into this adjustment and its reversal if unjustified.
-
-Best regards,
-${branch} Management`;
-                    } else if (reasonLower.includes('delay')) {
-                        template = `Dear Careem Team,
-
-We are writing regarding Order ${refId} (Order #${orderId}) from ${branch} on ${date} regarding "Preparation delay".
-
-This order was prepared and ready for pickup within the standard preparation time. Our records show:
-- Order received and processed immediately
-- Preparation completed within promised time
-- Order ready for pickup before scheduled time
-- Driver arrived and collected the order promptly
-
-Order Information:
-- Reference: ${refId}
-- Order Number: ${orderId}
-- Branch: ${branch}
-- Date: ${date}
-
-Customer Complaint: ${complaint}
-
-Video Evidence: ${videoUrl}
-
-We have timestamped evidence showing the order was ready on time.
-
-We request an investigation into this adjustment and its reversal if unjustified.
-
-Best regards,
-${branch} Management`;
-                    } else if (reasonLower.includes('quality')) {
-                        template = `Dear Careem Team,
-
-We are writing regarding Order ${refId} (Order #${orderId}) from ${branch} on ${date} regarding "Food quality".
-
-We maintain strict quality control standards and confirm that this order was prepared following all food safety protocols. Our processes include:
-- Fresh ingredients used for all orders
-- Proper cooking temperatures maintained
-- Quality checks before packaging
-- Proper packaging to maintain quality during delivery
-
-Order Information:
-- Reference: ${refId}
-- Order Number: ${orderId}
-- Branch: ${branch}
-- Date: ${date}
-
-Customer Complaint: ${complaint}
-
-Video Evidence: ${videoUrl}
-
-We request details of the quality issue reported to investigate this matter properly.
-
-We request an investigation into this adjustment and its reversal if unjustified.
-
-Best regards,
-${branch} Management`;
-                    } else if (reasonLower.includes('tech')) {
-                        template = `Dear Careem Team,
-
-We are writing regarding Order ${refId} (Order #${orderId}) from ${branch} on ${date} regarding "Post-Outlet Tech issue".
-
-We confirm that this order was prepared and handed over to the driver without any issues from our side. Any technical issues after the order left our outlet are beyond our control.
-
-Order Information:
-- Reference: ${refId}
-- Order Number: ${orderId}
-- Branch: ${branch}
-- Date: ${date}
-
-Customer Complaint: ${complaint}
-
-Video Evidence: ${videoUrl}
-
-We request details of the technical issue reported to understand how it relates to our outlet's operations.
-
-We request an investigation into this adjustment and its reversal if the issue is not related to our outlet.
-
-Best regards,
-${branch} Management`;
-                    } else if (reasonLower.includes('hygiene')) {
-                        template = `Dear Careem Team,
-
-We are writing regarding Order ${refId} (Order #${orderId}) from ${branch} on ${date} regarding "Hygiene issues".
-
-We maintain strict hygiene standards and follow all food safety regulations. Our kitchen operations include:
-- Regular cleaning and sanitization protocols
-- Proper food handling procedures
-- Staff hygiene requirements
-- Regular health inspections
-
-Order Information:
-- Reference: ${refId}
-- Order Number: ${orderId}
-- Branch: ${branch}
-- Date: ${date}
-
-Customer Complaint: ${complaint}
-
-Video Evidence: ${videoUrl}
-
-We request details of the hygiene issue reported to investigate this matter properly.
-
-We request an investigation into this adjustment and its reversal if unjustified.
-
-Best regards,
-${branch} Management`;
-                    }
-                } else if (selectedObjectionType === 'incorrect-complaint') {
-                    template = `Dear Careem Team,
-
-We are writing to dispute the adjustment for Order ${refId} (Order #${orderId}) from ${branch} regarding "${reason}".
-
-Order Summary:
-- Reference: ${refId}
-- Order Number: ${orderId}
-- Branch: ${branch}
-- Date: ${date}
-
-After thorough investigation, we find the customer complaint to be incorrect:
-
-Customer Complaint: ${complaint}
-
-Our internal review confirms:
-- The order was prepared exactly as requested
-- All items were included and properly packaged
-- Quality standards were fully met
-- The order was complete when handed to the driver
-
-No supporting evidence has been provided to validate this complaint.
-
-We demand immediate reversal of this unjustified adjustment.
-
-Best regards,
-${branch} Management`;
-                } else if (selectedObjectionType === 'clarification') {
-                    template = `Dear Careem Support Team,
-
-We need clarification about the adjustment on Order ${refId} (Order #${orderId}) from ${branch} regarding "${reason}".
-
-Order Details:
-- Reference: ${refId}
-- Order Number: ${orderId}
-- Branch: ${branch}
-- Date: ${date}
-
-We've been notified of an adjustment but lack details:
-
-Customer Complaint: ${complaint}
-
-We need more information about this adjustment:
-- What specific issue was reported?
-- Was evidence provided by the customer?
-- When was the complaint filed?
-- How does this relate to our outlet's operations?
-
-Our records indicate the order was processed correctly.
-
-Please provide complete details so we can investigate properly.
-
-Thank you for your help.
-
-Sincerely,
-${branch} Management`;
-                }
-            } else if (company === 'Talabat') {
-                if (selectedObjectionType === 'pre-prepared') {
-                    if (reasonLower.includes('wrong')) {
-                        template = `Dear Talabat Support Team,
-
-We wish to dispute the adjustment made to Order ${refId} (Order #${orderId}) from ${branch} regarding "Wrong order or item delivered".
-
-Order Information:
-- Reference: ${refId}
-- Order Number: ${orderId}
-- Branch: ${branch}
-- Date: ${date}
-- Total Amount: [Amount]
-
-We confirm that this order was:
-1. Prepared accurately according to the order details
-2. Handed over to the driver complete and on time
-3. Properly packaged for delivery
-
-We have video evidence of the entire process available for review, showing:
-- Complete order preparation as per customer request
-- Accurate packaging of all items
-- Timely handover to driver
-
-Customer Complaint: ${complaint}
-Video Evidence: ${videoUrl}
-
-Please review this case and reverse the adjustment if no valid evidence is provided.
-
-Sincerely,
-${branch} Team`;
-                    } else if (reasonLower.includes('missing')) {
-                        template = `Dear Talabat Support Team,
-
-We wish to dispute the adjustment made to Order ${refId} (Order #${orderId}) from ${branch} regarding "Missing item".
-
-Order Information:
-- Reference: ${refId}
-- Order Number: ${orderId}
-- Branch: ${branch}
-- Date: ${date}
-- Total Amount: [Amount]
-
-We confirm that this order was:
-1. Prepared with all items included as ordered
-2. Handed over to the driver complete and on time
-3. Properly packaged for delivery
-
-We have video evidence of the entire process available for review, showing:
-- Complete order preparation with all items
-- Proper packaging including all ordered items
-- Timely handover to driver
-
-Customer Complaint: ${complaint}
-Video Evidence: ${videoUrl}
-
-Please review this case and reverse the adjustment if no valid evidence is provided.
-
-Sincerely,
-${branch} Team`;
-                    } else if (reasonLower.includes('delay')) {
-                        template = `Dear Talabat Support Team,
-
-We wish to dispute the adjustment made to Order ${refId} (Order #${orderId}) from ${branch} regarding "Preparation delay".
-
-Order Information:
-- Reference: ${refId}
-- Order Number: ${orderId}
-- Branch: ${branch}
-- Date: ${date}
-- Total Amount: [Amount]
-
-We confirm that this order was:
-1. Prepared within the standard preparation time
-2. Ready for pickup before the scheduled time
-3. Handed over to the driver promptly
-
-We have timestamped video evidence of the entire process available for review, showing:
-- Order received and processed immediately
-- Preparation completed within promised time
-- Order ready for pickup before scheduled time
-
-Customer Complaint: ${complaint}
-Video Evidence: ${videoUrl}
-
-Please review this case and reverse the adjustment if no valid evidence is provided.
-
-Sincerely,
-${branch} Team`;
-                    } else if (reasonLower.includes('quality')) {
-                        template = `Dear Talabat Support Team,
-
-We wish to dispute the adjustment made to Order ${refId} (Order #${orderId}) from ${branch} regarding "Food quality".
-
-Order Information:
-- Reference: ${refId}
-- Order Number: ${orderId}
-- Branch: ${branch}
-- Date: ${date}
-- Total Amount: [Amount]
-
-We maintain strict quality control standards and confirm that this order was prepared following all food safety protocols. Our processes include:
-- Fresh ingredients used for all orders
-- Proper cooking temperatures maintained
-- Quality checks before packaging
-- Proper packaging to maintain quality during delivery
-
-Customer Complaint: ${complaint}
-Video Evidence: ${videoUrl}
-
-Please review this case and reverse the adjustment if no valid evidence is provided.
-
-Sincerely,
-${branch} Team`;
-                    } else if (reasonLower.includes('tech')) {
-                        template = `Dear Talabat Support Team,
-
-We wish to dispute the adjustment made to Order ${refId} (Order #${orderId}) from ${branch} regarding "Post-Outlet Tech issue".
-
-Order Information:
-- Reference: ${refId}
-- Order Number: ${orderId}
-- Branch: ${branch}
-- Date: ${date}
-- Total Amount: [Amount]
-
-We confirm that this order was prepared and handed over to the driver without any issues from our side. Any technical issues after the order left our outlet are beyond our control.
-
-Customer Complaint: ${complaint}
-Video Evidence: ${videoUrl}
-
-Please review this case and reverse the adjustment if the issue is not related to our outlet's operations.
-
-Sincerely,
-${branch} Team`;
-                    } else if (reasonLower.includes('hygiene')) {
-                        template = `Dear Talabat Support Team,
-
-We wish to dispute the adjustment made to Order ${refId} (Order #${orderId}) from ${branch} regarding "Hygiene issues".
-
-Order Information:
-- Reference: ${refId}
-- Order Number: ${orderId}
-- Branch: ${branch}
-- Date: ${date}
-- Total Amount: [Amount]
-
-We maintain strict hygiene standards and follow all food safety regulations. Our kitchen operations include:
-- Regular cleaning and sanitization protocols
-- Proper food handling procedures
-- Staff hygiene requirements
-- Regular health inspections
-
-Customer Complaint: ${complaint}
-Video Evidence: ${videoUrl}
-
-Please review this case and reverse the adjustment if no valid evidence is provided.
-
-Sincerely,
-${branch} Team`;
-                    }
-                } else if (selectedObjectionType === 'incorrect-complaint') {
-                    template = `Dear Talabat Team,
-
-We are writing to contest the adjustment for Order ${refId} (Order #${orderId}) from ${branch} regarding "${reason}".
-
-Order Summary:
-- Reference: ${refId}
-- Order Number: ${orderId}
-- Branch: ${branch}
-- Date: ${date}
-- Value: [Amount]
-
-After thorough investigation, we find the customer complaint to be incorrect:
-
-Customer Complaint: ${complaint}
-
-Our internal audit confirms:
-- The order was prepared exactly as requested
-- All items were included and properly packaged
-- Quality standards were fully met
-- The order was complete when handed to the driver
-
-No supporting evidence has been provided to validate this complaint.
-
-We demand immediate reversal of this unjustified adjustment.
-
-Best regards,
-${branch} Management`;
-                } else if (selectedObjectionType === 'clarification') {
-                    template = `Dear Talabat Support,
-
-We require clarification regarding the adjustment on Order ${refId} (Order #${orderId}) from ${branch} regarding "${reason}".
-
-Order Details:
-- Reference: ${refId}
-- Order Number: ${orderId}
-- Branch: ${branch}
-- Date: ${date}
-- Amount: [Amount]
-
-We need more information about this adjustment:
-
-Customer Complaint: ${complaint}
-
-Please provide details about this adjustment:
-- What specific issue was reported?
-- Was evidence provided by the customer?
-- When was the complaint registered?
-- How does this relate to our outlet's operations?
-
-Our records indicate the order was processed correctly.
-
-Please provide complete details so we can investigate properly.
-
-Thank you for your cooperation.
-
-Sincerely,
-${branch} Team`;
-                }
-            } else if (company === 'Deliveroo') {
-                if (selectedObjectionType === 'pre-prepared') {
-                    if (reasonLower.includes('wrong')) {
-                        template = `Dear Deliveroo Team,
-
-We are writing to contest the adjustment for Order ${refId} (Order #${orderId}) from our ${branch} location regarding "Wrong order or item delivered".
-
-Order Summary:
-- Reference ID: ${refId}
-- Order Number: ${orderId}
-- Branch: ${branch}
-- Date & Time: ${date}
-- Order Value: [Amount]
-
-We can confirm that this order was:
-1. Prepared accurately according to the order details
-2. Handed over to the driver complete and on time
-3. Properly packaged for delivery
-
-We have video evidence of the entire process available for review, showing:
-- Complete order preparation as per customer request
-- Accurate packaging of all items
-- Timely handover to driver
-
-Customer Complaint: ${complaint}
-Video Evidence: ${videoUrl}
-
-We request that you investigate this matter and reverse the adjustment if no valid evidence is provided to support it.
-
-Thank you for your attention to this matter.
-
-Kind regards,
-${branch} Management`;
-                    } else if (reasonLower.includes('missing')) {
-                        template = `Dear Deliveroo Team,
-
-We are writing to contest the adjustment for Order ${refId} (Order #${orderId}) from our ${branch} location regarding "Missing item".
-
-Order Summary:
-- Reference ID: ${refId}
-- Order Number: ${orderId}
-- Branch: ${branch}
-- Date & Time: ${date}
-- Order Value: [Amount]
-
-We can confirm that this order was:
-1. Prepared with all items included as ordered
-2. Handed over to the driver complete and on time
-3. Properly packaged for delivery
-
-We have video evidence of the entire process available for review, showing:
-- Complete order preparation with all items
-- Proper packaging including all ordered items
-- Timely handover to driver
-
-Customer Complaint: ${complaint}
-Video Evidence: ${videoUrl}
-
-We request that you investigate this matter and reverse the adjustment if no valid evidence is provided to support it.
-
-Thank you for your attention to this matter.
-
-Kind regards,
-${branch} Management`;
-                    } else if (reasonLower.includes('delay')) {
-                        template = `Dear Deliveroo Team,
-
-We are writing to contest the adjustment for Order ${refId} (Order #${orderId}) from our ${branch} location regarding "Preparation delay".
-
-Order Summary:
-- Reference ID: ${refId}
-- Order Number: ${orderId}
-- Branch: ${branch}
-- Date & Time: ${date}
-- Order Value: [Amount]
-
-We can confirm that this order was:
-1. Prepared within the standard preparation time
-2. Ready for pickup before the scheduled time
-3. Handed over to the driver promptly
-
-We have timestamped video evidence of the entire process available for review, showing:
-- Order received and processed immediately
-- Preparation completed within promised time
-- Order ready for pickup before scheduled time
-
-Customer Complaint: ${complaint}
-Video Evidence: ${videoUrl}
-
-We request that you investigate this matter and reverse the adjustment if no valid evidence is provided to support it.
-
-Thank you for your attention to this matter.
-
-Kind regards,
-${branch} Management`;
-                    } else if (reasonLower.includes('quality')) {
-                        template = `Dear Deliveroo Team,
-
-We are writing to contest the adjustment for Order ${refId} (Order #${orderId}) from our ${branch} location regarding "Food quality".
-
-Order Summary:
-- Reference ID: ${refId}
-- Order Number: ${orderId}
-- Branch: ${branch}
-- Date & Time: ${date}
-- Order Value: [Amount]
-
-We maintain strict quality control standards and confirm that this order was prepared following all food safety protocols. Our processes include:
-- Fresh ingredients used for all orders
-- Proper cooking temperatures maintained
-- Quality checks before packaging
-- Proper packaging to maintain quality during delivery
-
-Customer Complaint: ${complaint}
-Video Evidence: ${videoUrl}
-
-We request that you investigate this matter and reverse the adjustment if no valid evidence is provided to support it.
-
-Thank you for your attention to this matter.
-
-Kind regards,
-${branch} Management`;
-                    } else if (reasonLower.includes('tech')) {
-                        template = `Dear Deliveroo Team,
-
-We are writing to contest the adjustment for Order ${refId} (Order #${orderId}) from our ${branch} location regarding "Post-Outlet Tech issue".
-
-Order Summary:
-- Reference ID: ${refId}
-- Order Number: ${orderId}
-- Branch: ${branch}
-- Date & Time: ${date}
-- Order Value: [Amount]
-
-We confirm that this order was prepared and handed over to the driver without any issues from our side. Any technical issues after the order left our outlet are beyond our control.
-
-Customer Complaint: ${complaint}
-Video Evidence: ${videoUrl}
-
-We request that you investigate this matter and reverse the adjustment if the issue is not related to our outlet's operations.
-
-Thank you for your attention to this matter.
-
-Kind regards,
-${branch} Management`;
-                    } else if (reasonLower.includes('hygiene')) {
-                        template = `Dear Deliveroo Team,
-
-We are writing to contest the adjustment for Order ${refId} (Order #${orderId}) from our ${branch} location regarding "Hygiene issues".
-
-Order Summary:
-- Reference ID: ${refId}
-- Order Number: ${orderId}
-- Branch: ${branch}
-- Date & Time: ${date}
-- Order Value: [Amount]
-
-We maintain strict hygiene standards and follow all food safety regulations. Our kitchen operations include:
-- Regular cleaning and sanitization protocols
-- Proper food handling procedures
-- Staff hygiene requirements
-- Regular health inspections
-
-Customer Complaint: ${complaint}
-Video Evidence: ${videoUrl}
-
-We request that you investigate this matter and reverse the adjustment if no valid evidence is provided to support it.
-
-Thank you for your attention to this matter.
-
-Kind regards,
-${branch} Management`;
-                    }
-                } else if (selectedObjectionType === 'incorrect-complaint') {
-                    template = `Dear Deliveroo Support,
-
-We dispute the adjustment for Order ${refId} (Order #${orderId}) from ${branch} regarding "${reason}".
-
-Order Information:
-- Reference ID: ${refId}
-- Order Number: ${orderId}
-- Branch: ${branch}
-- Date: ${date}
-- Value: [Amount]
-
-Our investigation shows the customer complaint is incorrect:
-
-Customer Complaint: ${complaint}
-
-Our internal audit confirms:
-- Order prepared exactly as specified
-- All items included and properly packaged
-- Quality standards fully met
-- Complete order handed to driver
-
-No evidence supports this complaint.
-
-We require immediate reversal of this adjustment.
-
-Best regards,
-${branch} Team`;
-                } else if (selectedObjectionType === 'clarification') {
-                    template = `Dear Deliveroo Team,
-
-We need clarification about the adjustment on Order ${refId} (Order #${orderId}) from ${branch} regarding "${reason}".
-
-Order Details:
-- Reference ID: ${refId}
-- Order Number: ${orderId}
-- Branch: ${branch}
-- Date: ${date}
-- Amount: [Amount]
-
-Please provide details about this adjustment:
-
-Customer Complaint: ${complaint}
-
-We need to understand:
-- What specific issue was reported?
-- Was evidence provided by the customer?
-- When was the complaint reported?
-- How does this relate to our outlet's operations?
-
-Our records show proper order processing.
-
-We need complete information to investigate.
-
-Thank you for your assistance.
-
-Sincerely,
-${branch} Management`;
+            // Select template based on company and objection type
+            if (company === 'Noon' && selectedObjectionType === 'pre-prepared') {
+                template = templates.noon;
+            } else if (selectedObjectionType === 'clarification') {
+                template = templates.clarification;
+            } else {
+                // Select template based on reason type
+                if (reasonLower.includes('wrong')) {
+                    template = templates.wrong;
+                } else if (reasonLower.includes('missing')) {
+                    template = templates.missing;
+                } else if (reasonLower.includes('delay')) {
+                    template = templates.delay;
+                } else if (reasonLower.includes('quality')) {
+                    template = templates.quality;
+                } else if (reasonLower.includes('tech')) {
+                    template = templates.tech;
+                } else if (reasonLower.includes('hygiene')) {
+                    template = templates.hygiene;
+                } else {
+                    template = templates.wrong; // Default template
                 }
             }
             
-            document.getElementById('templateContent').textContent = template;
+            // Replace placeholders
+            let content = template.content
+                .replaceAll('[REFERENCE]', refId)
+                .replaceAll('[ORDER_ID]', orderId)
+                .replaceAll('[BRANCH]', branch)
+                .replaceAll('[DATE]', date)
+                .replaceAll('[REASON]', reason)
+                .replaceAll('[COMPANY]', company)
+                .replaceAll('[COMPLAINT]', complaint)
+                .replaceAll('[VIDEO_URL]', videoUrl || '—')
+                .replaceAll('[VIDEO_FILENAME]', videoFilename || '—');
+            
+            document.getElementById('templateContent').textContent = content;
         }
 
         // Copy template to clipboard
@@ -1817,8 +1311,38 @@ ${branch} Management`;
             });
         }
 
+        // Persist video evidence
+        function persistVideoEvidence() {
+            const refId = document.getElementById('modalRefId').textContent.trim();
+            const videoUrl = document.getElementById('modalVideoUrl').value.trim();
+            const videoFilename = document.getElementById('modalVideoFilename').value.trim() || getFilenameFromUrl(videoUrl);
+            
+            // Update orders array
+            const idx = orders.findIndex(o => o.refId === refId);
+            if (idx >= 0) {
+                orders[idx].videoUrl = videoUrl;
+                orders[idx].videoFilename = videoFilename;
+            }
+            
+            // Update video evidence storage
+            if (!window.videoEvidence) window.videoEvidence = [];
+            const vIdx = window.videoEvidence.findIndex(v => v.reference === refId);
+            if (vIdx >= 0) {
+                window.videoEvidence[vIdx].videoUrl = videoUrl;
+                window.videoEvidence[vIdx].videoFilename = videoFilename;
+            } else {
+                window.videoEvidence.push({ reference: refId, videoUrl, videoFilename });
+            }
+            
+            // Save to LocalStorage
+            localStorage.setItem('videoEvidence', JSON.stringify(window.videoEvidence));
+            saveData();
+        }
+
         // Send email (opens default email client)
         function sendEmail() {
+            persistVideoEvidence();
+            
             const company = document.getElementById('modalCompany').value;
             const content = document.getElementById('templateContent').textContent;
             
@@ -1840,7 +1364,7 @@ ${branch} Management`;
             }
             
             // Create mailto link
-            const subject = `Dispute for Order ${document.getElementById('modalRefId').textContent}`;
+            const subject = document.getElementById('templateModalLabel').innerText.replace('Video Attached', '').trim();
             const mailtoLink = `mailto:${email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(content)}`;
             
             // Open email client
@@ -1865,7 +1389,8 @@ ${branch} Management`;
         function clearAllData() {
             if (confirm('Are you sure you want to clear all data? This action cannot be undone.')) {
                 orders = [];
-                saveData();
+                localStorage.removeItem('orderManagementData');
+                localStorage.removeItem('videoEvidence');
                 renderOrders();
                 updateStatistics();
                 showToast('All data cleared!', 'warning');
@@ -1884,7 +1409,8 @@ ${branch} Management`;
                 'Adjust Amount': o.adjustment,
                 'Adjustment Reason': o.reason,
                 'Customer Complaint': o.complaint,
-                'Video Evidence': o.videoEvidence,
+                'Video URL': o.videoUrl || '',
+                'Video Filename': o.videoFilename || '',
                 'Status': o.status
             })));
             
@@ -1893,6 +1419,34 @@ ${branch} Management`;
             XLSX.writeFile(wb, 'orders_report.xlsx');
             
             showToast('Excel file exported successfully!', 'success');
+        }
+
+        // Export to CSV
+        function exportCSV() {
+            const headers = ['Branch', 'OrderId', 'Reference', 'Date', 'Amount', 'Adjustment', 'Reason', 'VideoURL', 'VideoFilename'];
+            const data = orders.map(r => ([
+                r.branch, 
+                r.orderNumber, 
+                r.refId, 
+                formatDisplayDate(r.date), 
+                r.amount, 
+                r.adjustment, 
+                r.reason,
+                (r.videoUrl || ''), 
+                (r.videoFilename || '')
+            ]));
+            
+            const csv = [headers, ...data].map(a => 
+                a.map(v => `"${String(v).replace(/"/g,'""')}"`).join(',')
+            ).join('\n');
+            
+            const blob = new Blob([csv], {type:'text/csv;charset=utf-8;'});
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = 'orders_with_video.csv';
+            a.click();
+            
+            showToast('CSV file exported successfully!', 'success');
         }
 
         // Show toast notification
@@ -1931,6 +1485,15 @@ ${branch} Management`;
             const savedData = localStorage.getItem('orderManagementData');
             if (savedData) {
                 orders = JSON.parse(savedData);
+            }
+        }
+
+        // Load persisted video evidence
+        function loadPersisted() {
+            try {
+                window.videoEvidence = JSON.parse(localStorage.getItem('videoEvidence') || '[]');
+            } catch { 
+                window.videoEvidence = []; 
             }
         }
     </script>
