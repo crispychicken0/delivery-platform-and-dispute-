@@ -1,0 +1,1349 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Order Management System</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <style>
+        :root {
+            --primary-color: #2c3e50;
+            --secondary-color: #3498db;
+            --success-color: #27ae60;
+            --danger-color: #e74c3c;
+            --warning-color: #f39c12;
+            --light-bg: #f8f9fa;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--light-bg);
+            color: #333;
+        }
+
+        .main-header {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            padding: 2rem 0;
+            margin-bottom: 2rem;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+
+        .stats-card {
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+            transition: transform 0.3s;
+            border: none;
+            margin-bottom: 1.5rem;
+        }
+
+        .stats-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .stats-card .card-body {
+            padding: 1.5rem;
+        }
+
+        .stats-card h5 {
+            font-size: 0.9rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .stats-card h3 {
+            font-weight: 700;
+            margin-bottom: 0;
+        }
+
+        .stats-card .icon {
+            font-size: 2rem;
+            opacity: 0.8;
+        }
+
+        .form-section {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .table-container {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .table {
+            margin-bottom: 0;
+        }
+
+        .table thead th {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            font-weight: 600;
+            text-align: center;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        .table tbody tr {
+            transition: background-color 0.2s;
+        }
+
+        .table tbody tr:hover {
+            background-color: #f1f8ff;
+        }
+
+        .status-badge {
+            font-size: 0.85rem;
+            padding: 0.4rem 0.8rem;
+            border-radius: 20px;
+            font-weight: 600;
+        }
+
+        .status-progress {
+            background-color: #fff3cd;
+            color: #856404;
+        }
+
+        .btn-template {
+            background-color: var(--warning-color);
+            color: white;
+            border: none;
+            padding: 0.4rem 0.8rem;
+            border-radius: 5px;
+            font-size: 0.85rem;
+            transition: all 0.3s;
+            margin: 0.2rem;
+        }
+
+        .btn-template:hover {
+            background-color: #e67e22;
+            transform: scale(1.05);
+        }
+
+        .modal-header {
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        .modal-body {
+            background-color: #f8f9fa;
+            border-radius: 0 0 10px 10px;
+        }
+
+        .template-container {
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin-top: 1rem;
+            position: relative;
+        }
+
+        .copy-btn {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background-color: var(--secondary-color);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            padding: 0.3rem 0.8rem;
+            font-size: 0.85rem;
+            transition: all 0.3s;
+        }
+
+        .copy-btn:hover {
+            background-color: #2980b9;
+        }
+
+        .template-content {
+            font-family: 'Courier New', monospace;
+            line-height: 1.6;
+            white-space: pre-wrap;
+            margin-top: 1rem;
+        }
+
+        .reason-tag {
+            display: inline-block;
+            padding: 0.2rem 0.6rem;
+            border-radius: 15px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            margin-left: 0.5rem;
+        }
+
+        .reason-wrong {
+            background-color: #ffebee;
+            color: #c62828;
+        }
+
+        .reason-missing {
+            background-color: #e8f5e9;
+            color: #2e7d32;
+        }
+
+        .reason-delay {
+            background-color: #fff3e0;
+            color: #e65100;
+        }
+
+        .footer {
+            background-color: var(--primary-color);
+            color: white;
+            text-align: center;
+            padding: 1.5rem 0;
+            margin-top: 3rem;
+        }
+
+        .toast-container {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            z-index: 1050;
+        }
+
+        .custom-toast {
+            background-color: var(--success-color);
+            color: white;
+            padding: 1rem;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            display: flex;
+            align-items: center;
+            margin-bottom: 0.5rem;
+            animation: slideIn 0.3s ease-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(-100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        .custom-toast i {
+            font-size: 1.5rem;
+            margin-left: 0.8rem;
+        }
+
+        .filter-section {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .filter-btn {
+            background-color: var(--secondary-color);
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 5px;
+            margin-left: 0.5rem;
+            transition: all 0.3s;
+        }
+
+        .filter-btn:hover {
+            background-color: #2980b9;
+        }
+
+        .filter-btn.active {
+            background-color: var(--primary-color);
+        }
+
+        .adjustment-amount {
+            font-weight: 700;
+            color: var(--danger-color);
+        }
+
+        .order-details {
+            font-size: 0.9rem;
+            color: #666;
+        }
+
+        .action-cell {
+            white-space: nowrap;
+        }
+
+        .table-responsive {
+            max-height: 600px;
+            overflow-y: auto;
+        }
+
+        .company-badge {
+            display: inline-block;
+            padding: 0.2rem 0.6rem;
+            border-radius: 15px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            margin-left: 0.5rem;
+        }
+
+        .company-noon {
+            background-color: #e3f2fd;
+            color: #1565c0;
+        }
+
+        .company-careem {
+            background-color: #fce4ec;
+            color: #c2185b;
+        }
+
+        .company-talabat {
+            background-color: #f3e5f5;
+            color: #7b1fa2;
+        }
+
+        .company-deliveroo {
+            background-color: #e0f2f1;
+            color: #00796b;
+        }
+
+        .objection-type-selector {
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .objection-option {
+            cursor: pointer;
+            padding: 0.8rem;
+            border: 2px solid transparent;
+            border-radius: 8px;
+            margin-bottom: 0.5rem;
+            transition: all 0.3s;
+        }
+
+        .objection-option:hover {
+            background-color: #f8f9fa;
+        }
+
+        .objection-option.selected {
+            border-color: var(--secondary-color);
+            background-color: rgba(52, 152, 219, 0.1);
+        }
+
+        .objection-option i {
+            font-size: 1.5rem;
+            margin-left: 0.5rem;
+            color: var(--secondary-color);
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header class="main-header">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-md-6">
+                    <h1 class="mb-0"><i class="bi bi-clipboard-data-fill me-2"></i>Order Management System</h1>
+                    <p class="mb-0 mt-2 opacity-75">Professional order tracking with dispute templates</p>
+                </div>
+                <div class="col-md-6 text-md-end mt-3 mt-md-0">
+                    <div class="d-flex align-items-center justify-content-md-end">
+                        <div class="me-3">
+                            <i class="bi bi-calendar3 me-1"></i>
+                            <span id="currentDate"></span>
+                        </div>
+                        <div>
+                            <i class="bi bi-clock me-1"></i>
+                            <span id="currentTime"></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <div class="container">
+        <!-- Statistics Cards -->
+        <div class="row">
+            <div class="col-md-3 col-sm-6">
+                <div class="card stats-card">
+                    <div class="card-body d-flex justify-content-between align-items-center">
+                        <div>
+                            <h5>Total Orders</h5>
+                            <h3 id="totalOrders">0</h3>
+                        </div>
+                        <div class="icon text-primary">
+                            <i class="bi bi-cart3"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 col-sm-6">
+                <div class="card stats-card">
+                    <div class="card-body d-flex justify-content-between align-items-center">
+                        <div>
+                            <h5>Adjustments</h5>
+                            <h3 id="totalAdjustments">0</h3>
+                        </div>
+                        <div class="icon text-danger">
+                            <i class="bi bi-pencil-square"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 col-sm-6">
+                <div class="card stats-card">
+                    <div class="card-body d-flex justify-content-between align-items-center">
+                        <div>
+                            <h5>Total Amount</h5>
+                            <h3 id="totalAmount">0 AED</h3>
+                        </div>
+                        <div class="icon text-success">
+                            <i class="bi bi-currency-dollar"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 col-sm-6">
+                <div class="card stats-card">
+                    <div class="card-body d-flex justify-content-between align-items-center">
+                        <div>
+                            <h5>Adjustment Value</h5>
+                            <h3 id="adjustmentValue">0 AED</h3>
+                        </div>
+                        <div class="icon text-warning">
+                            <i class="bi bi-exclamation-triangle-fill"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Manual Entry Form -->
+        <div class="form-section">
+            <h5 class="mb-3"><i class="bi bi-plus-circle-fill me-2"></i>Add New Order</h5>
+            <form id="orderForm">
+                <div class="row">
+                    <div class="col-md-2">
+                        <div class="mb-3">
+                            <label class="form-label">Reference ID</label>
+                            <input type="text" class="form-control" id="refId" required>
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        <div class="mb-3">
+                            <label class="form-label">Order Number</label>
+                            <input type="text" class="form-control" id="orderNumber" required>
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        <div class="mb-3">
+                            <label class="form-label">Date</label>
+                            <input type="datetime-local" class="form-control" id="orderDate" required>
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        <div class="mb-3">
+                            <label class="form-label">Branch</label>
+                            <select class="form-select" id="branch" required>
+                                <option value="">Select Branch</option>
+                                <option value="Hamdan St">Hamdan St</option>
+                                <option value="Shabiya 11">Shabiya 11</option>
+                                <option value="Khaldia">Khaldia</option>
+                                <option value="Al Electra">Al Electra</option>
+                                <option value="Al Barsha">Al Barsha</option>
+                                <option value="Satwa">Satwa</option>
+                                <option value="Muroor">Muroor</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        <div class="mb-3">
+                            <label class="form-label">Company</label>
+                            <select class="form-select" id="company" required>
+                                <option value="">Select Company</option>
+                                <option value="Noon">Noon</option>
+                                <option value="Careem">Careem</option>
+                                <option value="Talabat">Talabat</option>
+                                <option value="Deliveroo">Deliveroo</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        <div class="mb-3">
+                            <label class="form-label">Order Amount</label>
+                            <input type="number" class="form-control" id="orderAmount" step="0.01" required>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-2">
+                        <div class="mb-3">
+                            <label class="form-label">Adjustment</label>
+                            <input type="number" class="form-control" id="adjustment" step="0.01">
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="mb-3">
+                            <label class="form-label">Adjustment Reason</label>
+                            <select class="form-select" id="adjustmentReason">
+                                <option value="">Select Reason</option>
+                                <option value="Wrong order or item delivered - Outlet">Wrong order or item delivered</option>
+                                <option value="Missing item - Outlet">Missing item</option>
+                                <option value="Prep delay Outlet">Preparation delay</option>
+                                <option value="Quality issue">Quality issue</option>
+                                <option value="Customer complaint">Customer complaint</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        <div class="mb-3">
+                            <label class="form-label">Status</label>
+                            <select class="form-select" id="status" required>
+                                <option value="Work in Progress">Work in Progress</option>
+                                <option value="Resolved">Resolved</option>
+                                <option value="Pending">Pending</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="mb-3">
+                            <label class="form-label">Customer Complaint</label>
+                            <input type="text" class="form-control" id="customerComplaint">
+                        </div>
+                    </div>
+                    <div class="col-md-2 d-flex align-items-end">
+                        <button type="submit" class="btn btn-primary w-100">
+                            <i class="bi bi-plus-lg me-1"></i>Add Order
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+
+        <!-- Filters Section -->
+        <div class="filter-section">
+            <div class="row align-items-center">
+                <div class="col-md-6">
+                    <h5 class="mb-0"><i class="bi bi-funnel-fill me-2"></i>Filter by:</h5>
+                </div>
+                <div class="col-md-6 text-md-end mt-3 mt-md-0">
+                    <button class="filter-btn active" data-filter="all">All</button>
+                    <button class="filter-btn" data-filter="wrong">Wrong Order</button>
+                    <button class="filter-btn" data-filter="missing">Missing Item</button>
+                    <button class="filter-btn" data-filter="delay">Delay</button>
+                    <button class="filter-btn" data-filter="quality">Quality</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Orders Table -->
+        <div class="table-container">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h4 class="mb-0"><i class="bi bi-table me-2"></i>Orders & Adjustments</h4>
+                <div>
+                    <button class="btn btn-sm btn-outline-secondary me-2" onclick="exportToExcel()">
+                        <i class="bi bi-download me-1"></i>Export Excel
+                    </button>
+                    <button class="btn btn-sm btn-outline-primary" onclick="window.print()">
+                        <i class="bi bi-printer me-1"></i>Print Report
+                    </button>
+                    <button class="btn btn-sm btn-outline-danger ms-2" onclick="clearAllData()">
+                        <i class="bi bi-trash me-1"></i>Clear All
+                    </button>
+                </div>
+            </div>
+            
+            <div class="table-responsive">
+                <table class="table table-hover" id="ordersTable">
+                    <thead>
+                        <tr>
+                            <th>Status</th>
+                            <th>Branch</th>
+                            <th>Order #</th>
+                            <th>Reference</th>
+                            <th>Date</th>
+                            <th>Amount</th>
+                            <th>Adjustment</th>
+                            <th>Reason</th>
+                            <th>Company</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="ordersTableBody">
+                        <!-- Orders will be dynamically added here -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Template Modal -->
+    <div class="modal fade" id="templateModal" tabindex="-1" aria-labelledby="templateModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="templateModalLabel">
+                        <i class="bi bi-envelope-paper-fill me-2"></i>Dispute Template
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label"><strong>Reference ID:</strong></label>
+                            <span id="modalRefId" class="form-control-plaintext"></span>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label"><strong>Order Number:</strong></label>
+                            <span id="modalOrderId" class="form-control-plaintext"></span>
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label"><strong>Branch:</strong></label>
+                            <span id="modalBranch" class="form-control-plaintext"></span>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label"><strong>Date:</strong></label>
+                            <span id="modalDate" class="form-control-plaintext"></span>
+                        </div>
+                    </div>
+                    
+                    <!-- Objection Type Selection -->
+                    <div class="objection-type-selector">
+                        <h6 class="mb-3"><i class="bi bi-chat-square-text-fill me-2"></i>Select Objection Type:</h6>
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="objection-option" data-type="pre-prepared" onclick="selectObjectionType(this)">
+                                    <i class="bi bi-clock-history"></i>
+                                    <strong>Pre-prepared</strong>
+                                    <p class="mb-0 small text-muted">Order was ready on time</p>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="objection-option" data-type="incorrect-complaint" onclick="selectObjectionType(this)">
+                                    <i class="bi bi-exclamation-triangle"></i>
+                                    <strong>Incorrect Complaint</strong>
+                                    <p class="mb-0 small text-muted">Complaint is not valid</p>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="objection-option" data-type="clarification" onclick="selectObjectionType(this)">
+                                    <i class="bi bi-info-circle"></i>
+                                    <strong>Clarification</strong>
+                                    <p class="mb-0 small text-muted">Need more information</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label"><strong>Company:</strong></label>
+                            <select class="form-select" id="modalCompany" onchange="updateTemplateContent()">
+                                <option value="Noon">Noon</option>
+                                <option value="Careem">Careem</option>
+                                <option value="Talabat">Talabat</option>
+                                <option value="Deliveroo">Deliveroo</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label"><strong>Amount:</strong></label>
+                            <span id="modalAmount" class="form-control-plaintext"></span>
+                        </div>
+                    </div>
+                    
+                    <div class="template-container">
+                        <button class="copy-btn" onclick="copyTemplate()">
+                            <i class="bi bi-clipboard me-1"></i>Copy Text
+                        </button>
+                        <div class="template-content" id="templateContent"></div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-primary" onclick="sendEmail()">
+                        <i class="bi bi-send-fill me-1"></i>Send Email
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <p class="mb-0">© 2025 Order Management System - All Rights Reserved</p>
+            <p class="mb-0 mt-1 opacity-75">Developed by Restaurant Management Team</p>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script>
+        // Initialize data
+        let orders = [];
+        let currentFilter = 'all';
+        let selectedObjectionType = 'pre-prepared';
+
+        // Load data from LocalStorage on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            loadData();
+            updateDateTime();
+            setInterval(updateDateTime, 60000);
+            updateStatistics();
+            renderOrders();
+            setupEventListeners();
+        });
+
+        // Setup event listeners
+        function setupEventListeners() {
+            // Form submission
+            document.getElementById('orderForm').addEventListener('submit', handleFormSubmit);
+            
+            // Filter buttons
+            document.querySelectorAll('.filter-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+                    this.classList.add('active');
+                    currentFilter = this.getAttribute('data-filter');
+                    renderOrders();
+                });
+            });
+        }
+
+        // Update date and time
+        function updateDateTime() {
+            const now = new Date();
+            const dateOptions = { year: 'numeric', month: 'long', day: 'numeric' };
+            const timeOptions = { hour: '2-digit', minute: '2-digit' };
+            
+            document.getElementById('currentDate').textContent = now.toLocaleDateString('en-US', dateOptions);
+            document.getElementById('currentTime').textContent = now.toLocaleTimeString('en-US', timeOptions);
+        }
+
+        // Handle form submission
+        function handleFormSubmit(e) {
+            e.preventDefault();
+            
+            const order = {
+                id: Date.now(),
+                refId: document.getElementById('refId').value,
+                orderNumber: document.getElementById('orderNumber').value,
+                date: document.getElementById('orderDate').value,
+                branch: document.getElementById('branch').value,
+                company: document.getElementById('company').value,
+                amount: parseFloat(document.getElementById('orderAmount').value),
+                adjustment: parseFloat(document.getElementById('adjustment').value) || 0,
+                reason: document.getElementById('adjustmentReason').value,
+                status: document.getElementById('status').value,
+                complaint: document.getElementById('customerComplaint').value
+            };
+            
+            orders.push(order);
+            saveData();
+            renderOrders();
+            updateStatistics();
+            
+            // Reset form
+            e.target.reset();
+            showToast('Order added successfully!', 'success');
+        }
+
+        // Format date
+        function formatDate(dateStr) {
+            if (!dateStr) return '';
+            const date = new Date(dateStr);
+            return date.toISOString().slice(0, 16);
+        }
+
+        // Render orders table
+        function renderOrders() {
+            const tbody = document.getElementById('ordersTableBody');
+            tbody.innerHTML = '';
+            
+            let filteredOrders = orders;
+            if (currentFilter !== 'all') {
+                filteredOrders = orders.filter(order => {
+                    const reason = order.reason.toLowerCase();
+                    switch(currentFilter) {
+                        case 'wrong': return reason.includes('wrong');
+                        case 'missing': return reason.includes('missing');
+                        case 'delay': return reason.includes('delay');
+                        case 'quality': return reason.includes('quality');
+                        default: return true;
+                    }
+                });
+            }
+            
+            filteredOrders.forEach(order => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td><span class="status-badge status-progress">${order.status}</span></td>
+                    <td>${order.branch}</td>
+                    <td>${order.orderNumber}</td>
+                    <td>${order.refId}</td>
+                    <td>${formatDisplayDate(order.date)}</td>
+                    <td>${order.amount.toFixed(2)} AED</td>
+                    <td class="adjustment-amount">${order.adjustment ? '-' + order.adjustment.toFixed(2) + ' AED' : '-'}</td>
+                    <td>${getReasonBadge(order.reason)}</td>
+                    <td>${getCompanyBadge(order.company)}</td>
+                    <td class="action-cell">
+                        <button class="btn btn-template btn-sm" onclick="openTemplateModal(${order.id})">
+                            <i class="bi bi-envelope-paper-fill me-1"></i>Template
+                        </button>
+                        <button class="btn btn-sm btn-outline-danger" onclick="deleteOrder(${order.id})">
+                            <i class="bi bi-trash"></i>
+                        </button>
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+
+        // Format display date
+        function formatDisplayDate(dateStr) {
+            if (!dateStr) return '';
+            const date = new Date(dateStr);
+            return date.toLocaleString('en-US', {
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+        }
+
+        // Get reason badge
+        function getReasonBadge(reason) {
+            if (!reason) return '-';
+            const lowerReason = reason.toLowerCase();
+            let className = '';
+            
+            if (lowerReason.includes('wrong')) className = 'reason-wrong';
+            else if (lowerReason.includes('missing')) className = 'reason-missing';
+            else if (lowerReason.includes('delay')) className = 'reason-delay';
+            
+            return `<span class="reason-tag ${className}">${reason}</span>`;
+        }
+
+        // Get company badge
+        function getCompanyBadge(company) {
+            if (!company) return '-';
+            const className = `company-${company.toLowerCase()}`;
+            return `<span class="company-badge ${className}">${company}</span>`;
+        }
+
+        // Update statistics
+        function updateStatistics() {
+            document.getElementById('totalOrders').textContent = orders.length;
+            
+            const adjustments = orders.filter(o => o.adjustment > 0);
+            document.getElementById('totalAdjustments').textContent = adjustments.length;
+            
+            const totalAmount = orders.reduce((sum, o) => sum + o.amount, 0);
+            document.getElementById('totalAmount').textContent = totalAmount.toFixed(2) + ' AED';
+            
+            const adjustmentValue = orders.reduce((sum, o) => sum + o.adjustment, 0);
+            document.getElementById('adjustmentValue').textContent = '-' + adjustmentValue.toFixed(2) + ' AED';
+        }
+
+        // Select objection type
+        function selectObjectionType(element) {
+            document.querySelectorAll('.objection-option').forEach(opt => {
+                opt.classList.remove('selected');
+            });
+            element.classList.add('selected');
+            selectedObjectionType = element.getAttribute('data-type');
+            updateTemplateContent();
+        }
+
+        // Open template modal
+        function openTemplateModal(orderId) {
+            const order = orders.find(o => o.id === orderId);
+            if (!order) return;
+            
+            // Set modal data
+            document.getElementById('modalRefId').textContent = order.refId;
+            document.getElementById('modalOrderId').textContent = order.orderNumber;
+            document.getElementById('modalBranch').textContent = order.branch;
+            document.getElementById('modalDate').textContent = formatDisplayDate(order.date);
+            document.getElementById('modalAmount').textContent = order.amount.toFixed(2) + ' AED';
+            document.getElementById('modalCompany').value = order.company || 'Noon';
+            
+            // Reset objection type selection
+            document.querySelectorAll('.objection-option').forEach(opt => {
+                opt.classList.remove('selected');
+            });
+            document.querySelector('.objection-option[data-type="pre-prepared"]').classList.add('selected');
+            selectedObjectionType = 'pre-prepared';
+            
+            // Update template content
+            updateTemplateContent();
+            
+            // Show modal
+            const modal = new bootstrap.Modal(document.getElementById('templateModal'));
+            modal.show();
+        }
+
+        // Update template content based on company and objection type
+        function updateTemplateContent() {
+            const company = document.getElementById('modalCompany').value;
+            const refId = document.getElementById('modalRefId').textContent;
+            const orderId = document.getElementById('modalOrderId').textContent;
+            const branch = document.getElementById('modalBranch').textContent;
+            const date = document.getElementById('modalDate').textContent;
+            const amount = document.getElementById('modalAmount').textContent;
+            
+            let template = '';
+            
+            // Generate template based on company and objection type
+            if (company === 'Noon') {
+                if (selectedObjectionType === 'pre-prepared') {
+                    template = `Dear Noon Team,
+
+We are writing to confirm that Order "${refId}" (Order #${orderId}) from "${branch}" was fully prepared and accurately handed over to the assigned driver on time.
+
+Order Details:
+- Reference ID: ${refId}
+- Order Number: ${orderId}
+- Branch: ${branch}
+- Date: ${date}
+- Order Amount: ${amount}
+
+As evidence, we have video recordings showing:
+- Complete order preparation
+- Accurate packaging of all items
+- Timely handover to the driver
+
+The order was ready for pickup at the scheduled time without any delays from our side.
+
+We request a review of this adjustment and its reversal if no valid evidence is provided.
+
+Thank you for your cooperation.`;
+                } else if (selectedObjectionType === 'incorrect-complaint') {
+                    template = `Dear Noon Team,
+
+We are writing to dispute the adjustment made to Order "${refId}" (Order #${orderId}) from "${branch}".
+
+Order Details:
+- Reference ID: ${refId}
+- Order Number: ${orderId}
+- Branch: ${branch}
+- Date: ${date}
+- Order Amount: ${amount}
+
+We have reviewed the customer complaint and found it to be incorrect. Our records show:
+- The order was prepared according to specifications
+- All items were included as ordered
+- Proper quality standards were maintained
+- The order was handed over complete to the driver
+
+No supporting evidence has been provided to validate this complaint.
+
+We request that this adjustment be reversed immediately.
+
+Best regards,
+${branch} Management`;
+                } else if (selectedObjectionType === 'clarification') {
+                    template = `Dear Noon Team,
+
+We are seeking clarification regarding the adjustment made to Order "${refId}" (Order #${orderId}) from "${branch}".
+
+Order Details:
+- Reference ID: ${refId}
+- Order Number: ${orderId}
+- Branch: ${branch}
+- Date: ${date}
+- Order Amount: ${amount}
+
+We have received notification of an adjustment but require additional information:
+- What specific issue was reported?
+- Was any evidence provided by the customer?
+- Can you share the details of the complaint?
+
+Our internal records show the order was prepared and handed over correctly.
+
+Please provide the necessary details so we can investigate this matter thoroughly.
+
+Thank you for your assistance.
+
+Sincerely,
+${branch} Team`;
+                }
+            } else if (company === 'Careem') {
+                if (selectedObjectionType === 'pre-prepared') {
+                    template = `Dear Careem Team,
+
+We are writing regarding Order ${refId} (Order #${orderId}) from ${branch} on ${date}.
+
+This order was fully prepared and handed over to the driver complete and on time. We have video evidence showing:
+- Complete order preparation
+- Accurate handover to driver
+- Correct timing of delivery
+
+Order Information:
+- Reference: ${refId}
+- Order Number: ${orderId}
+- Branch: ${branch}
+- Date: ${date}
+- Order Amount: ${amount}
+
+The order was ready for pickup at the scheduled time without any delays from our kitchen.
+
+We request an investigation into this adjustment and its reversal if unjustified.
+
+Best regards,
+${branch} Management`;
+                } else if (selectedObjectionType === 'incorrect-complaint') {
+                    template = `Dear Careem Team,
+
+We wish to dispute the adjustment for Order ${refId} (Order #${orderId}) from ${branch}.
+
+Order Summary:
+- Reference: ${refId}
+- Order Number: ${orderId}
+- Branch: ${branch}
+- Date: ${date}
+- Amount: ${amount}
+
+After reviewing our records and the customer complaint, we find the complaint to be invalid:
+- All ordered items were prepared correctly
+- The order was complete when handed to the driver
+- Quality standards were met
+- No issues were reported at pickup
+
+No evidence has been provided to support this complaint.
+
+We request immediate reversal of this adjustment.
+
+Kind regards,
+${branch} Team`;
+                } else if (selectedObjectionType === 'clarification') {
+                    template = `Dear Careem Support Team,
+
+We need clarification about the adjustment on Order ${refId} (Order #${orderId}) from ${branch}.
+
+Order Details:
+- Reference: ${refId}
+- Order Number: ${orderId}
+- Branch: ${branch}
+- Date: ${date}
+- Amount: ${amount}
+
+We've been notified of an adjustment but lack details:
+- What was the nature of the complaint?
+- Was evidence provided by the customer?
+- When was the complaint filed?
+
+Our records indicate the order was processed correctly.
+
+Please provide additional information so we can address this properly.
+
+Thank you for your help.
+
+Sincerely,
+${branch} Management`;
+                }
+            } else if (company === 'Talabat') {
+                if (selectedObjectionType === 'pre-prepared') {
+                    template = `Dear Talabat Support Team,
+
+We wish to dispute the adjustment made to Order ${refId} (Order #${orderId}) from ${branch}.
+
+Order Information:
+- Reference: ${refId}
+- Order Number: ${orderId}
+- Branch: ${branch}
+- Date: ${date}
+- Total Amount: ${amount}
+
+We confirm that this order was:
+1. Prepared accurately according to the order details
+2. Handed over to the driver complete and on time
+3. Properly packaged for delivery
+
+We have video evidence of the entire process available for review, showing:
+- Complete order preparation
+- Proper packaging
+- Timely handover to driver
+
+Please review this case and reverse the adjustment if no valid evidence is provided.
+
+Sincerely,
+${branch} Team`;
+                } else if (selectedObjectionType === 'incorrect-complaint') {
+                    template = `Dear Talabat Team,
+
+We are writing to contest the adjustment for Order ${refId} (Order #${orderId}) from ${branch}.
+
+Order Summary:
+- Reference: ${refId}
+- Order Number: ${orderId}
+- Branch: ${branch}
+- Date: ${date}
+- Value: ${amount}
+
+After thorough investigation, we find the customer complaint to be incorrect:
+- The order was prepared exactly as requested
+- All items were included and properly packaged
+- Quality standards were fully met
+- The order was complete at handover
+
+No supporting evidence has been provided to validate this complaint.
+
+We demand immediate reversal of this unjustified adjustment.
+
+Best regards,
+${branch} Management`;
+                } else if (selectedObjectionType === 'clarification') {
+                    template = `Dear Talabat Support,
+
+We require clarification regarding the adjustment on Order ${refId} (Order #${orderId}) from ${branch}.
+
+Order Details:
+- Reference: ${refId}
+- Order Number: ${orderId}
+- Branch: ${branch}
+- Date: ${date}
+- Amount: ${amount}
+
+We need more information about this adjustment:
+- What specific issue was reported?
+- Was any proof provided by the customer?
+- When was the complaint registered?
+
+Our internal audit shows the order was processed correctly.
+
+Please provide complete details so we can investigate properly.
+
+Thank you for your cooperation.
+
+Sincerely,
+${branch} Team`;
+                }
+            } else if (company === 'Deliveroo') {
+                if (selectedObjectionType === 'pre-prepared') {
+                    template = `Dear Deliveroo Team,
+
+We are writing to contest the adjustment for Order ${refId} (Order #${orderId}) from our ${branch} location.
+
+Order Summary:
+- Reference ID: ${refId}
+- Order Number: ${orderId}
+- Branch: ${branch}
+- Date & Time: ${date}
+- Order Value: ${amount}
+
+We can confirm that this order was:
+1. Prepared accurately according to the order details
+2. Handed over to the driver complete and on time
+3. Properly packaged for delivery
+
+We have video evidence of the entire process available for review, showing:
+- Complete order preparation
+- Proper packaging
+- Timely handover
+
+We request that you investigate this matter and reverse the adjustment if no valid evidence is provided to support it.
+
+Thank you for your attention to this matter.
+
+Kind regards,
+${branch} Management`;
+                } else if (selectedObjectionType === 'incorrect-complaint') {
+                    template = `Dear Deliveroo Support,
+
+We dispute the adjustment for Order ${refId} (Order #${orderId}) from ${branch}.
+
+Order Information:
+- Reference ID: ${refId}
+- Order Number: ${orderId}
+- Branch: ${branch}
+- Date: ${date}
+- Value: ${amount}
+
+Our investigation shows the customer complaint is incorrect:
+- Order prepared exactly as specified
+- All items included and properly packaged
+- Quality standards maintained
+- Complete order handed to driver
+
+No evidence supports this complaint.
+
+We require immediate reversal of this adjustment.
+
+Best regards,
+${branch} Team`;
+                } else if (selectedObjectionType === 'clarification') {
+                    template = `Dear Deliveroo Team,
+
+We need clarification about the adjustment on Order ${refId} (Order #${orderId}) from ${branch}.
+
+Order Details:
+- Reference ID: ${refId}
+- Order Number: ${orderId}
+- Branch: ${branch}
+- Date: ${date}
+- Amount: ${amount}
+
+Please provide details about this adjustment:
+- What was the specific complaint?
+- Was evidence provided?
+- When was it reported?
+
+Our records show proper order processing.
+
+We need complete information to investigate.
+
+Thank you for your assistance.
+
+Sincerely,
+${branch} Management`;
+                }
+            }
+            
+            document.getElementById('templateContent').textContent = template;
+        }
+
+        // Copy template to clipboard
+        function copyTemplate() {
+            const content = document.getElementById('templateContent').textContent;
+            navigator.clipboard.writeText(content).then(() => {
+                showToast('Text copied successfully!', 'success');
+            }).catch(err => {
+                showToast('Failed to copy text, please copy manually', 'danger');
+            });
+        }
+
+        // Send email (opens default email client)
+        function sendEmail() {
+            const company = document.getElementById('modalCompany').value;
+            const content = document.getElementById('templateContent').textContent;
+            
+            // Get email addresses based on company
+            let email = '';
+            switch(company) {
+                case 'Noon':
+                    email = 'support@noon.com';
+                    break;
+                case 'Careem':
+                    email = 'restaurants@careem.com';
+                    break;
+                case 'Talabat':
+                    email = 'support@talabat.com';
+                    break;
+                case 'Deliveroo':
+                    email = 'restaurants@deliveroo.ae';
+                    break;
+            }
+            
+            // Create mailto link
+            const subject = `Dispute for Order ${document.getElementById('modalRefId').textContent}`;
+            const mailtoLink = `mailto:${email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(content)}`;
+            
+            // Open email client
+            window.location.href = mailtoLink;
+            
+            showToast('Opening email client...', 'success');
+            bootstrap.Modal.getInstance(document.getElementById('templateModal')).hide();
+        }
+
+        // Delete order
+        function deleteOrder(orderId) {
+            if (confirm('Are you sure you want to delete this order?')) {
+                orders = orders.filter(o => o.id !== orderId);
+                saveData();
+                renderOrders();
+                updateStatistics();
+                showToast('Order deleted successfully!', 'success');
+            }
+        }
+
+        // Clear all data
+        function clearAllData() {
+            if (confirm('Are you sure you want to clear all data? This action cannot be undone.')) {
+                orders = [];
+                saveData();
+                renderOrders();
+                updateStatistics();
+                showToast('All data cleared!', 'warning');
+            }
+        }
+
+        // Export to Excel
+        function exportToExcel() {
+            const ws = XLSX.utils.json_to_sheet(orders.map(o => ({
+                'Reference ID': o.refId,
+                'Order Number': o.orderNumber,
+                'Order Date': formatDisplayDate(o.date),
+                'Branch': o.branch,
+                'Company': o.company,
+                'Order Amount': o.amount,
+                'Adjust Amount': o.adjustment,
+                'Adjustment Reason': o.reason,
+                'Status': o.status,
+                'Customer Complaint': o.complaint
+            })));
+            
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, 'Orders');
+            XLSX.writeFile(wb, 'orders_report.xlsx');
+            
+            showToast('Excel file exported successfully!', 'success');
+        }
+
+        // Show toast notification
+        function showToast(message, type = 'success') {
+            const toastContainer = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            toast.className = 'custom-toast';
+            
+            const icon = type === 'success' ? 'bi-check-circle-fill' : 
+                         type === 'warning' ? 'bi-exclamation-triangle-fill' : 
+                         'bi-x-circle-fill';
+            
+            toast.innerHTML = `
+                <i class="bi ${icon}"></i>
+                <span>${message}</span>
+            `;
+            
+            toastContainer.appendChild(toast);
+            
+            // Remove toast after 3 seconds
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                setTimeout(() => {
+                    toastContainer.removeChild(toast);
+                }, 300);
+            }, 3000);
+        }
+
+        // Save data to LocalStorage
+        function saveData() {
+            localStorage.setItem('orderManagementData', JSON.stringify(orders));
+        }
+
+        // Load data from LocalStorage
+        function loadData() {
+            const savedData = localStorage.getItem('orderManagementData');
+            if (savedData) {
+                orders = JSON.parse(savedData);
+            }
+        }
+    </script>
+</body>
+</html>
