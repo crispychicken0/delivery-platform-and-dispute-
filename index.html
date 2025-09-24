@@ -1,2698 +1,1352 @@
-<!DOCTYPE html>
-<html lang="en" dir="ltr">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Order Management System</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-    <style>
-        :root {
-            --primary-color: #2c3e50;
-            --secondary-color: #3498db;
-            --success-color: #27ae60;
-            --danger-color: #e74c3c;
-            --warning-color: #f39c12;
-            --light-bg: #f8f9fa;
-            --dark-bg: #1a1a1a;
-            --card-shadow: 0 4px 15px rgba(0,0,0,0.08);
-            --hover-shadow: 0 8px 25px rgba(0,0,0,0.15);
-            --transition: all 0.3s ease;
-            --cancel-color: #e74c3c;
-        }
-        /* Dark Mode Variables */
-        [data-theme="dark"] {
-            --light-bg: #1a1a1a;
-            --primary-color: #3498db;
-            --secondary-color: #2980b9;
-            --text-color: #ecf0f1;
-            --card-bg: #2c3e50;
-            --table-bg: #34495e;
-            --input-bg: #2c3e50;
-            --border-color: #34495e;
-        }
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: var(--light-bg);
-            color: var(--text-color, #333);
-            transition: var(--transition);
-        }
-        /* Animated Header */
-        .main-header {
-            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
-            color: white;
-            padding: 2rem 0;
-            margin-bottom: 2rem;
-            box-shadow: var(--card-shadow);
-            position: relative;
-            overflow: hidden;
-        }
-        .main-header::before {
-            content: '';
-            position: absolute;
-            top: -50%;
-            right: -50%;
-            width: 200%;
-            height: 200%;
-            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
-            animation: pulse 4s ease-in-out infinite;
-        }
-        @keyframes pulse {
-            0%, 100% { transform: scale(1); opacity: 0.5; }
-            50% { transform: scale(1.1); opacity: 0.3; }
-        }
-        /* Enhanced Cards */
-        .stats-card {
-            border-radius: 15px;
-            box-shadow: var(--card-shadow);
-            transition: var(--transition);
-            border: none;
-            margin-bottom: 1.5rem;
-            background: white;
-            position: relative;
-            overflow: hidden;
-        }
-        [data-theme="dark"] .stats-card {
-            background: var(--card-bg);
-            color: var(--text-color);
-        }
-        .stats-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 4px;
-            background: linear-gradient(90deg, var(--secondary-color), var(--primary-color));
-            transform: scaleX(0);
-            transform-origin: left;
-            transition: transform 0.3s ease;
-        }
-        .stats-card:hover::before {
-            transform: scaleX(1);
-        }
-        .stats-card:hover {
-            transform: translateY(-8px);
-            box-shadow: var(--hover-shadow);
-        }
-        .stats-card .card-body {
-            padding: 1.5rem;
-            position: relative;
-            z-index: 1;
-        }
-        .stats-card h5 {
-            font-size: 0.9rem;
-            font-weight: 600;
-            margin-bottom: 0.5rem;
-            opacity: 0.8;
-        }
-        .stats-card h3 {
-            font-weight: 700;
-            margin-bottom: 0;
-            font-size: 2rem;
-        }
-        .stats-card .icon {
-            font-size: 2.5rem;
-            opacity: 0.8;
-            transition: var(--transition);
-        }
-        .stats-card:hover .icon {
-            transform: scale(1.1);
-            opacity: 1;
-        }
-        /* Canceled Orders Card */
-        .cancel-stats-card {
-            background: linear-gradient(135deg, #f8d7da, #f5c6cb);
-            color: #721c24;
-        }
-        .cancel-stats-card .icon {
-            color: #721c24;
-        }
-        .cancel-stats-card::before {
-            background: linear-gradient(90deg, #e74c3c, #c0392b);
-        }
-        .cancel-table-container {
-            border-left: 5px solid #e74c3c;
-        }
-        /* Enhanced Form Section */
-        .form-section {
-            background: white;
-            border-radius: 15px;
-            box-shadow: var(--card-shadow);
-            padding: 2rem;
-            margin-bottom: 2rem;
-            transition: var(--transition);
-        }
-        [data-theme="dark"] .form-section {
-            background: var(--card-bg);
-        }
-        .form-section:hover {
-            box-shadow: var(--hover-shadow);
-        }
-        .form-control, .form-select {
-            border-radius: 10px;
-            border: 2px solid #e0e0e0;
-            transition: var(--transition);
-            background: white;
-        }
-        [data-theme="dark"] .form-control,
-        [data-theme="dark"] .form-select {
-            background: var(--input-bg);
-            border-color: var(--border-color);
-            color: var(--text-color);
-        }
-        .form-control:focus, .form-select:focus {
-            border-color: var(--secondary-color);
-            box-shadow: 0 0 0 0.2rem rgba(52, 152, 219, 0.25);
-            transform: translateY(-2px);
-        }
-        .btn {
-            border-radius: 10px;
-            padding: 0.6rem 1.2rem;
-            font-weight: 600;
-            transition: var(--transition);
-            position: relative;
-            overflow: hidden;
-        }
-        .btn::before {
-            content: '';
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            width: 0;
-            height: 0;
-            border-radius: 50%;
-            background: rgba(255,255,255,0.2);
-            transform: translate(-50%, -50%);
-            transition: width 0.6s, height 0.6s;
-        }
-        .btn:active::before {
-            width: 300px;
-            height: 300px;
-        }
-        /* Enhanced Table */
-        .table-container {
-            background: white;
-            border-radius: 15px;
-            box-shadow: var(--card-shadow);
-            padding: 2rem;
-            margin-bottom: 2rem;
-            transition: var(--transition);
-        }
-        [data-theme="dark"] .table-container {
-            background: var(--card-bg);
-        }
-        .table-container:hover {
-            box-shadow: var(--hover-shadow);
-        }
-        .table {
-            margin-bottom: 0;
-        }
-        .table thead th {
-            background-color: var(--primary-color);
-            color: white;
-            border: none;
-            font-weight: 600;
-            text-align: center;
-            position: sticky;
-            top: 0;
-            z-index: 10;
-            padding: 1rem;
-        }
-        .table tbody tr {
-            transition: var(--transition);
-            border-radius: 10px;
-        }
-        .table tbody tr:hover {
-            background-color: rgba(52, 152, 219, 0.1);
-            transform: scale(1.01);
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-        }
-        .table tbody td {
-            padding: 1rem;
-            vertical-align: middle;
-        }
-        /* Enhanced Status Badges */
-        .status-badge {
-            font-size: 0.85rem;
-            padding: 0.5rem 1rem;
-            border-radius: 20px;
-            font-weight: 600;
-            display: inline-flex;
-            align-items: center;
-            gap: 0.5rem;
-            transition: var(--transition);
-        }
-        .status-badge:hover {
-            transform: scale(1.05);
-        }
-        .status-progress {
-            background: linear-gradient(135deg, #f39c12, #e67e22);
-            color: white;
-            box-shadow: 0 4px 15px rgba(243, 156, 18, 0.3);
-        }
-        .status-deducted {
-            background: linear-gradient(135deg, #e74c3c, #c0392b);
-            color: white;
-            box-shadow: 0 4px 15px rgba(231, 76, 60, 0.3);
-        }
-        .status-cancelled {
-            background: linear-gradient(135deg, #e74c3c, #c0392b);
-            color: white;
-            box-shadow: 0 4px 15px rgba(231, 76, 60, 0.3);
-        }
-        /* Enhanced Buttons */
-        .btn-template {
-            background: linear-gradient(135deg, var(--warning-color), #e67e22);
-            color: white;
-            border: none;
-            padding: 0.6rem 1.2rem;
-            border-radius: 10px;
-            font-size: 0.85rem;
-            transition: var(--transition);
-            position: relative;
-            overflow: hidden;
-        }
-        .btn-template:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 20px rgba(243, 156, 18, 0.4);
-        }
-        .btn-template i {
-            transition: var(--transition);
-        }
-        .btn-template:hover i {
-            transform: translateX(3px);
-        }
-        .btn-cancel {
-            background: linear-gradient(135deg, #e74c3c, #c0392b);
-            color: white;
-            border: none;
-            padding: 0.6rem 1.2rem;
-            border-radius: 10px;
-            font-size: 0.85rem;
-            transition: var(--transition);
-            position: relative;
-            overflow: hidden;
-        }
-        .btn-cancel:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 20px rgba(231, 76, 60, 0.4);
-        }
-        .btn-report {
-            background: linear-gradient(135deg, #6f42c1, #563d7c);
-            color: white;
-            border: none;
-            padding: 0.6rem 1.2rem;
-            border-radius: 10px;
-            font-size: 0.85rem;
-            transition: var(--transition);
-            position: relative;
-            overflow: hidden;
-        }
-        .btn-report:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 20px rgba(111, 66, 193, 0.4);
-        }
-        /* Enhanced Modal */
-        .modal-content {
-            border-radius: 20px;
-            overflow: hidden;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-            border: none;
-        }
-        .modal-header {
-            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
-            color: white;
-            border: none;
-            padding: 1.5rem;
-        }
-        .modal-body {
-            background: var(--light-bg);
-            border-radius: 0 0 20px 20px;
-            padding: 2rem;
-        }
-        [data-theme="dark"] .modal-body {
-            background: var(--card-bg);
-        }
-        /* Template Container */
-        .template-container {
-            background: white;
-            border: 2px solid #e0e0e0;
-            border-radius: 15px;
-            padding: 2rem;
-            margin-top: 1.5rem;
-            position: relative;
-            transition: var(--transition);
-        }
-        [data-theme="dark"] .template-container {
-            background: var(--card-bg);
-            border-color: var(--border-color);
-        }
-        .template-container:hover {
-            border-color: var(--secondary-color);
-            box-shadow: 0 8px 25px rgba(52, 152, 219, 0.15);
-        }
-        .copy-btn {
-            position: absolute;
-            top: 15px;
-            left: 15px;
-            background: linear-gradient(135deg, var(--secondary-color), #2980b9);
-            color: white;
-            border: none;
-            border-radius: 10px;
-            padding: 0.5rem 1rem;
-            font-size: 0.85rem;
-            transition: var(--transition);
-            z-index: 10;
-        }
-        .copy-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 20px rgba(52, 152, 219, 0.4);
-        }
-        .template-content {
-            font-family: 'Courier New', monospace;
-            line-height: 1.8;
-            white-space: pre-wrap;
-            margin-top: 1.5rem;
-            padding: 1.5rem;
-            background: #f8f9fa;
-            border-radius: 10px;
-            border-left: 4px solid var(--secondary-color);
-        }
-        [data-theme="dark"] .template-content {
-            background: var(--input-bg);
-            color: var(--text-color);
-        }
-        /* Enhanced Reason Tags */
-        .reason-tag {
-            display: inline-flex;
-            align-items: center;
-            gap: 0.5rem;
-            padding: 0.4rem 1rem;
-            border-radius: 20px;
-            font-size: 0.85rem;
-            font-weight: 600;
-            margin-left: 0.5rem;
-            max-width: 200px;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-            transition: var(--transition);
-        }
-        .reason-tag:hover {
-            transform: scale(1.05);
-        }
-        .reason-tag i {
-            font-size: 0.9rem;
-        }
-        .reason-wrong {
-            background: linear-gradient(135deg, #ffebee, #ffcdd2);
-            color: #c62828;
-            box-shadow: 0 4px 15px rgba(198, 40, 40, 0.2);
-        }
-        .reason-missing {
-            background: linear-gradient(135deg, #e8f5e9, #c8e6c9);
-            color: #2e7d32;
-            box-shadow: 0 4px 15px rgba(46, 125, 50, 0.2);
-        }
-        .reason-delay {
-            background: linear-gradient(135deg, #fff3e0, #ffe0b2);
-            color: #e65100;
-            box-shadow: 0 4px 15px rgba(230, 81, 0, 0.2);
-        }
-        .reason-quality {
-            background: linear-gradient(135deg, #f3e5f5, #e1bee7);
-            color: #7b1fa2;
-            box-shadow: 0 4px 15px rgba(123, 31, 162, 0.2);
-        }
-        .reason-tech {
-            background: linear-gradient(135deg, #e1f5fe, #b3e5fc);
-            color: #0277bd;
-            box-shadow: 0 4px 15px rgba(2, 119, 189, 0.2);
-        }
-        .reason-hygiene {
-            background: linear-gradient(135deg, #fbe9e7, #ffccbc);
-            color: #d84315;
-            box-shadow: 0 4px 15px rgba(216, 67, 21, 0.2);
-        }
-        .reason-damaged {
-            background: linear-gradient(135deg, #e8eaf6, #c5cae9);
-            color: #3949ab;
-            box-shadow: 0 4px 15px rgba(57, 73, 171, 0.2);
-        }
-        /* Enhanced Company Badges */
-        .company-badge {
-            display: inline-flex;
-            align-items: center;
-            gap: 0.5rem;
-            padding: 0.4rem 1rem;
-            border-radius: 20px;
-            font-size: 0.85rem;
-            font-weight: 600;
-            margin-left: 0.5rem;
-            transition: var(--transition);
-        }
-        .company-badge:hover {
-            transform: scale(1.05);
-        }
-        .company-badge i {
-            font-size: 0.9rem;
-        }
-        .company-noon {
-            background: linear-gradient(135deg, #e3f2fd, #bbdefb);
-            color: #1565c0;
-            box-shadow: 0 4px 15px rgba(21, 101, 192, 0.2);
-        }
-        .company-careem {
-            background: linear-gradient(135deg, #fce4ec, #f8bbd0);
-            color: #c2185b;
-            box-shadow: 0 4px 15px rgba(194, 24, 91, 0.2);
-        }
-        .company-talabat {
-            background: linear-gradient(135deg, #f3e5f5, #e1bee7);
-            color: #7b1fa2;
-            box-shadow: 0 4px 15px rgba(123, 31, 162, 0.2);
-        }
-        .company-deliveroo {
-            background: linear-gradient(135deg, #e0f2f1, #b2dfdb);
-            color: #00796b;
-            box-shadow: 0 4px 15px rgba(0, 121, 107, 0.2);
-        }
-        /* Enhanced Footer */
-        .footer {
-            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
-            color: white;
-            text-align: center;
-            padding: 2rem 0;
-            margin-top: 3rem;
-            position: relative;
-            overflow: hidden;
-        }
-        .footer::before {
-            content: '';
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            width: 100%;
-            height: 4px;
-            background: linear-gradient(90deg, var(--warning-color), var(--success-color));
-        }
-        /* Enhanced Toast Notifications */
-        .toast-container {
-            position: fixed;
-            bottom: 20px;
-            left: 20px;
-            z-index: 1050;
-        }
-        .custom-toast {
-            background: white;
-            color: var(--text-color);
-            padding: 1.2rem 1.5rem;
-            border-radius: 15px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-            display: flex;
-            align-items: center;
-            margin-bottom: 0.5rem;
-            animation: slideIn 0.5s ease-out;
-            border-left: 4px solid var(--success-color);
-        }
-        [data-theme="dark"] .custom-toast {
-            background: var(--card-bg);
-            border-left-color: var(--success-color);
-        }
-        @keyframes slideIn {
-            from {
-                transform: translateX(-100%) rotate(-5deg);
-                opacity: 0;
-            }
-            to {
-                transform: translateX(0) rotate(0);
-                opacity: 1;
-            }
-        }
-        .custom-toast i {
-            font-size: 1.8rem;
-            margin-left: 1rem;
-        }
-        .custom-toast.success {
-            border-left-color: var(--success-color);
-        }
-        .custom-toast.warning {
-            border-left-color: var(--warning-color);
-        }
-        .custom-toast.error {
-            border-left-color: var(--danger-color);
-        }
-        /* Enhanced Filter Section */
-        .filter-section {
-            background: white;
-            border-radius: 15px;
-            box-shadow: var(--card-shadow);
-            padding: 1.5rem;
-            margin-bottom: 2rem;
-            transition: var(--transition);
-        }
-        [data-theme="dark"] .filter-section {
-            background: var(--card-bg);
-        }
-        .filter-section:hover {
-            box-shadow: var(--hover-shadow);
-        }
-        .filter-btn {
-            background: var(--secondary-color);
-            color: white;
-            border: none;
-            padding: 0.6rem 1.2rem;
-            border-radius: 10px;
-            margin-left: 0.5rem;
-            transition: var(--transition);
-            position: relative;
-            overflow: hidden;
-        }
-        .filter-btn::before {
-            content: '';
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            width: 0;
-            height: 0;
-            border-radius: 50%;
-            background: rgba(255,255,255,0.2);
-            transform: translate(-50%, -50%);
-            transition: width 0.6s, height 0.6s;
-        }
-        .filter-btn:active::before {
-            width: 300px;
-            height: 300px;
-        }
-        .filter-btn:hover {
-            background: var(--primary-color);
-            transform: translateY(-2px);
-            box-shadow: 0 8px 20px rgba(44, 62, 80, 0.3);
-        }
-        .filter-btn.active {
-            background: var(--primary-color);
-            box-shadow: inset 0 4px 10px rgba(0,0,0,0.2);
-        }
-        /* Enhanced Objection Options */
-        .objection-type-selector {
-            background: white;
-            border: 2px solid #e0e0e0;
-            border-radius: 15px;
-            padding: 1.5rem;
-            margin-bottom: 1.5rem;
-            transition: var(--transition);
-        }
-        [data-theme="dark"] .objection-type-selector {
-            background: var(--card-bg);
-            border-color: var(--border-color);
-        }
-        .objection-option {
-            cursor: pointer;
-            padding: 1rem;
-            border: 2px solid transparent;
-            border-radius: 12px;
-            margin-bottom: 0.8rem;
-            transition: var(--transition);
-            background: #f8f9fa;
-        }
-        [data-theme="dark"] .objection-option {
-            background: var(--input-bg);
-        }
-        .objection-option:hover {
-            background: rgba(52, 152, 219, 0.1);
-            transform: translateX(5px);
-        }
-        .objection-option.selected {
-            border-color: var(--secondary-color);
-            background: rgba(52, 152, 219, 0.15);
-            box-shadow: 0 4px 15px rgba(52, 152, 219, 0.2);
-        }
-        .objection-option i {
-            font-size: 1.8rem;
-            margin-left: 0.8rem;
-            color: var(--secondary-color);
-            transition: var(--transition);
-        }
-        .objection-option:hover i {
-            transform: scale(1.1);
-        }
-        /* Enhanced Video Evidence Section */
-        .video-link-section {
-            margin-top: 1.5rem;
-            padding: 1.5rem;
-            background: linear-gradient(135deg, #f8f9fa, #e9ecef);
-            border-radius: 15px;
-            border: 2px solid #e0e0e0;
-            transition: var(--transition);
-        }
-        [data-theme="dark"] .video-link-section {
-            background: var(--input-bg);
-            border-color: var(--border-color);
-        }
-        .video-link-section:hover {
-            border-color: var(--secondary-color);
-            box-shadow: 0 8px 25px rgba(52, 152, 219, 0.15);
-        }
-        .video-link-input {
-            margin-bottom: 0.8rem;
-        }
-        .video-link-input label {
-            font-weight: 600;
-            margin-bottom: 0.5rem;
-            color: var(--primary-color);
-        }
-        /* Dark Mode Toggle */
-        .theme-toggle {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            z-index: 1000;
-            background: white;
-            border-radius: 50px;
-            padding: 0.5rem;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-            transition: var(--transition);
-        }
-        [data-theme="dark"] .theme-toggle {
-            background: var(--card-bg);
-        }
-        .theme-toggle:hover {
-            transform: scale(1.05);
-        }
-        .theme-toggle button {
-            border: none;
-            background: none;
-            font-size: 1.5rem;
-            color: var(--primary-color);
-            transition: var(--transition);
-        }
-        .theme-toggle button:hover {
-            transform: rotate(180deg);
-        }
-        /* Loading Animation */
-        .loading {
-            display: inline-block;
-            width: 20px;
-            height: 20px;
-            border: 3px solid #f3f3f3;
-            border-top: 3px solid var(--secondary-color);
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-        }
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-        /* Tab Navigation */
-        .nav-tabs {
-            border-bottom: 2px solid var(--secondary-color);
-            margin-bottom: 2rem;
-        }
-        .nav-tabs .nav-link {
-            color: var(--text-color);
-            border: none;
-            border-bottom: 3px solid transparent;
-            border-radius: 0;
-            padding: 1rem 1.5rem;
-            font-weight: 600;
-            transition: var(--transition);
-        }
-        .nav-tabs .nav-link:hover {
-            border-color: transparent;
-            color: var(--secondary-color);
-        }
-        .nav-tabs .nav-link.active {
-            color: var(--secondary-color);
-            background: transparent;
-            border-color: var(--secondary-color);
-        }
-        /* Tab Content */
-        .tab-content {
-            animation: fadeIn 0.5s ease-in;
-        }
-        /* Careem Refund Specific Styles */
-        .careem-stats-card {
-            background: linear-gradient(135deg, #fce4ec, #f8bbd0);
-            color: #c2185b;
-        }
-        .careem-stats-card .icon {
-            color: #c2185b;
-        }
-        .careem-stats-card::before {
-            background: linear-gradient(90deg, #c2185b, #880e4f);
-        }
-        .careem-table-container {
-            border-left: 5px solid #c2185b;
-        }
-        /* Import Only Badge */
-        .import-only-badge {
-            background: linear-gradient(135deg, #d1ecf1, #bee5eb);
-            color: #0c5460;
-            border-radius: 12px;
-            padding: 0.3rem 0.8rem;
-            font-size: 0.75rem;
-            margin-left: 0.8rem;
-            box-shadow: 0 4px 15px rgba(13, 110, 253, 0.3);
-        }
-        /* Report Options */
-        .report-option {
-            background: white;
-            border: 2px solid #e0e0e0;
-            border-radius: 12px;
-            padding: 1rem;
-            margin-bottom: 1rem;
-            transition: var(--transition);
-            cursor: pointer;
-        }
-        [data-theme="dark"] .report-option {
-            background: var(--card-bg);
-            border-color: var(--border-color);
-        }
-        .report-option:hover {
-            border-color: var(--secondary-color);
-            background: rgba(52, 152, 219, 0.05);
-            transform: translateY(-3px);
-        }
-        .report-option.selected {
-            border-color: var(--secondary-color);
-            background: rgba(52, 152, 219, 0.1);
-            box-shadow: 0 4px 15px rgba(52, 152, 219, 0.2);
-        }
-        /* Responsive Improvements */
-        @media (max-width: 768px) {
-            .stats-card {
-                margin-bottom: 1rem;
-            }
-            
-            .stats-card h3 {
-                font-size: 1.5rem;
-            }
-            
-            .table-responsive {
-                font-size: 0.9rem;
-            }
-            
-            .btn-template, .btn-cancel, .btn-report {
-                padding: 0.4rem 0.8rem;
-                font-size: 0.8rem;
-            }
-        }
-        /* Hover Effects for Links */
-        .image-link {
-            color: var(--secondary-color);
-            text-decoration: none;
-            font-size: 0.85rem;
-            transition: var(--transition);
-            position: relative;
-        }
-        .image-link::after {
-            content: '';
-            position: absolute;
-            bottom: -2px;
-            left: 0;
-            width: 0;
-            height: 2px;
-            background: var(--secondary-color);
-            transition: width 0.3s ease;
-        }
-        .image-link:hover::after {
-            width: 100%;
-        }
-        .image-link:hover {
-            color: var(--primary-color);
-        }
-        /* Enhanced Badge */
-        .badge-video {
-            background: linear-gradient(135deg, #0d6efd, #0056b3);
-            color: #fff;
-            border-radius: 12px;
-            padding: 0.3rem 0.8rem;
-            font-size: 0.75rem;
-            margin-right: 0.8rem;
-            box-shadow: 0 4px 15px rgba(13, 110, 253, 0.3);
-            animation: pulse 2s ease-in-out infinite;
-        }
-        /* Scrollbar Styling */
-        ::-webkit-scrollbar {
-            width: 10px;
-        }
-        ::-webkit-scrollbar-track {
-            background: #f1f1f1;
-            border-radius: 10px;
-        }
-        [data-theme="dark"] ::-webkit-scrollbar-track {
-            background: var(--card-bg);
-        }
-        ::-webkit-scrollbar-thumb {
-            background: var(--secondary-color);
-            border-radius: 10px;
-        }
-        ::-webkit-scrollbar-thumb:hover {
-            background: var(--primary-color);
-        }
-        /* Animations */
-        .fade-in {
-            animation: fadeIn 0.5s ease-in;
-        }
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        .slide-up {
-            animation: slideUp 0.5s ease-out;
-        }
-        @keyframes slideUp {
-            from { transform: translateY(30px); opacity: 0; }
-            to { transform: translateY(0); opacity: 1; }
-        }
-        /* Tooltip Styling */
-        .tooltip {
-            font-size: 0.85rem;
-        }
-        /* Focus Styles */
-        .btn:focus, .form-control:focus, .form-select:focus {
-            outline: none;
-            box-shadow: 0 0 0 0.2rem rgba(52, 152, 219, 0.25);
-        }
-        /* Active States */
-        .btn:active {
-            transform: scale(0.98);
-        }
-        /* Loading State */
-        .loading-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(255, 255, 255, 0.9);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 9999;
-        }
-        [data-theme="dark"] .loading-overlay {
-            background: rgba(0, 0, 0, 0.9);
-        }
-        .loading-spinner {
-            width: 50px;
-            height: 50px;
-            border: 5px solid #f3f3f3;
-            border-top: 5px solid var(--secondary-color);
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-        }
-        /* File Upload Area */
-        .upload-area {
-            border: 2px dashed var(--secondary-color);
-            border-radius: 15px;
-            padding: 2rem;
-            text-align: center;
-            transition: var(--transition);
-            cursor: pointer;
-            background: rgba(52, 152, 219, 0.05);
-        }
-        .upload-area:hover {
-            border-color: var(--primary-color);
-            background: rgba(52, 152, 219, 0.1);
-            transform: translateY(-5px);
-        }
-        .upload-area.dragover {
-            background: rgba(52, 152, 219, 0.2);
-            border-color: var(--primary-color);
-        }
-        .upload-area i {
-            font-size: 3rem;
-            color: var(--secondary-color);
-            margin-bottom: 1rem;
-        }
-    </style>
-</head>
-<body>
-    <!-- Theme Toggle -->
-    <div class="theme-toggle">
-        <button onclick="toggleTheme()" class="btn" title="Toggle Dark Mode">
-            <i class="bi bi-moon-fill" id="themeIcon"></i>
-        </button>
-    </div>
-    <!-- Header -->
-    <header class="main-header fade-in">
-        <div class="container">
-            <div class="row align-items-center">
-                <div class="col-md-6">
-                    <h1 class="mb-0"><i class="bi bi-clipboard-data-fill me-2"></i>Order Management System</h1>
-                    <p class="mb-0 mt-2 opacity-75">Professional order tracking with dispute templates</p>
-                </div>
-                <div class="col-md-6 text-md-end mt-3 mt-md-0">
-                    <div class="d-flex align-items-center justify-content-md-end">
-                        <div class="me-3">
-                            <i class="bi bi-calendar3 me-1"></i>
-                            <span id="currentDate"></span>
-                        </div>
-                        <div>
-                            <i class="bi bi-clock me-1"></i>
-                            <span id="currentTime"></span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </header>
-    <div class="container">
-        <!-- Statistics Cards -->
-        <div class="row slide-up">
-            <div class="col-md-3 col-sm-6">
-                <div class="card stats-card">
-                    <div class="card-body d-flex justify-content-between align-items-center">
-                        <div>
-                            <h5>Total Orders</h5>
-                            <h3 id="totalOrders">0</h3>
-                        </div>
-                        <div class="icon text-primary">
-                            <i class="bi bi-cart3"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-3 col-sm-6">
-                <div class="card stats-card">
-                    <div class="card-body d-flex justify-content-between align-items-center">
-                        <div>
-                            <h5>Adjustments</h5>
-                            <h3 id="totalAdjustments">0</h3>
-                        </div>
-                        <div class="icon text-danger">
-                            <i class="bi bi-pencil-square"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-3 col-sm-6">
-                <div class="card stats-card">
-                    <div class="card-body d-flex justify-content-between align-items-center">
-                        <div>
-                            <h5>Total Amount</h5>
-                            <h3 id="totalAmount">0 AED</h3>
-                        </div>
-                        <div class="icon text-success">
-                            <i class="bi bi-currency-dollar"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-3 col-sm-6">
-                <div class="card stats-card">
-                    <div class="card-body d-flex justify-content-between align-items-center">
-                        <div>
-                            <h5>Adjustment Value</h5>
-                            <h3 id="adjustmentValue">0 AED</h3>
-                        </div>
-                        <div class="icon text-warning">
-                            <i class="bi bi-exclamation-triangle-fill"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <!-- Canceled Orders Statistics -->
-        <div class="row slide-up">
-            <div class="col-md-3 col-sm-6">
-                <div class="card stats-card cancel-stats-card">
-                    <div class="card-body d-flex justify-content-between align-items-center">
-                        <div>
-                            <h5>Canceled Orders</h5>
-                            <h3 id="totalCanceledOrders">0</h3>
-                        </div>
-                        <div class="icon">
-                            <i class="bi bi-x-circle"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-3 col-sm-6">
-                <div class="card stats-card cancel-stats-card">
-                    <div class="card-body d-flex justify-content-between align-items-center">
-                        <div>
-                            <h5>Canceled Value</h5>
-                            <h3 id="canceledValue">0 AED</h3>
-                        </div>
-                        <div class="icon">
-                            <i class="bi bi-cash-stack"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-3 col-sm-6">
-                <div class="card stats-card cancel-stats-card">
-                    <div class="card-body d-flex justify-content-between align-items-center">
-                        <div>
-                            <h5>Today Canceled</h5>
-                            <h3 id="todayCanceledOrders">0</h3>
-                        </div>
-                        <div class="icon">
-                            <i class="bi bi-calendar-x"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-3 col-sm-6">
-                <div class="card stats-card cancel-stats-card">
-                    <div class="card-body d-flex justify-content-between align-items-center">
-                        <div>
-                            <h5>This Week</h5>
-                            <h3 id="weekCanceledOrders">0</h3>
-                        </div>
-                        <div class="icon">
-                            <i class="bi bi-calendar-week"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <!-- Careem Refunds Statistics -->
-        <div class="row slide-up">
-            <div class="col-md-3 col-sm-6">
-                <div class="card stats-card careem-stats-card">
-                    <div class="card-body d-flex justify-content-between align-items-center">
-                        <div>
-                            <h5>Careem Refunds</h5>
-                            <h3 id="totalCareemRefunds">0</h3>
-                        </div>
-                        <div class="icon">
-                            <i class="bi bi-currency-exchange"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-3 col-sm-6">
-                <div class="card stats-card careem-stats-card">
-                    <div class="card-body d-flex justify-content-between align-items-center">
-                        <div>
-                            <h5>Careem Refund Value</h5>
-                            <h3 id="careemRefundValue">0 AED</h3>
-                        </div>
-                        <div class="icon">
-                            <i class="bi bi-cash-stack"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-3 col-sm-6">
-                <div class="card stats-card careem-stats-card">
-                    <div class="card-body d-flex justify-content-between align-items-center">
-                        <div>
-                            <h5>Deducted Refunds</h5>
-                            <h3 id="deductedRefunds">0</h3>
-                        </div>
-                        <div class="icon">
-                            <i class="bi bi-arrow-down-circle"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-3 col-sm-6">
-                <div class="card stats-card careem-stats-card">
-                    <div class="card-body d-flex justify-content-between align-items-center">
-                        <div>
-                            <h5>Pending Disputes</h5>
-                            <h3 id="pendingDisputes">0</h3>
-                        </div>
-                        <div class="icon">
-                            <i class="bi bi-clock-history"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <!-- Tab Navigation -->
-        <ul class="nav nav-tabs" id="mainTabs" role="tablist">
-            <li class="nav-item" role="presentation">
-                <button class="nav-link active" id="orders-tab" data-bs-toggle="tab" data-bs-target="#orders" type="button" role="tab">
-                    <i class="bi bi-basket3 me-2"></i>Orders
-                </button>
-            </li>
-            <li class="nav-item" role="presentation">
-                <button class="nav-link" id="canceled-tab" data-bs-toggle="tab" data-bs-target="#canceled" type="button" role="tab">
-                    <i class="bi bi-x-circle me-2"></i>Canceled Orders
-                </button>
-            </li>
-            <li class="nav-item" role="presentation">
-                <button class="nav-link" id="careem-tab" data-bs-toggle="tab" data-bs-target="#careem" type="button" role="tab">
-                    <i class="bi bi-car-front me-2"></i>Careem Refunds
-                    <span class="import-only-badge">Import Only</span>
-                </button>
-            </li>
-        </ul>
-        <!-- Tab Content -->
-        <div class="tab-content" id="mainTabContent">
-            <!-- Orders Tab -->
-            <div class="tab-pane fade show active" id="orders" role="tabpanel">
-                <!-- Manual Entry Form -->
-                <div class="form-section slide-up">
-                    <h5 class="mb-3"><i class="bi bi-plus-circle-fill me-2"></i>Add New Order</h5>
-                    <form id="orderForm">
-                        <div class="row">
-                            <div class="col-md-2">
-                                <div class="mb-3">
-                                    <label class="form-label">Reference ID</label>
-                                    <input type="text" class="form-control" id="refId" required>
-                                </div>
-                            </div>
-                            <div class="col-md-2">
-                                <div class="mb-3">
-                                    <label class="form-label">Order Number</label>
-                                    <input type="text" class="form-control" id="orderNumber" required>
-                                </div>
-                            </div>
-                            <div class="col-md-2">
-                                <div class="mb-3">
-                                    <label class="form-label">Date</label>
-                                    <input type="datetime-local" class="form-control" id="orderDate" required>
-                                </div>
-                            </div>
-                            <div class="col-md-2">
-                                <div class="mb-3">
-                                    <label class="form-label">Branch</label>
-                                    <select class="form-select" id="branch" required>
-                                        <option value="">Select Branch</option>
-                                        <option value="Hamdan St">Hamdan St</option>
-                                        <option value="Shabiya 11">Shabiya 11</option>
-                                        <option value="Khaldia">Khaldia</option>
-                                        <option value="Al Electra">Al Electra</option>
-                                        <option value="Al Barsha">Al Barsha</option>
-                                        <option value="Satwa">Satwa</option>
-                                        <option value="Muroor">Muroor</option>
-                                    </select>
-                                </div>
-                            </div>
-                            <div class="col-md-2">
-                                <div class="mb-3">
-                                    <label class="form-label">Company</label>
-                                    <select class="form-select" id="company" required>
-                                        <option value="">Select Company</option>
-                                        <option value="Noon">Noon</option>
-                                        <option value="Careem">Careem</option>
-                                        <option value="Talabat">Talabat</option>
-                                        <option value="Deliveroo">Deliveroo</option>
-                                    </select>
-                                </div>
-                            </div>
-                            <div class="col-md-2">
-                                <div class="mb-3">
-                                    <label class="form-label">Order Amount</label>
-                                    <input type="number" class="form-control" id="orderAmount" step="0.01" required>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="row">
-                            <div class="col-md-2">
-                                <div class="mb-3">
-                                    <label class="form-label">Adjustment</label>
-                                    <input type="number" class="form-control" id="adjustment" step="0.01">
-                                </div>
-                            </div>
-                            <div class="col-md-3">
-                                <div class="mb-3">
-                                    <label class="form-label">Adjustment Reason</label>
-                                    <select class="form-select" id="adjustmentReason">
-                                        <option value="">Select Reason</option>
-                                        <option value="Wrong order or item delivered - Outlet">Wrong order or item delivered</option>
-                                        <option value="Missing item - Outlet">Missing item</option>
-                                        <option value="Prep delay Outlet">Preparation delay</option>
-                                        <option value="Food quality - Outlet (Picture evident)">Food quality (Picture evident)</option>
-                                        <option value="DT-auto-refund Missing item - Outlet">Auto-refund Missing item</option>
-                                        <option value="Post-Outlet Tech issue">Post-Outlet Tech issue</option>
-                                        <option value="Hygiene issues - Outlet">Hygiene issues</option>
-                                    </select>
-                                </div>
-                            </div>
-                            <div class="col-md-3">
-                                <div class="mb-3">
-                                    <label class="form-label">Customer Complaint</label>
-                                    <textarea class="form-control" id="customerComplaint" rows="1"></textarea>
-                                </div>
-                            </div>
-                            <div class="col-md-2">
-                                <div class="mb-3">
-                                    <label class="form-label">Video URL</label>
-                                    <input type="url" class="form-control" id="videoUrl" placeholder="https://...">
-                                </div>
-                            </div>
-                            <div class="col-md-2">
-                                <div class="mb-3">
-                                    <label class="form-label">Video Filename</label>
-                                    <input type="text" class="form-control" id="videoFilename" placeholder="video.mp4">
-                                </div>
-                            </div>
-                        </div>
-                        <div class="row">
-                            <div class="col-md-2">
-                                <div class="mb-3">
-                                    <label class="form-label">Status</label>
-                                    <select class="form-select" id="status" required>
-                                        <option value="Work in Progress">Work in Progress</option>
-                                        <option value="Resolved">Resolved</option>
-                                        <option value="Pending">Pending</option>
-                                    </select>
-                                </div>
-                            </div>
-                            <div class="col-10 d-flex justify-content-end align-items-end">
-                                <button type="submit" class="btn btn-primary">
-                                    <i class="bi bi-plus-lg me-1"></i>Add Order
-                                </button>
-                            </div>
-                        </div>
-                    </form>
-                </div>
-                <!-- Filters Section -->
-                <div class="filter-section slide-up">
-                    <div class="row align-items-center">
-                        <div class="col-md-6">
-                            <h5 class="mb-0"><i class="bi bi-funnel-fill me-2"></i>Filter by:</h5>
-                        </div>
-                        <div class="col-md-6 text-md-end mt-3 mt-md-0">
-                            <button class="filter-btn active" data-filter="all">
-                                <i class="bi bi-grid-3x3-gap me-1"></i>All
-                            </button>
-                            <button class="filter-btn" data-filter="wrong">
-                                <i class="bi bi-x-circle me-1"></i>Wrong Order
-                            </button>
-                            <button class="filter-btn" data-filter="missing">
-                                <i class="bi bi-dash-circle me-1"></i>Missing Item
-                            </button>
-                            <button class="filter-btn" data-filter="delay">
-                                <i class="bi bi-clock-history me-1"></i>Delay
-                            </button>
-                            <button class="filter-btn" data-filter="quality">
-                                <i class="bi bi-star-half me-1"></i>Quality
-                            </button>
-                            <button class="filter-btn" data-filter="tech">
-                                <i class="bi bi-gear me-1"></i>Tech Issue
-                            </button>
-                            <button class="filter-btn" data-filter="hygiene">
-                                <i class="bi bi-shield-exclamation me-1"></i>Hygiene
-                            </button>
-                        </div>
-                    </div>
-                </div>
-                <!-- Orders Table -->
-                <div class="table-container slide-up">
-                    <div class="d-flex justify-content-between align-items-center mb-4">
-                        <h4 class="mb-0"><i class="bi bi-table me-2"></i>Orders & Adjustments</h4>
-                        <div>
-                            <button class="btn btn-sm btn-outline-secondary me-2" onclick="exportToExcel()">
-                                <i class="bi bi-download me-1"></i>Export Excel
-                            </button>
-                            <button class="btn btn-sm btn-outline-primary" onclick="exportCSV()">
-                                <i class="bi bi-file-earmark-spreadsheet me-1"></i>Export CSV
-                            </button>
-                            <button class="btn btn-sm btn-outline-primary" onclick="window.print()">
-                                <i class="bi bi-printer me-1"></i>Print Report
-                            </button>
-                            <button class="btn btn-sm btn-outline-danger ms-2" onclick="clearAllData()">
-                                <i class="bi bi-trash me-1"></i>Clear All
-                            </button>
-                        </div>
-                    </div>
-                    
-                    <div class="table-responsive">
-                        <table class="table table-hover" id="ordersTable">
-                            <thead>
-                                <tr>
-                                    <th>Status</th>
-                                    <th>Branch</th>
-                                    <th>Order #</th>
-                                    <th>Reference</th>
-                                    <th>Date</th>
-                                    <th>Amount</th>
-                                    <th>Adjustment</th>
-                                    <th>Reason</th>
-                                    <th>Company</th>
-                                    <th>Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody id="ordersTableBody">
-                                <!-- Orders will be dynamically added here -->
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-            <!-- Canceled Orders Tab -->
-            <div class="tab-pane fade" id="canceled" role="tabpanel">
-                <!-- Filters Section -->
-                <div class="filter-section slide-up">
-                    <div class="row align-items-center">
-                        <div class="col-md-6">
-                            <h5 class="mb-0"><i class="bi bi-funnel-fill me-2"></i>Filter by:</h5>
-                        </div>
-                        <div class="col-md-6 text-md-end mt-3 mt-md-0">
-                            <button class="filter-btn active" data-cancel-filter="all">
-                                <i class="bi bi-grid-3x3-gap me-1"></i>All
-                            </button>
-                            <button class="filter-btn" data-cancel-filter="today">
-                                <i class="bi bi-calendar-day me-1"></i>Today
-                            </button>
-                            <button class="filter-btn" data-cancel-filter="week">
-                                <i class="bi bi-calendar-week me-1"></i>This Week
-                            </button>
-                            <button class="filter-btn" data-cancel-filter="month">
-                                <i class="bi bi-calendar-month me-1"></i>This Month
-                            </button>
-                        </div>
-                    </div>
-                </div>
-                <!-- Canceled Orders Table -->
-                <div class="table-container cancel-table-container slide-up">
-                    <div class="d-flex justify-content-between align-items-center mb-4">
-                        <h4 class="mb-0"><i class="bi bi-x-circle me-2"></i>Canceled Orders</h4>
-                        <div>
-                            <button class="btn btn-sm btn-outline-secondary me-2" onclick="exportCanceledToExcel()">
-                                <i class="bi bi-download me-1"></i>Export Excel
-                            </button>
-                            <button class="btn btn-sm btn-outline-primary" onclick="exportCanceledToCSV()">
-                                <i class="bi bi-file-earmark-spreadsheet me-1"></i>Export CSV
-                            </button>
-                            <button class="btn btn-sm btn-outline-primary" onclick="window.print()">
-                                <i class="bi bi-printer me-1"></i>Print Report
-                            </button>
-                            <button class="btn btn-sm btn-outline-danger ms-2" onclick="clearCanceledData()">
-                                <i class="bi bi-trash me-1"></i>Clear All
-                            </button>
-                        </div>
-                    </div>
-                    
-                    <div class="table-responsive">
-                        <table class="table table-hover" id="canceledOrdersTable">
-                            <thead>
-                                <tr>
-                                    <th>Branch</th>
-                                    <th>Order #</th>
-                                    <th>Reference</th>
-                                    <th>Cancellation Date</th>
-                                    <th>Amount</th>
-                                    <th>Reason</th>
-                                    <th>Company</th>
-                                    <th>Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody id="canceledOrdersTableBody">
-                                <!-- Canceled orders will be dynamically added here -->
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-            <!-- Careem Refunds Tab -->
-            <div class="tab-pane fade" id="careem" role="tabpanel">
-                <!-- File Upload Section -->
-                <div class="form-section slide-up">
-                    <h5 class="mb-3">
-                        <i class="bi bi-cloud-upload-fill me-2"></i>Import Careem Refunds Data
-                        <span class="import-only-badge">Manual entry not available</span>
-                    </h5>
-                    <div class="upload-area" id="careemUploadArea">
-                        <i class="bi bi-file-earmark-spreadsheet"></i>
-                        <p class="mb-2">Drag & drop your Careem refunds Excel/CSV file here</p>
-                        <p class="text-muted mb-3">or</p>
-                        <input type="file" id="careemFileInput" accept=".xlsx,.xls,.csv" style="display: none;">
-                        <button class="btn btn-outline-primary" onclick="document.getElementById('careemFileInput').click()">
-                            <i class="bi bi-folder2-open me-1"></i>Browse Files
-                        </button>
-                    </div>
-                </div>
-                <!-- Filters Section -->
-                <div class="filter-section slide-up">
-                    <div class="row align-items-center">
-                        <div class="col-md-6">
-                            <h5 class="mb-0"><i class="bi bi-funnel-fill me-2"></i>Filter by:</h5>
-                        </div>
-                        <div class="col-md-6 text-md-end mt-3 mt-md-0">
-                            <button class="filter-btn active" data-careem-filter="all">
-                                <i class="bi bi-grid-3x3-gap me-1"></i>All
-                            </button>
-                            <button class="filter-btn" data-careem-filter="missing">
-                                <i class="bi bi-dash-circle me-1"></i>Missing Item
-                            </button>
-                            <button class="filter-btn" data-careem-filter="damaged">
-                                <i class="bi bi-droplet me-1"></i>Spilled/Damaged
-                            </button>
-                            <button class="filter-btn" data-careem-filter="quality">
-                                <i class="bi bi-star-half me-1"></i>Quality Issue
-                            </button>
-                            <button class="filter-btn" data-careem-filter="wrong">
-                                <i class="bi bi-x-circle me-1"></i>Wrong Item
-                            </button>
-                            <button class="filter-btn" data-careem-filter="hygiene">
-                                <i class="bi bi-shield-exclamation me-1"></i>Hygiene
-                            </button>
-                        </div>
-                    </div>
-                </div>
-                <!-- Careem Refunds Table -->
-                <div class="table-container careem-table-container slide-up">
-                    <div class="d-flex justify-content-between align-items-center mb-4">
-                        <h4 class="mb-0"><i class="bi bi-car-front me-2"></i>Careem Refunds</h4>
-                        <div>
-                            <button class="btn btn-sm btn-outline-secondary me-2" onclick="exportCareemToExcel()">
-                                <i class="bi bi-download me-1"></i>Export Excel
-                            </button>
-                            <button class="btn btn-sm btn-outline-primary" onclick="exportCareemToCSV()">
-                                <i class="bi bi-file-earmark-spreadsheet me-1"></i>Export CSV
-                            </button>
-                            <button class="btn btn-sm btn-outline-primary" onclick="window.print()">
-                                <i class="bi bi-printer me-1"></i>Print Report
-                            </button>
-                            <button class="btn btn-report btn-sm ms-2" onclick="openCareemReportModal()">
-                                <i class="bi bi-file-earmark-text me-1"></i>Generate Report
-                            </button>
-                            <button class="btn btn-sm btn-outline-danger ms-2" onclick="clearCareemData()">
-                                <i class="bi bi-trash me-1"></i>Clear All
-                            </button>
-                        </div>
-                    </div>
-                    
-                    <div class="table-responsive">
-                        <table class="table table-hover" id="careemRefundsTable">
-                            <thead>
-                                <tr>
-                                    <th>Order ID</th>
-                                    <th>Order Date & Time</th>
-                                    <th>Refund Date & Time</th>
-                                    <th>Basket Amount</th>
-                                    <th>Refund Amount</th>
-                                    <th>Status</th>
-                                    <th>Reason</th>
-                                    <th>Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody id="careemRefundsTableBody">
-                                <!-- Careem refunds will be dynamically added here -->
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-    <!-- Template Modal -->
-    <div class="modal fade" id="templateModal" tabindex="-1" aria-labelledby="templateModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-lg">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="templateModalLabel">
-                        <i class="bi bi-envelope-paper-fill me-2"></i>Dispute Template
-                    </h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <div class="row mb-3">
-                        <div class="col-md-6">
-                            <label class="form-label"><strong>Reference ID:</strong></label>
-                            <span id="modalRefId" class="form-control-plaintext"></span>
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label"><strong>Order Number:</strong></label>
-                            <span id="modalOrderId" class="form-control-plaintext"></span>
-                        </div>
-                    </div>
-                    <div class="row mb-3">
-                        <div class="col-md-6">
-                            <label class="form-label"><strong>Branch:</strong></label>
-                            <span id="modalBranch" class="form-control-plaintext"></span>
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label"><strong>Date:</strong></label>
-                            <span id="modalDate" class="form-control-plaintext"></span>
-                        </div>
-                    </div>
-                    
-                    <!-- Objection Type Selection -->
-                    <div class="objection-type-selector">
-                        <h6 class="mb-3"><i class="bi bi-chat-square-text-fill me-2"></i>Select Objection Type:</h6>
-                        <div class="row">
-                            <div class="col-md-4">
-                                <div class="objection-option" data-type="pre-prepared" onclick="selectObjectionType(this)">
-                                    <i class="bi bi-clock-history"></i>
-                                    <strong>Pre-prepared</strong>
-                                    <p class="mb-0 small text-muted">Order was ready on time</p>
-                                </div>
-                            </div>
-                            <div class="col-md-4">
-                                <div class="objection-option" data-type="incorrect-complaint" onclick="selectObjectionType(this)">
-                                    <i class="bi bi-exclamation-triangle"></i>
-                                    <strong>Incorrect Complaint</strong>
-                                    <p class="mb-0 small text-muted">Complaint is not valid</p>
-                                </div>
-                            </div>
-                            <div class="col-md-4">
-                                <div class="objection-option" data-type="clarification" onclick="selectObjectionType(this)">
-                                    <i class="bi bi-info-circle"></i>
-                                    <strong>Clarification</strong>
-                                    <p class="mb-0 small text-muted">Need more information</p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="row mb-3">
-                        <div class="col-md-6">
-                            <label class="form-label"><strong>Company:</strong></label>
-                            <select class="form-select" id="modalCompany" onchange="updateTemplateContent()">
-                                <option value="Noon">Noon</option>
-                                <option value="Careem">Careem</option>
-                                <option value="Talabat">Talabat</option>
-                                <option value="Deliveroo">Deliveroo</option>
-                            </select>
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label"><strong>Adjustment Reason:</strong></label>
-                            <span id="modalReason" class="form-control-plaintext"></span>
-                        </div>
-                    </div>
-                    
-                    <div class="row mb-3">
-                        <div class="col-12">
-                            <label class="form-label"><strong>Customer Complaint:</strong></label>
-                            <div id="modalComplaint" class="complaint-preview"></div>
-                        </div>
-                    </div>
-                    
-                    <!-- Video Evidence Fields -->
-                    <div class="row g-3 mb-3">
-                        <div class="col-md-8">
-                            <label class="form-label"><strong>Video Evidence URL</strong></label>
-                            <input id="modalVideoUrl" type="url" class="form-control" placeholder="https://.../evidence.mp4">
-                        </div>
-                        <div class="col-md-4">
-                            <label class="form-label"><strong>Video Filename (mp4)</strong></label>
-                            <input id="modalVideoFilename" type="text" class="form-control" placeholder="evidence.mp4">
-                        </div>
-                    </div>
-                    
-                    <div class="template-container">
-                        <button class="copy-btn" onclick="copyTemplate()">
-                            <i class="bi bi-clipboard me-1"></i>Copy Text
-                        </button>
-                        <div class="template-content" id="templateContent"></div>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-                        <i class="bi bi-x-circle me-1"></i>Close
-                    </button>
-                    <button type="button" class="btn btn-primary" onclick="sendEmail()">
-                        <i class="bi bi-send-fill me-1"></i>Send Email
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
-    <!-- Cancel Order Modal -->
-    <div class="modal fade" id="cancelOrderModal" tabindex="-1" aria-labelledby="cancelOrderModalLabel" aria-hidden="true">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header bg-danger text-white">
-                    <h5 class="modal-title" id="cancelOrderModalLabel">
-                        <i class="bi bi-x-circle me-2"></i>Cancel Order
-                    </h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <div class="row mb-3">
-                        <div class="col-md-6">
-                            <label class="form-label"><strong>Order Number:</strong></label>
-                            <span id="cancelOrderNumber" class="form-control-plaintext"></span>
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label"><strong>Reference ID:</strong></label>
-                            <span id="cancelRefId" class="form-control-plaintext"></span>
-                        </div>
-                    </div>
-                    <div class="row mb-3">
-                        <div class="col-md-6">
-                            <label class="form-label"><strong>Branch:</strong></label>
-                            <span id="cancelBranch" class="form-control-plaintext"></span>
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label"><strong>Amount:</strong></label>
-                            <span id="cancelAmount" class="form-control-plaintext"></span>
-                        </div>
-                    </div>
-                    <div class="mb-3">
-                        <label for="cancelReason" class="form-label"><strong>Cancellation Reason:</strong></label>
-                        <select class="form-select" id="cancelReason" required>
-                            <option value="">Select Reason</option>
-                            <option value="Customer request">Customer request</option>
-                            <option value="Item unavailable">Item unavailable</option>
-                            <option value="Technical issue">Technical issue</option>
-                            <option value="Payment issue">Payment issue</option>
-                            <option value="Duplicate order">Duplicate order</option>
-                            <option value="Other">Other</option>
-                        </select>
-                    </div>
-                    <div class="mb-3">
-                        <label for="cancelNotes" class="form-label"><strong>Additional Notes:</strong></label>
-                        <textarea class="form-control" id="cancelNotes" rows="3"></textarea>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-                        <i class="bi bi-x-circle me-1"></i>Close
-                    </button>
-                    <button type="button" class="btn btn-danger" onclick="confirmCancelOrder()">
-                        <i class="bi bi-check-circle me-1"></i>Confirm Cancellation
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
-    <!-- Careem Report Modal -->
-    <div class="modal fade" id="careemReportModal" tabindex="-1" aria-labelledby="careemReportModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-lg">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="careemReportModalLabel">
-                        <i class="bi bi-file-earmark-text me-2"></i>Generate Careem Refunds Report
-                    </h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <div class="row mb-3">
-                        <div class="col-md-6">
-                            <label for="reportStartDate" class="form-label"><strong>Start Date:</strong></label>
-                            <input type="date" class="form-control" id="reportStartDate">
-                        </div>
-                        <div class="col-md-6">
-                            <label for="reportEndDate" class="form-label"><strong>End Date:</strong></label>
-                            <input type="date" class="form-control" id="reportEndDate">
-                        </div>
-                    </div>
-                    
-                    <div class="row mb-3">
-                        <div class="col-md-6">
-                            <label for="reportStatus" class="form-label"><strong>Status:</strong></label>
-                            <select class="form-select" id="reportStatus">
-                                <option value="all">All Statuses</option>
-                                <option value="Deducted">Deducted</option>
-                                <option value="Pending">Pending</option>
-                            </select>
-                        </div>
-                        <div class="col-md-6">
-                            <label for="reportReason" class="form-label"><strong>Reason:</strong></label>
-                            <select class="form-select" id="reportReason">
-                                <option value="all">All Reasons</option>
-                                <option value="missing">Missing Item</option>
-                                <option value="damaged">Spilled/Damaged</option>
-                                <option value="quality">Quality Issue</option>
-                                <option value="wrong">Wrong Item</option>
-                                <option value="hygiene">Hygiene</option>
-                            </select>
-                        </div>
-                    </div>
-                    
-                    <div class="row mb-3">
-                        <div class="col-md-12">
-                            <label class="form-label"><strong>Report Options:</strong></label>
-                            <div class="row">
-                                <div class="col-md-4">
-                                    <div class="report-option" id="reportSummary" onclick="selectReportOption(this)">
-                                        <i class="bi bi-file-text me-2"></i>
-                                        <strong>Summary Report</strong>
-                                        <p class="mb-0 small text-muted">Basic statistics and overview</p>
-                                    </div>
-                                </div>
-                                <div class="col-md-4">
-                                    <div class="report-option" id="reportDetailed" onclick="selectReportOption(this)">
-                                        <i class="bi bi-list-ul me-2"></i>
-                                        <strong>Detailed Report</strong>
-                                        <p class="mb-0 small text-muted">Complete list of all refunds</p>
-                                    </div>
-                                </div>
-                                <div class="col-md-4">
-                                    <div class="report-option" id="reportFinancial" onclick="selectReportOption(this)">
-                                        <i class="bi bi-cash-stack me-2"></i>
-                                        <strong>Financial Report</strong>
-                                        <p class="mb-0 small text-muted">Financial analysis and totals</p>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="template-container">
-                        <button class="copy-btn" onclick="copyCareemReport()">
-                            <i class="bi bi-clipboard me-1"></i>Copy Text
-                        </button>
-                        <div class="template-content" id="careemReportContent">
-                            <!-- Report content will be generated here -->
-                        </div>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-                        <i class="bi bi-x-circle me-1"></i>Close
-                    </button>
-                    <button type="button" class="btn btn-primary" onclick="sendCareemReport()">
-                        <i class="bi bi-send-fill me-1"></i>Send Email
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
-    <!-- Toast Notification -->
-    <div class="toast-container" id="toastContainer"></div>
-    <!-- Footer -->
-    <footer class="footer">
-        <div class="container">
-            <p class="mb-0">© 2025 Order Management System - All Rights Reserved</p>
-            <p class="mb-0 mt-1 opacity-75">Developed by Restaurant Management Team</p>
-        </div>
-    </footer>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script>
-        // Initialize data
-        let orders = [];
-        let canceledOrders = [];
-        let careemRefunds = [];
-        let currentFilter = 'all';
-        let currentCancelFilter = 'all';
-        let currentCareemFilter = 'all';
-        let selectedObjectionType = 'pre-prepared';
-        let currentCancelOrderId = null;
-        let selectedReportOption = 'reportSummary';
+// Data storage
+let deliveryData = [];
+let deliveryOrders = [];
+let goals = {
+  monthlySales: 500000,
+  branchTargets: {
+    'Barsha': 80000,
+    'Hamdan': 100000,
+    'Khalidiyah': 75000,
+    'Muroor': 70000,
+    'Satwa': 60000,
+    'Shabiya': 90000
+  }
+};
+let alerts = [];
+let charts = {};
+
+// Initialize data from provided delivery sales
+function initializeData() {
+  const branches = ['Barsha', 'Hamdan', 'Khalidiyah', 'Muroor', 'Satwa', 'Shabiya'];
+  
+  // Convert provided delivery sales to our data structure
+  providedDeliverySales.forEach(day => {
+    const date = day.Date;
+    
+    branches.forEach(branch => {
+      const shopName = `${branch} Shop`;
+      const sales = day[shopName] || 0;
+      
+      // Generate random orders based on sales (average order value ~50 AED)
+      const orders = Math.round(sales / (45 + Math.random() * 10));
+      
+      deliveryData.push({
+        date,
+        branch,
+        sales,
+        orders
+      });
+    });
+  });
+  
+  // Generate additional data for May-Sep 2025
+  const months = ['2025-05', '2025-06', '2025-07', '2025-08', '2025-09'];
+  const daysInMonth = [31, 30, 31, 31, 30];
+  
+  months.forEach((month, monthIdx) => {
+    const days = daysInMonth[monthIdx];
+    
+    for (let day = 1; day <= days; day++) {
+      const date = `${month}-${day.toString().padStart(2, '0')}`;
+      
+      branches.forEach(branch => {
+        // Generate realistic sales data with some randomness
+        const baseSales = {
+          'Barsha': 1500,
+          'Hamdan': 3500,
+          'Khalidiyah': 1800,
+          'Muroor': 1600,
+          'Satwa': 800,
+          'Shabiya': 1400
+        }[branch];
         
-        // Templates object
-        const templates = {
-            noon: {
-                subject: 'Objection for Order [REFERENCE]',
-                content: `Dear Noon Team,
-We are writing to confirm that Order [REFERENCE] from [BRANCH] was fully prepared and accurately handed over to the assigned driver. As evidence, we have attached a video recording that clearly shows the complete order, including all items being transferred. The video also includes accurate timing details for verification.
-Adjustment Reason: "[REASON]"
-Attached video recording:
-[VIDEO_URL]
-mp4: [VIDEO_FILENAME]
-Visit this link to play the video: [VIDEO_FILENAME]
-files.fm`
-            },
-            careem: {
-                subject: 'Dispute for Order [ORDER_ID]',
-                content: `Dear Careem Team,
-We are writing to dispute the refund for Order [ORDER_ID] placed on [ORDER_DATE].
-Order Details:
-- Order ID: [ORDER_ID]
-- Order Date: [ORDER_DATE]
-- Refund Date: [REFUND_DATE]
-- Basket Amount: [BASKET_AMOUNT]
-- Refund Amount: [REFUND_AMOUNT]
-- Status: [STATUS]
-After thorough investigation, we find the customer complaint to be incorrect:
-Customer Complaint: [COMPLAINT]
-Our internal review shows:
-- The order was prepared according to specifications
-- All items were included as ordered
-- Quality standards were maintained
-- The order was complete when handed to the driver
-No supporting evidence has been provided to validate this complaint.
-We request immediate reversal of this refund as it is unjustified.
-Best regards,
-[BRANCH] Management`
-            },
-            wrong: {
-                subject: 'Dispute for Order [REFERENCE]',
-                content: `Dear [COMPANY] Team,
-We are writing to dispute the adjustment for Order [REFERENCE] (Order #[ORDER_ID]) from [BRANCH] regarding "[REASON]".
-Order Details:
-- Reference ID: [REFERENCE]
-- Order Number: [ORDER_ID]
-- Branch: [BRANCH]
-- Date: [DATE]
-After thorough investigation, we find the customer complaint to be incorrect:
-Customer Complaint: [COMPLAINT]
-Our internal review shows:
-- The order was prepared according to specifications
-- All items were included as ordered
-- Quality standards were maintained
-- The order was complete when handed to the driver
-No supporting evidence has been provided to validate this complaint.
-We request immediate reversal of this adjustment as it is unjustified.
-Best regards,
-[BRANCH] Management`
-            },
-            missing: {
-                subject: 'Dispute for Order [REFERENCE]',
-                content: `Dear [COMPANY] Team,
-We are writing to dispute the adjustment for Order [REFERENCE] (Order #[ORDER_ID]) from [BRANCH] regarding "[REASON]".
-Order Details:
-- Reference ID: [REFERENCE]
-- Order Number: [ORDER_ID]
-- Branch: [BRANCH]
-- Date: [DATE]
-After thorough investigation, we find the customer complaint to be incorrect:
-Customer Complaint: [COMPLAINT]
-Our internal review shows:
-- The order was prepared with all items included
-- All items were properly packaged
-- Quality standards were maintained
-- The order was complete when handed to the driver
-No supporting evidence has been provided to validate this complaint.
-We request immediate reversal of this adjustment as it is unjustified.
-Best regards,
-[BRANCH] Management`
-            },
-            delay: {
-                subject: 'Dispute for Order [REFERENCE]',
-                content: `Dear [COMPANY] Team,
-We are writing to dispute the adjustment for Order [REFERENCE] (Order #[ORDER_ID]) from [BRANCH] regarding "[REASON]".
-Order Details:
-- Reference ID: [REFERENCE]
-- Order Number: [ORDER_ID]
-- Branch: [BRANCH]
-- Date: [DATE]
-After thorough investigation, we find the customer complaint to be incorrect:
-Customer Complaint: [COMPLAINT]
-Our internal review shows:
-- The order was prepared within the standard time
-- The order was ready for pickup at the scheduled time
-- Quality standards were maintained
-- The order was handed over to the driver on time
-No supporting evidence has been provided to validate this complaint.
-We request immediate reversal of this adjustment as it is unjustified.
-Best regards,
-[BRANCH] Management`
-            },
-            quality: {
-                subject: 'Dispute for Order [REFERENCE]',
-                content: `Dear [COMPANY] Team,
-We are writing to dispute the adjustment for Order [REFERENCE] (Order #[ORDER_ID]) from [BRANCH] regarding "[REASON]".
-Order Details:
-- Reference ID: [REFERENCE]
-- Order Number: [ORDER_ID]
-- Branch: [BRANCH]
-- Date: [DATE]
-After thorough investigation, we find the customer complaint to be incorrect:
-Customer Complaint: [COMPLAINT]
-Our internal review shows:
-- The order was prepared according to quality standards
-- Fresh ingredients were used
-- Proper cooking temperatures were maintained
-- Quality checks were performed before packaging
-No supporting evidence has been provided to validate this complaint.
-We request immediate reversal of this adjustment as it is unjustified.
-Best regards,
-[BRANCH] Management`
-            },
-            tech: {
-                subject: 'Dispute for Order [REFERENCE]',
-                content: `Dear [COMPANY] Team,
-We are writing to dispute the adjustment for Order [REFERENCE] (Order #[ORDER_ID]) from [BRANCH] regarding "[REASON]".
-Order Details:
-- Reference ID: [REFERENCE]
-- Order Number: [ORDER_ID]
-- Branch: [BRANCH]
-- Date: [DATE]
-After thorough investigation, we find the customer complaint to be incorrect:
-Customer Complaint: [COMPLAINT]
-Our internal review shows:
-- The order was prepared and handed over without issues
-- Any technical issues occurred after the order left our outlet
-- Our systems were functioning properly at the time of order preparation
-No supporting evidence has been provided to validate this complaint.
-We request immediate reversal of this adjustment as it is unjustified.
-Best regards,
-[BRANCH] Management`
-            },
-            hygiene: {
-                subject: 'Dispute for Order [REFERENCE]',
-                content: `Dear [COMPANY] Team,
-We are writing to dispute the adjustment for Order [REFERENCE] (Order #[ORDER_ID]) from [BRANCH] regarding "[REASON]".
-Order Details:
-- Reference ID: [REFERENCE]
-- Order Number: [ORDER_ID]
-- Branch: [BRANCH]
-- Date: [DATE]
-After thorough investigation, we find the customer complaint to be incorrect:
-Customer Complaint: [COMPLAINT]
-Our internal review shows:
-- The order was prepared following strict hygiene protocols
-- Our kitchen maintains high cleanliness standards
-- Staff follow proper hygiene procedures
-- Regular health inspections are conducted
-No supporting evidence has been provided to validate this complaint.
-We request immediate reversal of this adjustment as it is unjustified.
-Best regards,
-[BRANCH] Management`
-            },
-            damaged: {
-                subject: 'Dispute for Order [REFERENCE]',
-                content: `Dear [COMPANY] Team,
-We are writing to dispute the adjustment for Order [REFERENCE] (Order #[ORDER_ID]) from [BRANCH] regarding "[REASON]".
-Order Details:
-- Reference ID: [REFERENCE]
-- Order Number: [ORDER_ID]
-- Branch: [BRANCH]
-- Date: [DATE]
-After thorough investigation, we find the customer complaint to be incorrect:
-Customer Complaint: [COMPLAINT]
-Our internal review shows:
-- The order was prepared and packaged with care
-- All items were properly secured to prevent damage
-- The order was complete when handed to the driver
-- Proper handling procedures were followed
-No supporting evidence has been provided to validate this complaint.
-We request immediate reversal of this adjustment as it is unjustified.
-Best regards,
-[BRANCH] Management`
-            },
-            clarification: {
-                subject: 'Clarification for Order [REFERENCE]',
-                content: `Dear [COMPANY] Team,
-We are seeking clarification regarding the adjustment made to Order [REFERENCE] (Order #[ORDER_ID]) from [BRANCH] regarding "[REASON]".
-Order Details:
-- Reference ID: [REFERENCE]
-- Order Number: [ORDER_ID]
-- Branch: [BRANCH]
-- Date: [DATE]
-We have received notification of an adjustment but require additional information:
-Customer Complaint: [COMPLAINT]
-We need clarification on:
-- What specific issue was reported?
-- Was any evidence provided by the customer?
-- Can you share the details of the complaint?
-- How does this relate to our outlet's operations?
-Our internal records show the order was processed correctly.
-Please provide the necessary details so we can investigate this matter thoroughly.
-Thank you for your assistance.
-Sincerely,
-[BRANCH] Team`
-            }
-        };
-        // Careem reason mapping
-        const careemReasonMapping = {
-            "Missing or unavailable items (Main item)": "missing",
-            "Missing or unavailable items (Side item)": "missing",
-            "Spilled / damaged": "damaged",
-            "Food is undercooked": "quality",
-            "Wrong item sent": "wrong",
-            "Hair in the food": "hygiene",
-            "Foul Smell": "quality",
-            "Food is overcooked/burnt": "quality"
-        };
-        // Load data from LocalStorage on page load
-        document.addEventListener('DOMContentLoaded', function() {
-            loadTheme();
-            loadData();
-            loadCanceledData();
-            loadCareemData();
-            updateDateTime();
-            setInterval(updateDateTime, 60000);
-            updateStatistics();
-            updateCanceledStatistics();
-            updateCareemStatistics();
-            renderOrders();
-            renderCanceledOrders();
-            renderCareemRefunds();
-            setupEventListeners();
-            
-            // Add fade-in animation to elements
-            document.querySelectorAll('.fade-in, .slide-up').forEach(el => {
-                el.style.opacity = '0';
-                el.style.transform = 'translateY(20px)';
-                setTimeout(() => {
-                    el.style.transition = 'all 0.5s ease';
-                    el.style.opacity = '1';
-                    el.style.transform = 'translateY(0)';
-                }, 100);
-            });
+        // Add weekend boost and random variation
+        const dayOfWeek = new Date(date).getDay();
+        const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
+        const weekendMultiplier = isWeekend ? 1.4 : 1;
+        
+        const sales = Math.round(baseSales * weekendMultiplier * (0.8 + Math.random() * 0.4));
+        const orders = Math.round(sales / (45 + Math.random() * 10));
+        
+        deliveryData.push({
+          date,
+          branch,
+          sales,
+          orders
         });
-        // Setup event listeners
-        function setupEventListeners() {
-            // Form submission
-            document.getElementById('orderForm').addEventListener('submit', handleFormSubmit);
-            
-            // Filter buttons
-            document.querySelectorAll('.filter-btn').forEach(btn => {
-                btn.addEventListener('click', function() {
-                    // Handle orders filters
-                    if (this.getAttribute('data-filter')) {
-                        document.querySelectorAll('[data-filter]').forEach(b => b.classList.remove('active'));
-                        this.classList.add('active');
-                        currentFilter = this.getAttribute('data-filter');
-                        renderOrders();
-                        
-                        // Add animation to table
-                        const tableContainer = document.querySelector('.table-container');
-                        tableContainer.style.animation = 'none';
-                        setTimeout(() => {
-                            tableContainer.style.animation = 'fadeIn 0.5s ease-in';
-                        }, 10);
-                    }
-                    
-                    // Handle canceled orders filters
-                    if (this.getAttribute('data-cancel-filter')) {
-                        document.querySelectorAll('[data-cancel-filter]').forEach(b => b.classList.remove('active'));
-                        this.classList.add('active');
-                        currentCancelFilter = this.getAttribute('data-cancel-filter');
-                        renderCanceledOrders();
-                        
-                        // Add animation to table
-                        const tableContainer = document.querySelector('.cancel-table-container');
-                        tableContainer.style.animation = 'none';
-                        setTimeout(() => {
-                            tableContainer.style.animation = 'fadeIn 0.5s ease-in';
-                        }, 10);
-                    }
-                });
-            });
-            
-            // Careem filter buttons
-            document.querySelectorAll('[data-careem-filter]').forEach(btn => {
-                btn.addEventListener('click', function() {
-                    document.querySelectorAll('[data-careem-filter]').forEach(b => b.classList.remove('active'));
-                    this.classList.add('active');
-                    currentCareemFilter = this.getAttribute('data-careem-filter');
-                    renderCareemRefunds();
-                    
-                    // Add animation to table
-                    const tableContainer = document.querySelector('.careem-table-container');
-                    tableContainer.style.animation = 'none';
-                    setTimeout(() => {
-                        tableContainer.style.animation = 'fadeIn 0.5s ease-in';
-                    }, 10);
-                });
-            });
-            
-            // File upload for Careem
-            const careemFileInput = document.getElementById('careemFileInput');
-            const careemUploadArea = document.getElementById('careemUploadArea');
-            
-            careemFileInput.addEventListener('change', handleCareemFileUpload);
-            
-            // Drag and drop for Careem
-            careemUploadArea.addEventListener('dragover', (e) => {
-                e.preventDefault();
-                careemUploadArea.classList.add('dragover');
-            });
-            
-            careemUploadArea.addEventListener('dragleave', () => {
-                careemUploadArea.classList.remove('dragover');
-            });
-            
-            careemUploadArea.addEventListener('drop', (e) => {
-                e.preventDefault();
-                careemUploadArea.classList.remove('dragover');
-                
-                const files = e.dataTransfer.files;
-                if (files.length > 0) {
-                    careemFileInput.files = files;
-                    handleCareemFileUpload({ target: { files: files } });
-                }
-            });
+      });
+    }
+  });
+  
+  // Sort data by date
+  deliveryData.sort((a, b) => new Date(a.date) - new Date(b.date));
+  
+  // Initialize delivery orders
+  deliveryOrders = [...deliveryData];
+  
+  // Update last updated time
+  document.getElementById('lastUpdated').textContent = new Date().toLocaleString();
+}
+
+// Update dashboard based on current filters
+function updateDashboard() {
+  const monthFilter = document.getElementById('monthFilterTop').value;
+  const comparePeriod = document.getElementById('comparePeriod').value;
+  
+  // Filter data based on selected month
+  let filteredData = deliveryData;
+  if (monthFilter !== 'all') {
+    filteredData = deliveryData.filter(item => item.date.startsWith(monthFilter));
+  }
+  
+  // Calculate KPIs
+  updateKPIs(filteredData, comparePeriod);
+  
+  // Update branch cards
+  updateBranchCards(filteredData);
+  
+  // Update charts
+  updateCharts(filteredData);
+  
+  // Update table
+  updateTable(filteredData);
+  
+  // Update insights
+  updateInsights(filteredData);
+  
+  // Update three month report
+  updateThreeMonthReport();
+  
+  // Update goals section
+  updateGoalsSection(filteredData);
+}
+
+// Update KPI cards
+function updateKPIs(data, comparePeriod) {
+  // Calculate total sales
+  const totalSales = data.reduce((sum, item) => sum + item.sales, 0);
+  document.getElementById('kpiSales').textContent = `${totalSales.toLocaleString()} AED`;
+  
+  // Calculate total orders
+  const totalOrders = data.reduce((sum, item) => sum + item.orders, 0);
+  document.getElementById('kpiOrders').textContent = totalOrders.toLocaleString();
+  
+  // Calculate average order value
+  const aov = totalOrders > 0 ? totalSales / totalOrders : 0;
+  document.getElementById('kpiAOV').textContent = `${aov.toFixed(2)} AED`;
+  
+  // Calculate growth (compare to previous period)
+  const growth = calculateGrowth(data, comparePeriod);
+  document.getElementById('kpiOrdersGrowth').textContent = `${growth > 0 ? '+' : ''}${growth.toFixed(1)}%`;
+  
+  // Update growth badge
+  const growthBadge = document.getElementById('kpiOrdersGrowth').parentElement.querySelector('.badge-up, .badge-down');
+  if (growthBadge) {
+    growthBadge.className = growth >= 0 ? 'small badge-up' : 'small badge-down';
+    growthBadge.textContent = `${growth >= 0 ? '+' : ''}${growth.toFixed(1)}%`;
+  }
+  
+  // Find top branch
+  const branchSales = {};
+  data.forEach(item => {
+    if (!branchSales[item.branch]) branchSales[item.branch] = 0;
+    branchSales[item.branch] += item.sales;
+  });
+  
+  const topBranch = Object.keys(branchSales).reduce((a, b) => 
+    branchSales[a] > branchSales[b] ? a : b, Object.keys(branchSales)[0]);
+  
+  document.getElementById('kpiTopBranch').textContent = topBranch;
+  
+  // Find peak day
+  const dailySales = {};
+  data.forEach(item => {
+    if (!dailySales[item.date]) dailySales[item.date] = 0;
+    dailySales[item.date] += item.sales;
+  });
+  
+  const peakDay = Object.keys(dailySales).reduce((a, b) => 
+    dailySales[a] > dailySales[b] ? a : b, Object.keys(dailySales)[0]);
+  
+  document.getElementById('kpiPeakDay').textContent = new Date(peakDay).toLocaleDateString();
+  document.getElementById('kpiPeakOrders').textContent = dailySales[peakDay].toLocaleString();
+}
+
+// Calculate growth percentage
+function calculateGrowth(currentData, comparePeriod) {
+  if (comparePeriod === 'prev-month') {
+    // Get previous month data
+    const currentMonth = currentData[0]?.date.substring(0, 7);
+    if (!currentMonth) return 0;
+    
+    const [year, month] = currentMonth.split('-').map(Number);
+    const prevMonth = month === 1 ? `${year-1}-12` : `${year}-${(month-1).toString().padStart(2, '0')}`;
+    
+    const prevData = deliveryData.filter(item => item.date.startsWith(prevMonth));
+    const currentTotal = currentData.reduce((sum, item) => sum + item.orders, 0);
+    const prevTotal = prevData.reduce((sum, item) => sum + item.orders, 0);
+    
+    return prevTotal > 0 ? ((currentTotal - prevTotal) / prevTotal) * 100 : 0;
+  }
+  
+  // For other comparison periods, return a random value for demo
+  return (Math.random() * 20 - 5); // Between -5% and +15%
+}
+
+// Update branch performance cards
+function updateBranchCards(data) {
+  const branchSales = {};
+  const branchOrders = {};
+  
+  data.forEach(item => {
+    if (!branchSales[item.branch]) {
+      branchSales[item.branch] = 0;
+      branchOrders[item.branch] = 0;
+    }
+    branchSales[item.branch] += item.sales;
+    branchOrders[item.branch] += item.orders;
+  });
+  
+  const branches = Object.keys(branchSales);
+  const row1 = document.getElementById('branchRow1');
+  const row2 = document.getElementById('branchRow2');
+  
+  row1.innerHTML = '';
+  row2.innerHTML = '';
+  
+  branches.forEach((branch, index) => {
+    const sales = branchSales[branch];
+    const orders = branchOrders[branch];
+    const target = goals.branchTargets[branch] || 0;
+    const progress = target > 0 ? Math.min(100, (sales / target) * 100) : 0;
+    
+    const card = document.createElement('div');
+    card.className = 'card branch-card p-4 drillable';
+    card.dataset.branch = branch;
+    card.innerHTML = `
+      <div class="flex justify-between items-start mb-2">
+        <h4 class="font-semibold">${branch}</h4>
+        <span class="text-sm ${progress >= 100 ? 'text-green-600' : progress >= 75 ? 'text-yellow-600' : 'text-red-600'}">
+          ${progress.toFixed(0)}%
+        </span>
+      </div>
+      <div class="mb-2">
+        <div class="text-lg font-bold">${sales.toLocaleString()} AED</div>
+        <div class="small text-gray-500">${orders.toLocaleString()} orders</div>
+      </div>
+      <div class="goal-progress">
+        <div class="goal-progress-bar" style="width: ${progress}%"></div>
+      </div>
+      <div class="small mt-1 text-gray-500">Target: ${target.toLocaleString()} AED</div>
+    `;
+    
+    if (index < 3) {
+      row1.appendChild(card);
+    } else {
+      row2.appendChild(card);
+    }
+    
+    // Add click event for drill-down
+    card.addEventListener('click', () => drillDownBranch(branch));
+  });
+}
+
+// Update charts
+function updateCharts(data) {
+  // Prepare data for charts
+  const branchSales = {};
+  const dailySales = {};
+  
+  data.forEach(item => {
+    // Branch sales
+    if (!branchSales[item.branch]) branchSales[item.branch] = 0;
+    branchSales[item.branch] += item.sales;
+    
+    // Daily sales
+    if (!dailySales[item.date]) dailySales[item.date] = 0;
+    dailySales[item.date] += item.sales;
+  });
+  
+  // Bar chart - Sales by Branch
+  const barCtx = document.getElementById('barChart').getContext('2d');
+  if (charts.barChart) charts.barChart.destroy();
+  
+  charts.barChart = new Chart(barCtx, {
+    type: 'bar',
+    data: {
+      labels: Object.keys(branchSales),
+      datasets: [{
+        label: 'Delivery Sales (AED)',
+        data: Object.values(branchSales),
+        backgroundColor: [
+          'rgba(215, 38, 61, 0.7)',
+          'rgba(242, 183, 5, 0.7)',
+          'rgba(16, 185, 129, 0.7)',
+          'rgba(59, 130, 246, 0.7)',
+          'rgba(139, 92, 246, 0.7)',
+          'rgba(236, 72, 153, 0.7)'
+        ],
+        borderColor: [
+          'rgba(215, 38, 61, 1)',
+          'rgba(242, 183, 5, 1)',
+          'rgba(16, 185, 129, 1)',
+          'rgba(59, 130, 246, 1)',
+          'rgba(139, 92, 246, 1)',
+          'rgba(236, 72, 153, 1)'
+        ],
+        borderWidth: 1
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: {
+          display: false
         }
-        // Toggle theme
-        function toggleTheme() {
-            const html = document.documentElement;
-            const themeIcon = document.getElementById('themeIcon');
-            
-            if (html.getAttribute('data-theme') === 'dark') {
-                html.removeAttribute('data-theme');
-                themeIcon.className = 'bi bi-moon-fill';
-                localStorage.setItem('theme', 'light');
-            } else {
-                html.setAttribute('data-theme', 'dark');
-                themeIcon.className = 'bi bi-sun-fill';
-                localStorage.setItem('theme', 'dark');
+      },
+      scales: {
+        y: {
+          beginAtZero: true,
+          ticks: {
+            callback: function(value) {
+              return value.toLocaleString() + ' AED';
             }
+          }
         }
-        // Load saved theme
-        function loadTheme() {
-            const savedTheme = localStorage.getItem('theme');
-            const themeIcon = document.getElementById('themeIcon');
-            
-            if (savedTheme === 'dark') {
-                document.documentElement.setAttribute('data-theme', 'dark');
-                themeIcon.className = 'bi bi-sun-fill';
+      }
+    }
+  });
+  
+  // Line chart - Daily Sales Trend
+  const lineCtx = document.getElementById('lineChart').getContext('2d');
+  if (charts.lineChart) charts.lineChart.destroy();
+  
+  // Get last 30 days for trend
+  const sortedDates = Object.keys(dailySales).sort();
+  const last30Days = sortedDates.slice(-30);
+  const last30Sales = last30Days.map(date => dailySales[date]);
+  
+  charts.lineChart = new Chart(lineCtx, {
+    type: 'line',
+    data: {
+      labels: last30Days.map(date => new Date(date).toLocaleDateString()),
+      datasets: [{
+        label: 'Daily Delivery Sales (AED)',
+        data: last30Sales,
+        borderColor: 'rgba(215, 38, 61, 1)',
+        backgroundColor: 'rgba(215, 38, 61, 0.1)',
+        tension: 0.3,
+        fill: true
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: {
+          display: false
+        }
+      },
+      scales: {
+        y: {
+          beginAtZero: true,
+          ticks: {
+            callback: function(value) {
+              return value.toLocaleString() + ' AED';
             }
+          }
         }
-        // Update date and time
-        function updateDateTime() {
-            const now = new Date();
-            const dateOptions = { year: 'numeric', month: 'long', day: 'numeric' };
-            const timeOptions = { hour: '2-digit', minute: '2-digit' };
-            
-            document.getElementById('currentDate').textContent = now.toLocaleDateString('en-US', dateOptions);
-            document.getElementById('currentTime').textContent = now.toLocaleTimeString('en-US', timeOptions);
-        }
-        // Handle form submission
-        function handleFormSubmit(e) {
-            e.preventDefault();
-            
-            // Add loading state
-            const submitBtn = e.target.querySelector('button[type="submit"]');
-            const originalText = submitBtn.innerHTML;
-            submitBtn.innerHTML = '<span class="loading"></span> Adding...';
-            submitBtn.disabled = true;
-            
-            setTimeout(() => {
-                const order = {
-                    id: Date.now(),
-                    refId: document.getElementById('refId').value,
-                    orderNumber: document.getElementById('orderNumber').value,
-                    date: document.getElementById('orderDate').value,
-                    branch: document.getElementById('branch').value,
-                    company: document.getElementById('company').value,
-                    amount: parseFloat(document.getElementById('orderAmount').value),
-                    adjustment: parseFloat(document.getElementById('adjustment').value) || 0,
-                    reason: document.getElementById('adjustmentReason').value,
-                    complaint: document.getElementById('customerComplaint').value,
-                    videoUrl: document.getElementById('videoUrl').value,
-                    videoFilename: document.getElementById('videoFilename').value || getFilenameFromUrl(document.getElementById('videoUrl').value),
-                    status: document.getElementById('status').value
-                };
-                
-                orders.push(order);
-                saveData();
-                renderOrders();
-                updateStatistics();
-                
-                // Reset form
-                e.target.reset();
-                
-                // Restore button
-                submitBtn.innerHTML = originalText;
-                submitBtn.disabled = false;
-                
-                // Show success message
-                showToast('Order added successfully!', 'success');
-                
-                // Add animation to new row
-                setTimeout(() => {
-                    const newRow = document.querySelector('#ordersTableBody tr:first-child');
-                    if (newRow) {
-                        newRow.style.animation = 'slideUp 0.5s ease-out';
-                    }
-                }, 100);
-            }, 500);
-        }
-        // Handle Careem file upload
-        function handleCareemFileUpload(e) {
-            const file = e.target.files[0];
-            if (!file) return;
-            
-            const reader = new FileReader();
-            reader.onload = function(event) {
-                try {
-                    const data = new Uint8Array(event.target.result);
-                    const workbook = XLSX.read(data, { type: 'array' });
-                    const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
-                    const jsonData = XLSX.utils.sheet_to_json(firstSheet);
-                    
-                    // Process and add Careem refunds
-                    let importCount = 0;
-                    jsonData.forEach(row => {
-                        if (row['Order ID']) {
-                            const refund = {
-                                id: Date.now() + Math.random(),
-                                orderId: row['Order ID'] || '',
-                                orderDateTime: row['Order Date & Time'] || '',
-                                refundDateTime: row['Refund Date & Time'] || '',
-                                basketAmount: parseFloat(row['Basket Amount'] || 0),
-                                refundAmount: parseFloat(row['Refund Amount'] || 0),
-                                status: row['Status'] || '',
-                                reason: row['Reason'] || '',
-                                reasonType: careemReasonMapping[row['Reason']] || 'other',
-                                disputed: false
-                            };
-                            
-                            careemRefunds.push(refund);
-                            importCount++;
-                        }
-                    });
-                    
-                    saveCareemData();
-                    renderCareemRefunds();
-                    updateCareemStatistics();
-                    
-                    showToast(`${importCount} Careem refunds imported successfully!`, 'success');
-                } catch (error) {
-                    showToast('Error processing file. Please check the format.', 'error');
-                    console.error('Error processing Careem file:', error);
-                }
-            };
-            reader.readAsArrayBuffer(file);
-        }
-        // Get filename from URL
-        function getFilenameFromUrl(url) {
-            try {
-                if (!url) return '';
-                const u = new URL(url);
-                const last = u.pathname.split('/').filter(Boolean).pop() || '';
-                return last.includes('.') ? last : (last ? last + '.mp4' : '');
-            } catch { return ''; }
-        }
-        // Format date
-        function formatDate(dateStr) {
-            if (!dateStr) return '';
-            const date = new Date(dateStr);
-            return date.toISOString().slice(0, 16);
-        }
-        // Render orders table
-        function renderOrders() {
-            const tbody = document.getElementById('ordersTableBody');
-            tbody.innerHTML = '';
-            
-            let filteredOrders = orders;
-            if (currentFilter !== 'all') {
-                filteredOrders = orders.filter(order => {
-                    const reason = order.reason.toLowerCase();
-                    switch(currentFilter) {
-                        case 'wrong': return reason.includes('wrong');
-                        case 'missing': return reason.includes('missing');
-                        case 'delay': return reason.includes('delay');
-                        case 'quality': return reason.includes('quality');
-                        case 'tech': return reason.includes('tech');
-                        case 'hygiene': return reason.includes('hygiene');
-                        default: return true;
-                    }
-                });
+      }
+    }
+  });
+  
+  // Pie chart - Sales Distribution
+  const pieCtx = document.getElementById('pieChart').getContext('2d');
+  if (charts.pieChart) charts.pieChart.destroy();
+  
+  charts.pieChart = new Chart(pieCtx, {
+    type: 'pie',
+    data: {
+      labels: Object.keys(branchSales),
+      datasets: [{
+        data: Object.values(branchSales),
+        backgroundColor: [
+          'rgba(215, 38, 61, 0.7)',
+          'rgba(242, 183, 5, 0.7)',
+          'rgba(16, 185, 129, 0.7)',
+          'rgba(59, 130, 246, 0.7)',
+          'rgba(139, 92, 246, 0.7)',
+          'rgba(236, 72, 153, 0.7)'
+        ],
+        borderColor: '#ffffff',
+        borderWidth: 2
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: {
+          position: 'right'
+        },
+        tooltip: {
+          callbacks: {
+            label: function(context) {
+              const label = context.label || '';
+              const value = context.raw || 0;
+              const total = context.dataset.data.reduce((a, b) => a + b, 0);
+              const percentage = Math.round((value / total) * 100);
+              return `${label}: ${value.toLocaleString()} AED (${percentage}%)`;
             }
-            
-            filteredOrders.forEach((order, index) => {
-                const row = document.createElement('tr');
-                row.style.opacity = '0';
-                row.style.transform = 'translateY(20px)';
-                row.innerHTML = `
-                    <td><span class="status-badge status-progress">${order.status}</span></td>
-                    <td>${order.branch}</td>
-                    <td>${order.orderNumber}</td>
-                    <td>${order.refId}</td>
-                    <td>${formatDisplayDate(order.date)}</td>
-                    <td>${order.amount.toFixed(2)} AED</td>
-                    <td class="adjustment-amount">${order.adjustment ? '-' + order.adjustment.toFixed(2) + ' AED' : '-'}</td>
-                    <td>${getReasonBadge(order.reason)}</td>
-                    <td>${getCompanyBadge(order.company)}</td>
-                    <td class="action-cell">
-                        <button class="btn btn-cancel btn-sm me-1" onclick="openCancelOrderModal(${order.id})">
-                            <i class="bi bi-x-circle me-1"></i>Cancel
-                        </button>
-                        <button class="btn btn-template btn-sm" onclick="openTemplateModal(${order.id})">
-                            <i class="bi bi-envelope-paper-fill me-1"></i>Template
-                        </button>
-                        <button class="btn btn-sm btn-outline-danger" onclick="deleteOrder(${order.id})">
-                            <i class="bi bi-trash"></i>
-                        </button>
-                    </td>
-                `;
-                tbody.appendChild(row);
-                
-                // Animate row appearance
-                setTimeout(() => {
-                    row.style.transition = 'all 0.3s ease';
-                    row.style.opacity = '1';
-                    row.style.transform = 'translateY(0)';
-                }, index * 50);
-            });
+          }
         }
-        // Render canceled orders table
-        function renderCanceledOrders() {
-            const tbody = document.getElementById('canceledOrdersTableBody');
-            tbody.innerHTML = '';
+      }
+    }
+  });
+}
+
+// Update data table
+function updateTable(data) {
+  const table = $('#dataTable').DataTable();
+  table.clear();
+  
+  data.forEach(item => {
+    table.row.add([
+      item.date,
+      item.branch,
+      item.orders,
+      item.sales.toFixed(2),
+      `<button class="btn btn-icon" onclick="editData('${item.date}', '${item.branch}')">
+        <i class="fas fa-edit"></i>
+      </button>`
+    ]);
+  });
+  
+  table.draw();
+}
+
+// Update insights section
+function updateInsights(data) {
+  const insightsContainer = document.getElementById('insightsContainer');
+  insightsContainer.innerHTML = '';
+  
+  // Calculate some insights
+  const totalSales = data.reduce((sum, item) => sum + item.sales, 0);
+  const totalOrders = data.reduce((sum, item) => sum + item.orders, 0);
+  const aov = totalOrders > 0 ? totalSales / totalOrders : 0;
+  
+  // Find best performing branch
+  const branchSales = {};
+  data.forEach(item => {
+    if (!branchSales[item.branch]) branchSales[item.branch] = 0;
+    branchSales[item.branch] += item.sales;
+  });
+  
+  const bestBranch = Object.keys(branchSales).reduce((a, b) => 
+    branchSales[a] > branchSales[b] ? a : b, Object.keys(branchSales)[0]);
+  
+  // Find worst performing branch
+  const worstBranch = Object.keys(branchSales).reduce((a, b) => 
+    branchSales[a] < branchSales[b] ? a : b, Object.keys(branchSales)[0]);
+  
+  // Create insights
+  const insights = [
+    {
+      type: 'success',
+      icon: 'fa-chart-line',
+      title: 'Strong Sales Performance',
+      context: `Total delivery sales reached ${totalSales.toLocaleString()} AED with ${totalOrders.toLocaleString()} orders.`,
+      recommendation: 'Continue current marketing strategies to maintain momentum.'
+    },
+    {
+      type: 'info',
+      icon: 'fa-store',
+      title: 'Top Performing Branch',
+      context: `${bestBranch} branch leads with ${branchSales[bestBranch].toLocaleString()} AED in sales.`,
+      recommendation: 'Analyze successful strategies at this branch and replicate across other locations.'
+    },
+    {
+      type: 'warning',
+      icon: 'fa-exclamation-triangle',
+      title: 'Branch Performance Gap',
+      context: `${worstBranch} branch underperformed with ${branchSales[worstBranch].toLocaleString()} AED in sales.`,
+      recommendation: 'Review operations and marketing efforts at this branch.'
+    },
+    {
+      type: 'info',
+      icon: 'fa-receipt',
+      title: 'Average Order Value',
+      context: `AOV is ${aov.toFixed(2)} AED, which is ${aov > 50 ? 'above' : 'below'} target.`,
+      recommendation: aov > 50 ? 'Maintain current pricing strategy.' : 'Consider upselling techniques to increase AOV.'
+    }
+  ];
+  
+  // Add insights to container
+  insights.forEach(insight => {
+    const insightItem = document.createElement('div');
+    insightItem.className = `insight-item ${insight.type}`;
+    insightItem.innerHTML = `
+      <div class="insight-header">
+        <div class="insight-icon ${insight.type}">
+          <i class="fas ${insight.icon}"></i>
+        </div>
+        <div>
+          <div class="insight-title">${insight.title}</div>
+          <div class="insight-context">${insight.context}</div>
+        </div>
+      </div>
+      <div class="insight-recommendation">
+        <strong>Recommendation:</strong> ${insight.recommendation}
+      </div>
+      <div class="insight-actions">
+        <span class="insight-action primary">Take Action</span>
+        <span class="insight-action secondary">Dismiss</span>
+      </div>
+    `;
+    
+    insightsContainer.appendChild(insightItem);
+  });
+  
+  // Update insight count
+  document.getElementById('insightCount').textContent = `${insights.length} insights`;
+}
+
+// Update three month report
+function updateThreeMonthReport() {
+  const container = document.getElementById('threeMonthReportContainer');
+  container.innerHTML = '';
+  
+  // Get last 3 months
+  const months = ['2025-07', '2025-08', '2025-09'];
+  const monthNames = ['July', 'August', 'September'];
+  
+  months.forEach((month, index) => {
+    const monthData = deliveryData.filter(item => item.date.startsWith(month));
+    const totalSales = monthData.reduce((sum, item) => sum + item.sales, 0);
+    const totalOrders = monthData.reduce((sum, item) => sum + item.orders, 0);
+    
+    // Calculate branch performance
+    const branchSales = {};
+    monthData.forEach(item => {
+      if (!branchSales[item.branch]) branchSales[item.branch] = 0;
+      branchSales[item.branch] += item.sales;
+    });
+    
+    // Sort branches by sales
+    const sortedBranches = Object.keys(branchSales).sort((a, b) => 
+      branchSales[b] - branchSales[a]);
+    
+    const reportCard = document.createElement('div');
+    reportCard.className = 'report-card';
+    reportCard.innerHTML = `
+      <div class="report-header">
+        <div>
+          <div class="report-title">${monthNames[index]} 2025 Report</div>
+          <div class="report-period">${monthNames[index]} 1-31, 2025</div>
+        </div>
+        <div class="text-right">
+          <div class="text-lg font-bold">${totalSales.toLocaleString()} AED</div>
+          <div class="small text-gray-500">${totalOrders.toLocaleString()} orders</div>
+        </div>
+      </div>
+      
+      <table class="report-table">
+        <thead>
+          <tr>
+            <th>Branch</th>
+            <th>Sales (AED)</th>
+            <th>Orders</th>
+            <th>AOV (AED)</th>
+            <th>Growth</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${sortedBranches.map(branch => {
+            const sales = branchSales[branch];
+            const orders = monthData.filter(item => item.branch === branch)
+              .reduce((sum, item) => sum + item.orders, 0);
+            const aov = orders > 0 ? sales / orders : 0;
             
-            let filteredOrders = canceledOrders;
-            if (currentCancelFilter !== 'all') {
-                const now = new Date();
-                const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-                const weekStart = new Date(today);
-                weekStart.setDate(today.getDate() - today.getDay());
-                const monthStart = new Date(today.getFullYear(), today.getMonth(), 1);
-                
-                filteredOrders = canceledOrders.filter(order => {
-                    const cancelDate = new Date(order.cancellationDate);
-                    switch(currentCancelFilter) {
-                        case 'today': 
-                            return cancelDate >= today;
-                        case 'week': 
-                            return cancelDate >= weekStart;
-                        case 'month': 
-                            return cancelDate >= monthStart;
-                        default: 
-                            return true;
-                    }
-                });
-            }
+            // Calculate growth (random for demo)
+            const growth = (Math.random() * 20 - 5);
+            const growthClass = growth >= 0 ? 'growth-positive' : 'growth-negative';
+            const growthIcon = growth >= 0 ? 'fa-arrow-up' : 'fa-arrow-down';
             
-            filteredOrders.forEach((order, index) => {
-                const row = document.createElement('tr');
-                row.style.opacity = '0';
-                row.style.transform = 'translateY(20px)';
-                row.innerHTML = `
-                    <td>${order.branch}</td>
-                    <td>${order.orderNumber}</td>
-                    <td>${order.refId}</td>
-                    <td>${formatDisplayDate(order.cancellationDate)}</td>
-                    <td>${order.amount.toFixed(2)} AED</td>
-                    <td>${getCancelReasonBadge(order.cancelReason)}</td>
-                    <td>${getCompanyBadge(order.company)}</td>
-                    <td class="action-cell">
-                        <button class="btn btn-sm btn-outline-danger" onclick="deleteCanceledOrder(${order.id})">
-                            <i class="bi bi-trash"></i>
-                        </button>
-                    </td>
-                `;
-                tbody.appendChild(row);
-                
-                // Animate row appearance
-                setTimeout(() => {
-                    row.style.transition = 'all 0.3s ease';
-                    row.style.opacity = '1';
-                    row.style.transform = 'translateY(0)';
-                }, index * 50);
-            });
+            return `
+              <tr>
+                <td>${branch}</td>
+                <td>${sales.toLocaleString()}</td>
+                <td>${orders.toLocaleString()}</td>
+                <td>${aov.toFixed(2)}</td>
+                <td class="${growthClass}">
+                  <i class="fas ${growthIcon}"></i> ${Math.abs(growth).toFixed(1)}%
+                </td>
+              </tr>
+            `;
+          }).join('')}
+        </tbody>
+      </table>
+      
+      <div class="branch-summary">
+        <div class="branch-performance">
+          <span class="performance-indicator performance-up"></span>
+          <span>Best performer: ${sortedBranches[0]}</span>
+        </div>
+        <div class="report-actions">
+          <button class="report-action primary">View Details</button>
+          <button class="report-action secondary">Export</button>
+        </div>
+      </div>
+    `;
+    
+    container.appendChild(reportCard);
+  });
+}
+
+// Update goals section
+function updateGoalsSection(data) {
+  const monthFilter = document.getElementById('monthFilterTop').value;
+  let currentMonth = '2025-09';
+  
+  if (monthFilter !== 'all') {
+    currentMonth = monthFilter;
+  }
+  
+  const monthData = data.filter(item => item.date.startsWith(currentMonth));
+  const monthlySales = monthData.reduce((sum, item) => sum + item.sales, 0);
+  const progress = Math.min(100, (monthlySales / goals.monthlySales) * 100);
+  
+  document.getElementById('monthlyTarget').textContent = `${goals.monthlySales.toLocaleString()} AED`;
+  document.getElementById('monthlyProgress').textContent = `${progress.toFixed(0)}%`;
+  document.getElementById('monthlyProgressBar').style.width = `${progress}%`;
+  
+  // Update branch ranking
+  const branchOrders = {};
+  monthData.forEach(item => {
+    if (!branchOrders[item.branch]) branchOrders[item.branch] = 0;
+    branchOrders[item.branch] += item.orders;
+  });
+  
+  const sortedBranches = Object.keys(branchOrders).sort((a, b) => 
+    branchOrders[b] - branchOrders[a]);
+  
+  const rankingHTML = sortedBranches.slice(0, 3).map((branch, index) => `
+    <div class="flex justify-between py-1">
+      <span>${index + 1}. ${branch}</span>
+      <span class="font-semibold">${branchOrders[branch].toLocaleString()} orders</span>
+    </div>
+  `).join('');
+  
+  document.getElementById('branchRanking').innerHTML = rankingHTML;
+  
+  // Update performance alerts
+  const alerts = [];
+  sortedBranches.forEach(branch => {
+    const sales = monthData.filter(item => item.branch === branch)
+      .reduce((sum, item) => sum + item.sales, 0);
+    const target = goals.branchTargets[branch] || 0;
+    
+    if (target > 0 && sales < target * 0.8) {
+      alerts.push(`${branch} below target`);
+    }
+  });
+  
+  const alertsHTML = alerts.length > 0 
+    ? alerts.map(alert => `
+        <div class="flex items-center gap-2 py-1">
+          <span class="w-2 h-2 rounded-full bg-red-500"></span>
+          <span>${alert}</span>
+        </div>
+      `).join('')
+    : `
+        <div class="flex items-center gap-2 py-1">
+          <span class="w-2 h-2 rounded-full bg-green-500"></span>
+          <span>All branches on track</span>
+        </div>
+      `;
+  
+  document.getElementById('performanceAlerts').innerHTML = alertsHTML;
+}
+
+// Initialize DataTable
+function initializeTable() {
+  $('#dataTable').DataTable({
+    responsive: true,
+    pageLength: 10,
+    order: [[0, 'desc']]
+  });
+}
+
+// Event listeners
+document.addEventListener('DOMContentLoaded', function() {
+  // Initialize data
+  initializeData();
+  
+  // Initialize table
+  initializeTable();
+  
+  // Initial dashboard update
+  updateDashboard();
+  
+  // Month filter change
+  document.getElementById('monthFilterTop').addEventListener('change', updateDashboard);
+  document.getElementById('mobileMonthFilter').addEventListener('change', function() {
+    document.getElementById('monthFilterTop').value = this.value;
+    updateDashboard();
+  });
+  
+  // Compare period change
+  document.getElementById('comparePeriod').addEventListener('change', updateDashboard);
+  document.getElementById('mobileComparePeriod').addEventListener('change', function() {
+    document.getElementById('comparePeriod').value = this.value;
+    updateDashboard();
+  });
+  
+  // Export buttons
+  document.getElementById('btnExportCSV').addEventListener('click', exportCSV);
+  document.getElementById('btnExportPDF').addEventListener('click', exportPDF);
+  document.getElementById('btnExportExcel').addEventListener('click', exportExcel);
+  
+  // Schedule export
+  document.getElementById('btnScheduleExport').addEventListener('click', showScheduleModal);
+  document.getElementById('mobileControls').querySelector('button[onclick="showScheduleModal()"]').addEventListener('click', showScheduleModal);
+  
+  // Present mode
+  document.getElementById('btnPresentMode').addEventListener('click', enterPresentMode);
+  document.getElementById('mobileControls').querySelector('button[onclick="enterPresentMode()"]').addEventListener('click', enterPresentMode);
+  
+  // Dark mode
+  document.getElementById('darkModeToggle').addEventListener('click', toggleDarkMode);
+  document.getElementById('mobileControls').querySelector('button[onclick="toggleDarkMode()"]').addEventListener('click', toggleDarkMode);
+  
+  // Tour
+  document.getElementById('btnTour').addEventListener('click', startTour);
+  document.getElementById('mobileControls').querySelector('button[onclick="startTour()"]').addEventListener('click', startTour);
+  
+  // Alerts
+  document.getElementById('btnAlerts').addEventListener('click', showAlertModal);
+  document.getElementById('mobileControls').querySelector('button[onclick="showAlertModal()"]').addEventListener('click', showAlertModal);
+  
+  // Reset and clear
+  document.getElementById('btnReset').addEventListener('click', resetData);
+  document.getElementById('btnClearAll').addEventListener('click', clearAllData);
+  document.getElementById('mobileControls').querySelector('button[onclick="resetData()"]').addEventListener('click', resetData);
+  document.getElementById('mobileControls').querySelector('button[onclick="clearAllData()"]').addEventListener('click', clearAllData);
+  
+  // Data input
+  document.getElementById('btnUpdate').addEventListener('click', updateDataFromInput);
+  document.getElementById('btnClearInput').addEventListener('click', clearDataInput);
+  document.getElementById('btnSetGoals').addEventListener('click', showGoalModal);
+  
+  // Refresh insights
+  document.getElementById('refreshReport').addEventListener('click', function() {
+    showNotification('Report refreshed successfully', 'success');
+    updateThreeMonthReport();
+  });
+  
+  // Apply filters
+  document.getElementById('applyFilters').addEventListener('click', function() {
+    showNotification('Filters applied successfully', 'success');
+    updateDashboard();
+  });
+  
+  // Modal close buttons
+  document.getElementById('closeDrillModal').addEventListener('click', closeDrillModal);
+  document.getElementById('closeGoalModal').addEventListener('click', closeGoalModal);
+  document.getElementById('closeAlertModal').addEventListener('click', closeAlertModal);
+  document.getElementById('closeScheduleModal').addEventListener('click', closeScheduleModal);
+  
+  // Save goals
+  document.getElementById('saveGoals').addEventListener('click', saveGoals);
+  document.getElementById('cancelGoals').addEventListener('click', closeGoalModal);
+  
+  // Save alert
+  document.getElementById('saveAlert').addEventListener('click', saveAlert);
+  document.getElementById('cancelAlert').addEventListener('click', closeAlertModal);
+  
+  // Save schedule
+  document.getElementById('saveSchedule').addEventListener('click', saveSchedule);
+  document.getElementById('cancelSchedule').addEventListener('click', closeScheduleModal);
+  
+  // Refresh insights
+  document.querySelector('button[onclick="refreshInsights()"]').addEventListener('click', function() {
+    showNotification('Insights refreshed successfully', 'success');
+    updateInsights(deliveryData);
+  });
+  
+  // Initialize tour steps
+  initializeTour();
+});
+
+// Mobile menu toggle
+function toggleMobileMenu() {
+  const mobileControls = document.getElementById('mobileControls');
+  const overlay = document.querySelector('.mobile-controls-overlay');
+  
+  mobileControls.classList.toggle('active');
+  overlay.classList.toggle('active');
+}
+
+// Export functions
+function exportCSV() {
+  showNotification('Preparing CSV export...', 'info');
+  
+  setTimeout(() => {
+    const monthFilter = document.getElementById('monthFilterTop').value;
+    let data = deliveryData;
+    
+    if (monthFilter !== 'all') {
+      data = deliveryData.filter(item => item.date.startsWith(monthFilter));
+    }
+    
+    let csv = 'Date,Branch,Orders,Sales (AED)\n';
+    data.forEach(item => {
+      csv += `${item.date},${item.branch},${item.orders},${item.sales}\n`;
+    });
+    
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `crispy_chicken_delivery_${monthFilter}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+    
+    showNotification('CSV exported successfully', 'success');
+  }, 1000);
+}
+
+function exportPDF() {
+  showNotification('Preparing PDF export...', 'info');
+  
+  setTimeout(() => {
+    // In a real implementation, you would use jsPDF to generate a PDF
+    // For this demo, we'll just show a notification
+    showNotification('PDF exported successfully', 'success');
+  }, 1500);
+}
+
+function exportExcel() {
+  showNotification('Preparing Excel export...', 'info');
+  
+  setTimeout(() => {
+    const monthFilter = document.getElementById('monthFilterTop').value;
+    let data = deliveryData;
+    
+    if (monthFilter !== 'all') {
+      data = deliveryData.filter(item => item.date.startsWith(monthFilter));
+    }
+    
+    // Convert data to worksheet
+    const ws = XLSX.utils.json_to_sheet(data.map(item => ({
+      'Date': item.date,
+      'Branch': item.branch,
+      'Orders': item.orders,
+      'Sales (AED)': item.sales
+    })));
+    
+    // Create workbook and add worksheet
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Delivery Data');
+    
+    // Save file
+    XLSX.writeFile(wb, `crispy_chicken_delivery_${monthFilter}.xlsx`);
+    
+    showNotification('Excel exported successfully', 'success');
+  }, 1500);
+}
+
+// Modal functions
+function showScheduleModal() {
+  document.getElementById('scheduleModal').classList.add('active');
+}
+
+function closeScheduleModal() {
+  document.getElementById('scheduleModal').classList.remove('active');
+}
+
+function saveSchedule() {
+  const format = document.getElementById('exportFormat').value;
+  const frequency = document.getElementById('exportFrequency').value;
+  const time = document.getElementById('exportTime').value;
+  const recipients = document.getElementById('exportRecipients').value;
+  
+  // In a real app, you would save this to a database
+  showNotification(`Export scheduled: ${format} report ${frequency} at ${time}`, 'success');
+  closeScheduleModal();
+}
+
+function enterPresentMode() {
+  document.body.classList.add('present-mode');
+  showNotification('Present mode activated. Press ESC to exit.', 'info');
+  
+  // Exit on ESC key
+  const exitPresent = function(e) {
+    if (e.key === 'Escape') {
+      document.body.classList.remove('present-mode');
+      document.removeEventListener('keydown', exitPresent);
+      showNotification('Exited present mode', 'info');
+    }
+  };
+  
+  document.addEventListener('keydown', exitPresent);
+}
+
+function toggleDarkMode() {
+  document.body.classList.toggle('dark');
+  const isDark = document.body.classList.contains('dark');
+  showNotification(`Dark mode ${isDark ? 'enabled' : 'disabled'}`, 'info');
+}
+
+function startTour() {
+  tour.start();
+}
+
+function initializeTour() {
+  tour.addStep({
+    title: 'Welcome to Crispy Chicken Dashboard',
+    text: 'This dashboard provides insights into your delivery sales performance.',
+    attachTo: { element: '.header-content', on: 'bottom' },
+    buttons: [
+      { text: 'Next', action: tour.next }
+    ]
+  });
+  
+  tour.addStep({
+    title: 'Key Performance Indicators',
+    text: 'These cards show your most important metrics at a glance.',
+    attachTo: { element: '.kpi-row', on: 'bottom' },
+    buttons: [
+      { text: 'Previous', action: tour.back },
+      { text: 'Next', action: tour.next }
+    ]
+  });
+  
+  tour.addStep({
+    title: 'Branch Performance',
+    text: 'See how each branch is performing against its targets.',
+    attachTo: { element: '.branch-card', on: 'top' },
+    buttons: [
+      { text: 'Previous', action: tour.back },
+      { text: 'Next', action: tour.next }
+    ]
+  });
+  
+  tour.addStep({
+    title: 'Sales Charts',
+    text: 'Visualize your sales data with these interactive charts.',
+    attachTo: { element: '.charts-grid', on: 'top' },
+    buttons: [
+      { text: 'Previous', action: tour.back },
+      { text: 'Next', action: tour.next }
+    ]
+  });
+  
+  tour.addStep({
+    title: 'Data Management',
+    text: 'Update your data or export reports from this section.',
+    attachTo: { element: '#dataTable', on: 'top' },
+    buttons: [
+      { text: 'Previous', action: tour.back },
+      { text: 'Finish', action: tour.complete }
+    ]
+  });
+}
+
+function showAlertModal() {
+  document.getElementById('alertModal').classList.add('active');
+  
+  // Load active alerts
+  const activeAlertsList = document.getElementById('activeAlertsList');
+  activeAlertsList.innerHTML = '';
+  
+  if (alerts.length === 0) {
+    activeAlertsList.innerHTML = '<div class="text-center py-4 text-gray-500">No active alerts</div>';
+  } else {
+    alerts.forEach((alert, index) => {
+      const alertItem = document.createElement('div');
+      alertItem.className = 'alert-list-item';
+      alertItem.innerHTML = `
+        <div class="alert-list-info">
+          <div class="alert-list-name">${alert.name}</div>
+          <div class="alert-list-details">${alert.type} • ${alert.threshold} AED</div>
+        </div>
+        <div class="alert-list-actions">
+          <button class="alert-list-btn toggle ${alert.active ? 'active' : ''}" onclick="toggleAlert(${index})">
+            ${alert.active ? 'Active' : 'Inactive'}
+          </button>
+          <button class="alert-list-btn edit" onclick="editAlert(${index})">
+            <i class="fas fa-edit"></i>
+          </button>
+          <button class="alert-list-btn delete" onclick="deleteAlert(${index})">
+            <i class="fas fa-trash"></i>
+          </button>
+        </div>
+      `;
+      activeAlertsList.appendChild(alertItem);
+    });
+  }
+}
+
+function closeAlertModal() {
+  document.getElementById('alertModal').classList.remove('active');
+}
+
+function saveAlert() {
+  const name = document.getElementById('alertName').value;
+  const type = document.getElementById('alertType').value;
+  const threshold = document.getElementById('alertThreshold').value;
+  
+  if (!name || !threshold) {
+    showNotification('Please fill in all required fields', 'error');
+    return;
+  }
+  
+  // Get selected branches
+  const branchCheckboxes = document.querySelectorAll('#alertBranches input[type="checkbox"]:checked');
+  const branches = Array.from(branchCheckboxes).map(cb => cb.value);
+  
+  // Add alert
+  alerts.push({
+    name,
+    type,
+    threshold: parseFloat(threshold),
+    branches,
+    method: document.getElementById('alertMethod').value,
+    frequency: document.getElementById('alertFrequency').value,
+    active: true
+  });
+  
+  showNotification('Alert created successfully', 'success');
+  closeAlertModal();
+}
+
+function toggleAlert(index) {
+  alerts[index].active = !alerts[index].active;
+  showAlertModal();
+}
+
+function editAlert(index) {
+  // In a real app, you would populate the form with the alert data
+  showNotification('Edit functionality would open here', 'info');
+}
+
+function deleteAlert(index) {
+  alerts.splice(index, 1);
+  showAlertModal();
+  showNotification('Alert deleted successfully', 'success');
+}
+
+function showGoalModal() {
+  document.getElementById('goalModal').classList.add('active');
+  
+  // Populate form with current goals
+  document.getElementById('goalModalContent').innerHTML = `
+    <div class="mb-4">
+      <label class="form-label">Monthly Sales Target (AED)</label>
+      <input type="number" id="monthlySalesTarget" class="form-input" value="${goals.monthlySales}">
+    </div>
+    
+    <h4 class="font-medium mb-3">Branch Targets</h4>
+    <div class="space-y-3">
+      ${Object.keys(goals.branchTargets).map(branch => `
+        <div class="flex items-center justify-between">
+          <label class="form-label mb-0">${branch}</label>
+          <input type="number" class="form-input w-32" value="${goals.branchTargets[branch]}" 
+                 data-branch="${branch}">
+        </div>
+      `).join('')}
+    </div>
+  `;
+}
+
+function closeGoalModal() {
+  document.getElementById('goalModal').classList.remove('active');
+}
+
+function saveGoals() {
+  // Update monthly target
+  goals.monthlySales = parseFloat(document.getElementById('monthlySalesTarget').value);
+  
+  // Update branch targets
+  document.querySelectorAll('#goalModalContent input[data-branch]').forEach(input => {
+    const branch = input.dataset.branch;
+    goals.branchTargets[branch] = parseFloat(input.value);
+  });
+  
+  showNotification('Goals saved successfully', 'success');
+  closeGoalModal();
+  updateDashboard();
+}
+
+function resetData() {
+  if (confirm('Are you sure you want to reset all data to initial state?')) {
+    initializeData();
+    updateDashboard();
+    showNotification('Data reset successfully', 'success');
+  }
+}
+
+function clearAllData() {
+  if (confirm('Are you sure you want to clear all data? This cannot be undone.')) {
+    deliveryData = [];
+    deliveryOrders = [];
+    updateDashboard();
+    showNotification('All data cleared', 'warning');
+  }
+}
+
+function updateDataFromInput() {
+  const input = document.getElementById('dataInput').value.trim();
+  if (!input) {
+    showNotification('Please enter data to update', 'error');
+    return;
+  }
+  
+  try {
+    const lines = input.split('\n');
+    let updated = 0;
+    
+    lines.forEach(line => {
+      const [date, outlet, orders, sales] = line.split(',').map(item => item.trim());
+      
+      if (date && outlet && orders && sales) {
+        const branch = branchMapping[outlet] || outlet;
+        
+        // Find existing record
+        const existingIndex = deliveryData.findIndex(item => 
+          item.date === date && item.branch === branch);
+        
+        if (existingIndex !== -1) {
+          // Update existing record
+          deliveryData[existingIndex].orders = parseInt(orders);
+          deliveryData[existingIndex].sales = parseFloat(sales);
+          updated++;
+        } else {
+          // Add new record
+          deliveryData.push({
+            date,
+            branch,
+            orders: parseInt(orders),
+            sales: parseFloat(sales)
+          });
+          updated++;
         }
-        // Render Careem refunds table
-        function renderCareemRefunds() {
-            const tbody = document.getElementById('careemRefundsTableBody');
-            tbody.innerHTML = '';
-            
-            let filteredRefunds = careemRefunds;
-            if (currentCareemFilter !== 'all') {
-                filteredRefunds = careemRefunds.filter(refund => {
-                    return refund.reasonType === currentCareemFilter;
-                });
-            }
-            
-            filteredRefunds.forEach((refund, index) => {
-                const row = document.createElement('tr');
-                row.style.opacity = '0';
-                row.style.transform = 'translateY(20px)';
-                row.innerHTML = `
-                    <td>${refund.orderId}</td>
-                    <td>${refund.orderDateTime}</td>
-                    <td>${refund.refundDateTime}</td>
-                    <td>${refund.basketAmount.toFixed(2)} AED</td>
-                    <td class="adjustment-amount">- ${refund.refundAmount.toFixed(2)} AED</td>
-                    <td><span class="status-badge ${refund.status === 'Deducted' ? 'status-deducted' : 'status-progress'}">${refund.status}</span></td>
-                    <td>${getCareemReasonBadge(refund.reason)}</td>
-                    <td class="action-cell">
-                        ${!refund.disputed ? `
-                            <button class="btn btn-template btn-sm" onclick="openCareemTemplateModal(${refund.id})">
-                                <i class="bi bi-envelope-paper-fill me-1"></i>Dispute
-                            </button>
-                        ` : `
-                            <span class="badge bg-success">Disputed</span>
-                        `}
-                        <button class="btn btn-sm btn-outline-danger" onclick="deleteCareemRefund(${refund.id})">
-                            <i class="bi bi-trash"></i>
-                        </button>
-                    </td>
-                `;
-                tbody.appendChild(row);
-                
-                // Animate row appearance
-                setTimeout(() => {
-                    row.style.transition = 'all 0.3s ease';
-                    row.style.opacity = '1';
-                    row.style.transform = 'translateY(0)';
-                }, index * 50);
-            });
-        }
-        // Format display date
-        function formatDisplayDate(dateStr) {
-            if (!dateStr) return '';
-            const date = new Date(dateStr);
-            return date.toLocaleString('en-US', {
-                year: 'numeric',
-                month: '2-digit',
-                day: '2-digit',
-                hour: '2-digit',
-                minute: '2-digit'
-            });
-        }
-        // Get reason badge
-        function getReasonBadge(reason) {
-            if (!reason) return '-';
-            const lowerReason = reason.toLowerCase();
-            let className = '';
-            let icon = '';
-            
-            if (lowerReason.includes('wrong')) {
-                className = 'reason-wrong';
-                icon = 'bi bi-x-circle';
-            } else if (lowerReason.includes('missing')) {
-                className = 'reason-missing';
-                icon = 'bi bi-dash-circle';
-            } else if (lowerReason.includes('delay')) {
-                className = 'reason-delay';
-                icon = 'bi bi-clock-history';
-            } else if (lowerReason.includes('quality')) {
-                className = 'reason-quality';
-                icon = 'bi bi-star-half';
-            } else if (lowerReason.includes('tech')) {
-                className = 'reason-tech';
-                icon = 'bi bi-gear';
-            } else if (lowerReason.includes('hygiene')) {
-                className = 'reason-hygiene';
-                icon = 'bi bi-shield-exclamation';
-            }
-            
-            return `<span class="reason-tag ${className}" title="${reason}"><i class="${icon}"></i>${reason}</span>`;
-        }
-        // Get cancel reason badge
-        function getCancelReasonBadge(reason) {
-            if (!reason) return '-';
-            
-            let className = '';
-            let icon = '';
-            
-            switch(reason) {
-                case 'Customer request':
-                    className = 'reason-wrong';
-                    icon = 'bi bi-person';
-                    break;
-                case 'Item unavailable':
-                    className = 'reason-missing';
-                    icon = 'bi bi-box';
-                    break;
-                case 'Technical issue':
-                    className = 'reason-tech';
-                    icon = 'bi bi-gear';
-                    break;
-                case 'Payment issue':
-                    className = 'reason-damaged';
-                    icon = 'bi bi-credit-card';
-                    break;
-                case 'Duplicate order':
-                    className = 'reason-delay';
-                    icon = 'bi bi-files';
-                    break;
-                default:
-                    className = 'reason-quality';
-                    icon = 'bi bi-question-circle';
-            }
-            
-            return `<span class="reason-tag ${className}" title="${reason}"><i class="${icon}"></i>${reason}</span>`;
-        }
-        // Get Careem reason badge
-        function getCareemReasonBadge(reason) {
-            if (!reason) return '-';
-            const reasonType = careemReasonMapping[reason] || 'other';
-            let className = '';
-            let icon = '';
-            
-            switch(reasonType) {
-                case 'missing':
-                    className = 'reason-missing';
-                    icon = 'bi bi-dash-circle';
-                    break;
-                case 'damaged':
-                    className = 'reason-damaged';
-                    icon = 'bi bi-droplet';
-                    break;
-                case 'quality':
-                    className = 'reason-quality';
-                    icon = 'bi bi-star-half';
-                    break;
-                case 'wrong':
-                    className = 'reason-wrong';
-                    icon = 'bi bi-x-circle';
-                    break;
-                case 'hygiene':
-                    className = 'reason-hygiene';
-                    icon = 'bi bi-shield-exclamation';
-                    break;
-                default:
-                    className = 'reason-tech';
-                    icon = 'bi bi-gear';
-            }
-            
-            return `<span class="reason-tag ${className}" title="${reason}"><i class="${icon}"></i>${reason}</span>`;
-        }
-        // Get company badge
-        function getCompanyBadge(company) {
-            if (!company) return '-';
-            const className = `company-${company.toLowerCase()}`;
-            let icon = '';
-            
-            switch(company.toLowerCase()) {
-                case 'noon': icon = 'bi bi-bag-check'; break;
-                case 'careem': icon = 'bi bi-car-front'; break;
-                case 'talabat': icon = 'bi bi-shop'; break;
-                case 'deliveroo': icon = 'bi bi-bicycle'; break;
-            }
-            
-            return `<span class="company-badge ${className}"><i class="${icon}"></i>${company}</span>`;
-        }
-        // Update statistics
-        function updateStatistics() {
-            // Add animation to stat cards
-            document.querySelectorAll('.stats-card h3').forEach((el, index) => {
-                el.style.animation = 'none';
-                setTimeout(() => {
-                    el.style.animation = 'fadeIn 0.5s ease-in';
-                }, index * 100);
-            });
-            
-            document.getElementById('totalOrders').textContent = orders.length;
-            
-            const adjustments = orders.filter(o => o.adjustment > 0);
-            document.getElementById('totalAdjustments').textContent = adjustments.length;
-            
-            const totalAmount = orders.reduce((sum, o) => sum + o.amount, 0);
-            document.getElementById('totalAmount').textContent = totalAmount.toFixed(2) + ' AED';
-            
-            const adjustmentValue = orders.reduce((sum, o) => sum + o.adjustment, 0);
-            document.getElementById('adjustmentValue').textContent = '-' + adjustmentValue.toFixed(2) + ' AED';
-        }
-        // Update canceled orders statistics
-        function updateCanceledStatistics() {
-            document.getElementById('totalCanceledOrders').textContent = canceledOrders.length;
-            
-            const canceledValue = canceledOrders.reduce((sum, o) => sum + o.amount, 0);
-            document.getElementById('canceledValue').textContent = '-' + canceledValue.toFixed(2) + ' AED';
-            
-            // Calculate today's canceled orders
-            const now = new Date();
-            const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-            const todayCanceled = canceledOrders.filter(order => {
-                const cancelDate = new Date(order.cancellationDate);
-                return cancelDate >= today;
-            });
-            document.getElementById('todayCanceledOrders').textContent = todayCanceled.length;
-            
-            // Calculate this week's canceled orders
-            const weekStart = new Date(today);
-            weekStart.setDate(today.getDate() - today.getDay());
-            const weekCanceled = canceledOrders.filter(order => {
-                const cancelDate = new Date(order.cancellationDate);
-                return cancelDate >= weekStart;
-            });
-            document.getElementById('weekCanceledOrders').textContent = weekCanceled.length;
-        }
-        // Update Careem statistics
-        function updateCareemStatistics() {
-            document.getElementById('totalCareemRefunds').textContent = careemRefunds.length;
-            
-            const careemRefundValue = careemRefunds.reduce((sum, r) => sum + r.refundAmount, 0);
-            document.getElementById('careemRefundValue').textContent = '-' + careemRefundValue.toFixed(2) + ' AED';
-            
-            const deductedRefunds = careemRefunds.filter(r => r.status === 'Deducted');
-            document.getElementById('deductedRefunds').textContent = deductedRefunds.length;
-            
-            const pendingDisputes = careemRefunds.filter(r => !r.disputed && r.status === 'Deducted');
-            document.getElementById('pendingDisputes').textContent = pendingDisputes.length;
-        }
-        // Select objection type
-        function selectObjectionType(element) {
-            document.querySelectorAll('.objection-option').forEach(opt => {
-                opt.classList.remove('selected');
-            });
-            element.classList.add('selected');
-            selectedObjectionType = element.getAttribute('data-type');
-            updateTemplateContent();
-            
-            // Add pulse animation
-            element.style.animation = 'pulse 0.5s ease-in-out';
-        }
-        // Open template modal
-        function openTemplateModal(orderId) {
-            const order = orders.find(o => o.id === orderId);
-            if (!order) return;
-            
-            // Set modal data
-            document.getElementById('modalRefId').textContent = order.refId;
-            document.getElementById('modalOrderId').textContent = order.orderNumber;
-            document.getElementById('modalBranch').textContent = order.branch;
-            document.getElementById('modalDate').textContent = formatDisplayDate(order.date);
-            document.getElementById('modalReason').textContent = order.reason || '-';
-            document.getElementById('modalCompany').value = order.company || 'Noon';
-            
-            // Display complaint
-            const complaintDiv = document.getElementById('modalComplaint');
-            if (order.complaint) {
-                complaintDiv.innerHTML = order.complaint;
-            } else {
-                complaintDiv.innerHTML = 'No customer complaint provided';
-            }
-            
-            // Set video evidence
-            const videoUrl = order.videoUrl || '';
-            let videoFilename = order.videoFilename || getFilenameFromUrl(videoUrl);
-            document.getElementById('modalVideoUrl').value = videoUrl;
-            document.getElementById('modalVideoFilename').value = videoFilename;
-            
-            // Reset objection type selection
-            document.querySelectorAll('.objection-option').forEach(opt => {
-                opt.classList.remove('selected');
-            });
-            document.querySelector('.objection-option[data-type="pre-prepared"]').classList.add('selected');
-            selectedObjectionType = 'pre-prepared';
-            
-            // Update template content
-            updateTemplateContent();
-            
-            // Add video badge if video exists
-            const hasVideo = !!(videoUrl && videoFilename);
-            const modalLabel = document.getElementById('templateModalLabel');
-            modalLabel.innerHTML = `<i class="bi bi-envelope-paper-fill me-2"></i>Dispute Template`;
-            if (hasVideo) {
-                modalLabel.innerHTML += ' <span class="badge-video">Video Attached</span>';
-            }
-            
-            // Show modal
-            const modal = new bootstrap.Modal(document.getElementById('templateModal'));
-            modal.show();
-        }
-        // Open cancel order modal
-        function openCancelOrderModal(orderId) {
-            const order = orders.find(o => o.id === orderId);
-            if (!order) return;
-            
-            currentCancelOrderId = orderId;
-            
-            // Set modal data
-            document.getElementById('cancelOrderNumber').textContent = order.orderNumber;
-            document.getElementById('cancelRefId').textContent = order.refId;
-            document.getElementById('cancelBranch').textContent = order.branch;
-            document.getElementById('cancelAmount').textContent = order.amount.toFixed(2) + ' AED';
-            
-            // Reset form
-            document.getElementById('cancelReason').value = '';
-            document.getElementById('cancelNotes').value = '';
-            
-            // Show modal
-            const modal = new bootstrap.Modal(document.getElementById('cancelOrderModal'));
-            modal.show();
-        }
-        // Confirm cancel order
-        function confirmCancelOrder() {
-            const cancelReason = document.getElementById('cancelReason').value;
-            const cancelNotes = document.getElementById('cancelNotes').value;
-            
-            if (!cancelReason) {
-                showToast('Please select a cancellation reason', 'warning');
-                return;
-            }
-            
-            const order = orders.find(o
+      }
+    });
+    
+    if (updated > 0) {
+      updateDashboard();
+      showNotification(`${updated} records updated successfully`, 'success');
+      clearDataInput();
+    } else {
+      showNotification('No valid data found to update', 'error');
+    }
+  } catch (error) {
+    showNotification('Error parsing data. Please check your format.', 'error');
+  }
+}
+
+function clearDataInput() {
+  document.getElementById('dataInput').value = '';
+}
+
+function drillDownBranch(branch) {
+  const modal = document.getElementById('drillModal');
+  const content = document.getElementById('drillModalContent');
+  
+  // Get branch data
+  const branchData = deliveryData.filter(item => item.branch === branch);
+  
+  // Calculate metrics
+  const totalSales = branchData.reduce((sum, item) => sum + item.sales, 0);
+  const totalOrders = branchData.reduce((sum, item) => sum + item.orders, 0);
+  const aov = totalOrders > 0 ? totalSales / totalOrders : 0;
+  
+  // Find best and worst days
+  const dailySales = {};
+  branchData.forEach(item => {
+    if (!dailySales[item.date]) dailySales[item.date] = 0;
+    dailySales[item.date] += item.sales;
+  });
+  
+  const sortedDays = Object.keys(dailySales).sort((a, b) => dailySales[b] - dailySales[a]);
+  const bestDay = sortedDays[0];
+  const worstDay = sortedDays[sortedDays.length - 1];
+  
+  // Update drill path
+  updateDrillPath('Branch', branch);
+  
+  // Populate modal content
+  content.innerHTML = `
+    <div class="mb-6">
+      <h4 class="text-xl font-bold mb-2">${branch} Branch Details</h4>
+      <div class="grid grid-cols-2 gap-4">
+        <div class="card p-3">
+          <div class="text-sm text-gray-500">Total Sales</div>
+          <div class="text-lg font-bold">${totalSales.toLocaleString()} AED</div>
+        </div>
+        <div class="card p-3">
+          <div class="text-sm text-gray-500">Total Orders</div>
+          <div class="text-lg font-bold">${totalOrders.toLocaleString()}</div>
+        </div>
+        <div class="card p-3">
+          <div class="text-sm text-gray-500">Average Order Value</div>
+          <div class="text-lg font-bold">${aov.toFixed(2)} AED</div>
+        </div>
+        <div class="card p-3">
+          <div class="text-sm text-gray-500">Performance</div>
+          <div class="text-lg font-bold">
+            ${totalSales >= goals.branchTargets[branch] ? 'Above Target' : 'Below Target'}
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="mb-6">
+      <h5 class="font-semibold mb-3">Performance Highlights</h5>
+      <div class="space-y-2">
+        <div class="flex justify-between">
+          <span>Best Day:</span>
+          <span class="font-medium">${new Date(bestDay).toLocaleDateString()} (${dailySales[bestDay].toLocaleString()} AED)</span>
+        </div>
+        <div class="flex justify-between">
+          <span>Slowest Day:</span>
+          <span class="font-medium">${new Date(worstDay).toLocaleDateString()} (${dailySales[worstDay].toLocaleString()} AED)</span>
+        </div>
+        <div class="flex justify-between">
+          <span>Target Achievement:</span>
+          <span class="font-medium">${((totalSales / goals.branchTargets[branch]) * 100).toFixed(1)}%</span>
+        </div>
+      </div>
+    </div>
+    
+    <div>
+      <h5 class="font-semibold mb-3">Recent Performance</h5>
+      <div class="table-container">
+        <table class="w-full text-sm">
+          <thead>
+            <tr class="bg-gray-100">
+              <th class="p-2 text-left">Date</th>
+              <th class="p-2 text-right">Orders</th>
+              <th class="p-2 text-right">Sales (AED)</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${branchData.slice(-10).reverse().map(item => `
+              <tr>
+                <td class="p-2">${new Date(item.date).toLocaleDateString()}</td>
+                <td class="p-2 text-right">${item.orders}</td>
+                <td class="p-2 text-right">${item.sales.toLocaleString()}</td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  `;
+  
+  modal.classList.add('active');
+}
+
+function closeDrillModal() {
+  document.getElementById('drillModal').classList.remove('active');
+  resetDrillPath();
+}
+
+function updateDrillPath(level, value) {
+  const drillPath = document.getElementById('drillPath');
+  drillPath.style.display = 'flex';
+  
+  // Add new item to path
+  const pathItem = document.createElement('div');
+  pathItem.className = 'drill-path-item';
+  pathItem.textContent = value;
+  pathItem.dataset.level = drillPath.children.length;
+  pathItem.addEventListener('click', function() {
+    // In a real app, this would navigate back to this level
+    showNotification(`Navigating to ${level}: ${value}`, 'info');
+  });
+  
+  drillPath.appendChild(pathItem);
+  
+  // Update active state
+  drillPath.querySelectorAll('.drill-path-item').forEach(item => {
+    item.classList.remove('active');
+  });
+  pathItem.classList.add('active');
+}
+
+function resetDrillPath() {
+  const drillPath = document.getElementById('drillPath');
+  drillPath.style.display = 'none';
+  drillPath.innerHTML = `
+    <span class="small">Drill-down path:</span>
+    <div class="drill-path-item active" data-level="0">Dashboard</div>
+  `;
+}
+
+function editData(date, branch) {
+  const record = deliveryData.find(item => item.date === date && item.branch === branch);
+  if (!record) return;
+  
+  const newOrders = prompt('Enter new number of orders:', record.orders);
+  if (newOrders !== null && !isNaN(newOrders)) {
+    const newSales = prompt('Enter new sales amount (AED):', record.sales);
+    if (newSales !== null && !isNaN(newSales)) {
+      record.orders = parseInt(newOrders);
+      record.sales = parseFloat(newSales);
+      updateDashboard();
+      showNotification('Data updated successfully', 'success');
+    }
+  }
+}
+
+function refreshInsights() {
+  showNotification('Refreshing insights...', 'info');
+  setTimeout(() => {
+    updateInsights(deliveryData);
+    showNotification('Insights refreshed successfully', 'success');
+  }, 1000);
+}
+
+function showNotification(message, type = 'info') {
+  const container = document.getElementById('notificationContainer');
+  
+  const notification = document.createElement('div');
+  notification.className = `notification ${type}`;
+  notification.textContent = message;
+  
+  container.appendChild(notification);
+  
+  // Auto remove after 3 seconds
+  setTimeout(() => {
+    notification.style.opacity = '0';
+    setTimeout(() => {
+      container.removeChild(notification);
+    }, 300);
+  }, 3000);
+}
+
+// Add some sample alerts
+alerts.push(
+  {
+    name: 'Low Sales Alert',
+    type: 'sales',
+    threshold: 1000,
+    branches: ['Barsha', 'Satwa'],
+    method: 'popup',
+    frequency: 'daily',
+    active: true
+  },
+  {
+    name: 'High Growth Alert',
+    type: 'growth',
+    threshold: 15,
+    branches: ['Hamdan', 'Shabiya'],
+    method: 'email',
+    frequency: 'weekly',
+    active: true
+  }
+);
