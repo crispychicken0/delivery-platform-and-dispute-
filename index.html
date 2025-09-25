@@ -1157,7 +1157,6 @@
                     <button class="btn btn-secondary" id="btnAlerts">Alerts</button>
                     <button class="btn btn-secondary" id="btnReset">Reset Data</button>
                     <button class="btn btn-danger" id="btnClearAll">Clear All</button>
-                    <button class="btn btn-danger" id="btnClearDataNow">Clear Now</button>
                 </div>
             </div>
             <div class="data-container">
@@ -2239,7 +2238,6 @@
             // Reset and clear
             document.getElementById('btnReset').addEventListener('click', resetData);
             document.getElementById('btnClearAll').addEventListener('click', clearAllData);
-            document.getElementById('btnClearDataNow').addEventListener('click', clearAllDataNow);
             document.querySelector('#mobileControls button[onclick="resetData()"]')?.addEventListener('click', resetData);
             document.querySelector('#mobileControls button[onclick="clearAllData()"]')?.addEventListener('click', clearAllData);
             
@@ -2353,42 +2351,6 @@
             
             // Initialize tour steps
             initializeTour();
-            
-            // Fix Clear All button event listener
-            const clearAllBtn = document.getElementById('btnClearAll');
-            if (clearAllBtn) {
-                // Remove any existing event listeners
-                clearAllBtn.replaceWith(clearAllBtn.cloneNode(true));
-                
-                // Add new event listener
-                document.getElementById('btnClearAll').addEventListener('click', function() {
-                    if (confirm('Are you sure you want to clear all data? This cannot be undone.')) {
-                        deliveryData = [];
-                        deliveryOrders = [];
-                        updateDashboard();
-                        showNotification('All data cleared', 'warning');
-                    }
-                });
-                
-                console.log("Clear All button event listener attached successfully");
-            } else {
-                console.error("Clear All button not found");
-            }
-            
-            // Fix Clear Data Now button event listener
-            const clearDataNowBtn = document.getElementById('btnClearDataNow');
-            if (clearDataNowBtn) {
-                clearDataNowBtn.addEventListener('click', function() {
-                    deliveryData = [];
-                    deliveryOrders = [];
-                    updateDashboard();
-                    showNotification('All data cleared immediately', 'success');
-                });
-                
-                console.log("Clear Data Now button event listener attached successfully");
-            } else {
-                console.error("Clear Data Now button not found");
-            }
         });
         
         // Mobile menu toggle
@@ -2780,14 +2742,6 @@
             }
         }
         
-        function clearAllDataNow() {
-            // Clear data without confirmation
-            deliveryData = [];
-            deliveryOrders = [];
-            updateDashboard();
-            showNotification('All data cleared immediately', 'success');
-        }
-        
         function updateDataFromInput() {
             const input = document.getElementById('dataInput').value.trim();
             if (!input) {
@@ -2925,4 +2879,127 @@
                                 ${branchData.slice(-10).reverse().map(item => `
                                     <tr>
                                         <td class="p-2">${new Date(item.date).toLocaleDateString()}</td>
-                                        <td class="p
+                                        <td class="p-2 text-right">${item.orders}</td>
+                                        <td class="p-2 text-right">${item.sales.toLocaleString()}</td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            `;
+            
+            modal.classList.add('active');
+        }
+        
+        function closeDrillModal() {
+            document.getElementById('drillModal').classList.remove('active');
+            resetDrillPath();
+        }
+        
+        function updateDrillPath(level, value) {
+            const drillPath = document.getElementById('drillPath');
+            drillPath.style.display = 'flex';
+            
+            // Add new item to path
+            const pathItem = document.createElement('div');
+            pathItem.className = 'drill-path-item';
+            pathItem.textContent = value;
+            pathItem.dataset.level = drillPath.children.length;
+            pathItem.addEventListener('click', function() {
+                // In a real app, this would navigate back to this level
+                showNotification(`Navigating to ${level}: ${value}`, 'info');
+            });
+            
+            drillPath.appendChild(pathItem);
+            
+            // Update active state
+            drillPath.querySelectorAll('.drill-path-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            pathItem.classList.add('active');
+        }
+        
+        function resetDrillPath() {
+            const drillPath = document.getElementById('drillPath');
+            drillPath.style.display = 'none';
+            drillPath.innerHTML = `
+                <span class="small">Drill-down path:</span>
+                <div class="drill-path-item active" data-level="0">Dashboard</div>
+            `;
+        }
+        
+        function editData(date, branch) {
+            const record = deliveryData.find(item => item.date === date && item.branch === branch);
+            if (!record) return;
+            
+            const newOrders = prompt('Enter new number of orders:', record.orders);
+            if (newOrders !== null && !isNaN(newOrders)) {
+                const newSales = prompt('Enter new sales amount (AED):', record.sales);
+                if (newSales !== null && !isNaN(newSales)) {
+                    record.orders = parseInt(newOrders);
+                    record.sales = parseFloat(newSales);
+                    updateDashboard();
+                    showNotification('Data updated successfully', 'success');
+                }
+            }
+        }
+        
+        function refreshInsights() {
+            showNotification('Refreshing insights...', 'info');
+            setTimeout(() => {
+                updateInsights(deliveryData);
+                showNotification('Insights refreshed successfully', 'success');
+            }, 1000);
+        }
+        
+        function refreshCharts() {
+            showNotification('Refreshing charts...', 'info');
+            setTimeout(() => {
+                updateCharts(deliveryData);
+                showNotification('Charts refreshed successfully', 'success');
+            }, 1000);
+        }
+        
+        function showNotification(message, type = 'info') {
+            const container = document.getElementById('notificationContainer');
+            
+            const notification = document.createElement('div');
+            notification.className = `notification ${type}`;
+            notification.textContent = message;
+            
+            container.appendChild(notification);
+            
+            // Auto remove after 3 seconds
+            setTimeout(() => {
+                notification.style.opacity = '0';
+                setTimeout(() => {
+                    container.removeChild(notification);
+                }, 300);
+            }, 3000);
+        }
+        
+        // Add some sample alerts
+        alerts.push(
+            {
+                name: 'Low Sales Alert',
+                type: 'sales',
+                threshold: 1000,
+                branches: ['Barsha', 'Satwa'],
+                method: 'popup',
+                frequency: 'daily',
+                active: true
+            },
+            {
+                name: 'High Growth Alert',
+                type: 'growth',
+                threshold: 15,
+                branches: ['Hamdan', 'Shabiya'],
+                method: 'email',
+                frequency: 'weekly',
+                active: true
+            }
+        );
+    </script>
+</body>
+</html>
