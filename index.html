@@ -1,1352 +1,2829 @@
-// Data storage
-let deliveryData = [];
-let deliveryOrders = [];
-let goals = {
-  monthlySales: 500000,
-  branchTargets: {
-    'Barsha': 80000,
-    'Hamdan': 100000,
-    'Khalidiyah': 75000,
-    'Muroor': 70000,
-    'Satwa': 60000,
-    'Shabiya': 90000
-  }
-};
-let alerts = [];
-let charts = {};
-
-// Initialize data from provided delivery sales
-function initializeData() {
-  const branches = ['Barsha', 'Hamdan', 'Khalidiyah', 'Muroor', 'Satwa', 'Shabiya'];
-  
-  // Convert provided delivery sales to our data structure
-  providedDeliverySales.forEach(day => {
-    const date = day.Date;
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Crispy Chicken Delivery Sales Dashboard</title>
     
-    branches.forEach(branch => {
-      const shopName = `${branch} Shop`;
-      const sales = day[shopName] || 0;
-      
-      // Generate random orders based on sales (average order value ~50 AED)
-      const orders = Math.round(sales / (45 + Math.random() * 10));
-      
-      deliveryData.push({
-        date,
-        branch,
-        sales,
-        orders
-      });
-    });
-  });
-  
-  // Generate additional data for May-Sep 2025
-  const months = ['2025-05', '2025-06', '2025-07', '2025-08', '2025-09'];
-  const daysInMonth = [31, 30, 31, 31, 30];
-  
-  months.forEach((month, monthIdx) => {
-    const days = daysInMonth[monthIdx];
+    <!-- External Libraries -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.4/css/jquery.dataTables.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/chart.js@4.3.0/dist/chart.min.css">
+    <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.3.0/dist/chart.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
     
-    for (let day = 1; day <= days; day++) {
-      const date = `${month}-${day.toString().padStart(2, '0')}`;
-      
-      branches.forEach(branch => {
-        // Generate realistic sales data with some randomness
-        const baseSales = {
-          'Barsha': 1500,
-          'Hamdan': 3500,
-          'Khalidiyah': 1800,
-          'Muroor': 1600,
-          'Satwa': 800,
-          'Shabiya': 1400
-        }[branch];
+    <style>
+        :root {
+            --primary: #d7263d;
+            --secondary: #f2b705;
+            --success: #10b981;
+            --info: #3b82f6;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --dark: #1f2937;
+            --light: #f3f4f6;
+            --white: #ffffff;
+            --gray: #6b7280;
+            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
         
-        // Add weekend boost and random variation
-        const dayOfWeek = new Date(date).getDay();
-        const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
-        const weekendMultiplier = isWeekend ? 1.4 : 1;
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
         
-        const sales = Math.round(baseSales * weekendMultiplier * (0.8 + Math.random() * 0.4));
-        const orders = Math.round(sales / (45 + Math.random() * 10));
+        body {
+            background-color: var(--light);
+            color: var(--dark);
+            line-height: 1.6;
+        }
         
-        deliveryData.push({
-          date,
-          branch,
-          sales,
-          orders
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        /* Header */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        
+        .header-content h1 {
+            font-size: 28px;
+            font-weight: 700;
+            color: var(--primary);
+        }
+        
+        .header-content p {
+            color: var(--gray);
+            margin-top: 5px;
+        }
+        
+        .header-actions {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+        
+        .btn-primary {
+            background-color: var(--primary);
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background-color: #b91c1c;
+        }
+        
+        .btn-secondary {
+            background-color: var(--gray);
+            color: white;
+        }
+        
+        .btn-secondary:hover {
+            background-color: #4b5563;
+        }
+        
+        .btn-icon {
+            background: transparent;
+            color: var(--gray);
+            border: 1px solid #d1d5db;
+        }
+        
+        .btn-icon:hover {
+            background-color: var(--light);
+            color: var(--dark);
+        }
+        
+        /* Filters */
+        .filters {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 25px;
+            padding: 15px;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: var(--shadow);
+        }
+        
+        .filter-group {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+        
+        .filter-group label {
+            font-weight: 500;
+            color: var(--gray);
+        }
+        
+        .filter-group select {
+            padding: 6px 10px;
+            border: 1px solid #d1d5db;
+            border-radius: 4px;
+            background-color: white;
+        }
+        
+        /* KPI Cards */
+        .kpi-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .kpi-card {
+            background-color: white;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: var(--shadow);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .kpi-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 4px;
+            height: 100%;
+            background-color: var(--primary);
+        }
+        
+        .kpi-card h3 {
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--gray);
+            margin-bottom: 10px;
+        }
+        
+        .kpi-card .value {
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: 5px;
+        }
+        
+        .kpi-card .change {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 14px;
+        }
+        
+        .badge-up {
+            color: var(--success);
+        }
+        
+        .badge-down {
+            color: var(--danger);
+        }
+        
+        /* Branch Cards */
+        .branch-section {
+            margin-bottom: 30px;
+        }
+        
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        
+        .section-header h2 {
+            font-size: 20px;
+            font-weight: 600;
+        }
+        
+        .branch-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+        }
+        
+        .branch-card {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: var(--shadow);
+            transition: transform 0.2s, box-shadow 0.2s;
+            cursor: pointer;
+        }
+        
+        .branch-card:hover {
+            transform: translateY(-3px);
+            box-shadow: var(--shadow-lg);
+        }
+        
+        .goal-progress {
+            height: 8px;
+            background-color: #e5e7eb;
+            border-radius: 4px;
+            overflow: hidden;
+            margin: 10px 0;
+        }
+        
+        .goal-progress-bar {
+            height: 100%;
+            background-color: var(--primary);
+        }
+        
+        /* Charts */
+        .charts-section {
+            margin-bottom: 30px;
+        }
+        
+        .charts-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 20px;
+        }
+        
+        .chart-container {
+            background-color: white;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: var(--shadow);
+            height: 300px;
+        }
+        
+        .chart-container h3 {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 15px;
+            color: var(--dark);
+        }
+        
+        /* Data Table */
+        .table-section {
+            margin-bottom: 30px;
+        }
+        
+        .table-container {
+            background-color: white;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: var(--shadow);
+            overflow-x: auto;
+        }
+        
+        /* Insights */
+        .insights-section {
+            margin-bottom: 30px;
+        }
+        
+        .insights-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+        }
+        
+        .insight-item {
+            background-color: white;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: var(--shadow);
+            border-left: 4px solid;
+        }
+        
+        .insight-item.success {
+            border-left-color: var(--success);
+        }
+        
+        .insight-item.info {
+            border-left-color: var(--info);
+        }
+        
+        .insight-item.warning {
+            border-left-color: var(--warning);
+        }
+        
+        .insight-header {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+        
+        .insight-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+        
+        .insight-icon.success {
+            background-color: rgba(16, 185, 129, 0.1);
+            color: var(--success);
+        }
+        
+        .insight-icon.info {
+            background-color: rgba(59, 130, 246, 0.1);
+            color: var(--info);
+        }
+        
+        .insight-icon.warning {
+            background-color: rgba(245, 158, 11, 0.1);
+            color: var(--warning);
+        }
+        
+        .insight-title {
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+        
+        .insight-context {
+            color: var(--gray);
+            font-size: 14px;
+        }
+        
+        .insight-recommendation {
+            margin-bottom: 15px;
+            font-size: 14px;
+        }
+        
+        .insight-actions {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .insight-action {
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 500;
+            cursor: pointer;
+        }
+        
+        .insight-action.primary {
+            background-color: var(--primary);
+            color: white;
+        }
+        
+        .insight-action.secondary {
+            background-color: #e5e7eb;
+            color: var(--gray);
+        }
+        
+        /* Reports */
+        .reports-section {
+            margin-bottom: 30px;
+        }
+        
+        .reports-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 20px;
+        }
+        
+        .report-card {
+            background-color: white;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: var(--shadow);
+        }
+        
+        .report-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 15px;
+        }
+        
+        .report-title {
+            font-weight: 600;
+        }
+        
+        .report-period {
+            font-size: 14px;
+            color: var(--gray);
+        }
+        
+        .report-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 15px;
+            font-size: 14px;
+        }
+        
+        .report-table th {
+            text-align: left;
+            padding: 8px;
+            border-bottom: 1px solid #e5e7eb;
+            color: var(--gray);
+        }
+        
+        .report-table td {
+            padding: 8px;
+            border-bottom: 1px solid #f3f4f6;
+        }
+        
+        .growth-positive {
+            color: var(--success);
+        }
+        
+        .growth-negative {
+            color: var(--danger);
+        }
+        
+        .branch-summary {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .branch-performance {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 14px;
+        }
+        
+        .performance-indicator {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+        }
+        
+        .performance-up {
+            background-color: var(--success);
+        }
+        
+        .report-actions {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .report-action {
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 500;
+            cursor: pointer;
+            border: none;
+        }
+        
+        .report-action.primary {
+            background-color: var(--primary);
+            color: white;
+        }
+        
+        .report-action.secondary {
+            background-color: #e5e7eb;
+            color: var(--gray);
+        }
+        
+        /* Goals */
+        .goals-section {
+            margin-bottom: 30px;
+        }
+        
+        .goals-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+        }
+        
+        .goal-card {
+            background-color: white;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: var(--shadow);
+        }
+        
+        .goal-header {
+            margin-bottom: 15px;
+        }
+        
+        .goal-title {
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+        
+        .goal-subtitle {
+            font-size: 14px;
+            color: var(--gray);
+        }
+        
+        .goal-progress-container {
+            margin-bottom: 15px;
+        }
+        
+        .goal-progress-bar-container {
+            height: 10px;
+            background-color: #e5e7eb;
+            border-radius: 5px;
+            overflow: hidden;
+            margin-bottom: 5px;
+        }
+        
+        .goal-progress-bar {
+            height: 100%;
+            background-color: var(--primary);
+        }
+        
+        .goal-progress-text {
+            display: flex;
+            justify-content: space-between;
+            font-size: 14px;
+        }
+        
+        .goal-list {
+            margin-top: 15px;
+        }
+        
+        .goal-list h4 {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+        
+        /* Data Management */
+        .data-section {
+            margin-bottom: 30px;
+        }
+        
+        .data-container {
+            background-color: white;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: var(--shadow);
+        }
+        
+        .data-tabs {
+            display: flex;
+            border-bottom: 1px solid #e5e7eb;
+            margin-bottom: 20px;
+        }
+        
+        .data-tab {
+            padding: 10px 15px;
+            font-weight: 500;
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+        }
+        
+        .data-tab.active {
+            color: var(--primary);
+            border-bottom-color: var(--primary);
+        }
+        
+        .data-tab-content {
+            display: none;
+        }
+        
+        .data-tab-content.active {
+            display: block;
+        }
+        
+        .form-group {
+            margin-bottom: 15px;
+        }
+        
+        .form-label {
+            display: block;
+            font-weight: 500;
+            margin-bottom: 5px;
+        }
+        
+        .form-input {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid #d1d5db;
+            border-radius: 4px;
+        }
+        
+        .form-textarea {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid #d1d5db;
+            border-radius: 4px;
+            min-height: 150px;
+            font-family: monospace;
+        }
+        
+        /* Mobile Controls */
+        .mobile-controls {
+            display: none;
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background-color: white;
+            border-top: 1px solid #e5e7eb;
+            padding: 10px;
+            box-shadow: 0 -4px 6px -1px rgba(0, 0, 0, 0.1);
+            z-index: 100;
+        }
+        
+        .mobile-controls-inner {
+            display: flex;
+            justify-content: space-around;
+        }
+        
+        .mobile-control-btn {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 5px;
+            font-size: 12px;
+            color: var(--gray);
+            background: none;
+            border: none;
+            cursor: pointer;
+        }
+        
+        .mobile-control-btn i {
+            font-size: 18px;
+        }
+        
+        .mobile-controls-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 99;
+        }
+        
+        /* Modals */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .modal.active {
+            display: flex;
+        }
+        
+        .modal-content {
+            background-color: white;
+            border-radius: 8px;
+            width: 90%;
+            max-width: 600px;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: var(--shadow-lg);
+        }
+        
+        .modal-header {
+            padding: 20px;
+            border-bottom: 1px solid #e5e7eb;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .modal-title {
+            font-size: 18px;
+            font-weight: 600;
+        }
+        
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 20px;
+            color: var(--gray);
+            cursor: pointer;
+        }
+        
+        .modal-body {
+            padding: 20px;
+        }
+        
+        .modal-footer {
+            padding: 15px 20px;
+            border-top: 1px solid #e5e7eb;
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+        
+        /* Notifications */
+        .notification-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 2000;
+        }
+        
+        .notification {
+            padding: 15px 20px;
+            border-radius: 6px;
+            margin-bottom: 10px;
+            box-shadow: var(--shadow-lg);
+            color: white;
+            animation: slideIn 0.3s ease-out;
+        }
+        
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+        
+        .notification.success {
+            background-color: var(--success);
+        }
+        
+        .notification.error {
+            background-color: var(--danger);
+        }
+        
+        .notification.info {
+            background-color: var(--info);
+        }
+        
+        .notification.warning {
+            background-color: var(--warning);
+        }
+        
+        /* Dark Mode */
+        body.dark {
+            background-color: #1f2937;
+            color: #f3f4f6;
+        }
+        
+        body.dark .header {
+            border-bottom-color: #374151;
+        }
+        
+        body.dark .filters,
+        body.dark .kpi-card,
+        body.dark .branch-card,
+        body.dark .chart-container,
+        body.dark .table-container,
+        body.dark .insight-item,
+        body.dark .report-card,
+        body.dark .goal-card,
+        body.dark .data-container {
+            background-color: #374151;
+            color: #f3f4f6;
+        }
+        
+        body.dark .form-input,
+        body.dark .form-textarea,
+        body.dark select {
+            background-color: #4b5563;
+            border-color: #6b7280;
+            color: #f3f4f6;
+        }
+        
+        body.dark .mobile-controls {
+            background-color: #374151;
+            border-top-color: #4b5563;
+        }
+        
+        body.dark .modal-content {
+            background-color: #374151;
+            color: #f3f4f6;
+        }
+        
+        body.dark .modal-header,
+        body.dark .modal-footer {
+            border-color: #4b5563;
+        }
+        
+        body.dark .report-table th {
+            border-bottom-color: #4b5563;
+        }
+        
+        body.dark .report-table td {
+            border-bottom-color: #4b5563;
+        }
+        
+        /* Present Mode */
+        body.present-mode .header,
+        body.present-mode .filters,
+        body.present-mode .section-header {
+            display: none;
+        }
+        
+        body.present-mode .container {
+            padding: 10px;
+        }
+        
+        /* Drill Path */
+        .drill-path {
+            display: none;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 20px;
+            padding: 10px;
+            background-color: rgba(215, 38, 61, 0.1);
+            border-radius: 6px;
+        }
+        
+        .drill-path-item {
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+        }
+        
+        .drill-path-item.active {
+            background-color: var(--primary);
+            color: white;
+        }
+        
+        /* Responsive */
+        @media (max-width: 768px) {
+            .header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 15px;
+            }
+            
+            .filters {
+                flex-direction: column;
+                gap: 15px;
+            }
+            
+            .filter-group {
+                flex-wrap: wrap;
+            }
+            
+            .mobile-controls {
+                display: block;
+            }
+            
+            .charts-grid,
+            .insights-container,
+            .reports-container,
+            .goals-container {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <div class="header-content">
+                <h1>Crispy Chicken Delivery Sales Dashboard</h1>
+                <p>Track and analyze delivery performance across all branches</p>
+            </div>
+            <div class="header-actions">
+                <button class="btn btn-primary" id="btnPresentMode">
+                    <i class="fas fa-desktop"></i> Present
+                </button>
+                <button class="btn btn-secondary" id="btnTour">
+                    <i class="fas fa-question-circle"></i> Tour
+                </button>
+                <button class="btn btn-icon" id="darkModeToggle">
+                    <i class="fas fa-moon"></i>
+                </button>
+            </div>
+        </header>
+        
+        <!-- Filters -->
+        <div class="filters">
+            <div class="filter-group">
+                <label for="monthFilterTop">Month:</label>
+                <select id="monthFilterTop">
+                    <option value="all">All Months</option>
+                    <option value="2025-05">May 2025</option>
+                    <option value="2025-06">June 2025</option>
+                    <option value="2025-07">July 2025</option>
+                    <option value="2025-08">August 2025</option>
+                    <option value="2025-09" selected>September 2025</option>
+                </select>
+                
+                <label for="comparePeriod">Compare:</label>
+                <select id="comparePeriod">
+                    <option value="prev-month">Previous Month</option>
+                    <option value="prev-year">Previous Year</option>
+                    <option value="custom">Custom Period</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <button class="btn btn-primary" id="applyFilters">Apply Filters</button>
+                <button class="btn btn-secondary" id="btnExportCSV">
+                    <i class="fas fa-file-csv"></i> CSV
+                </button>
+                <button class="btn btn-secondary" id="btnExportPDF">
+                    <i class="fas fa-file-pdf"></i> PDF
+                </button>
+                <button class="btn btn-secondary" id="btnExportExcel">
+                    <i class="fas fa-file-excel"></i> Excel
+                </button>
+            </div>
+        </div>
+        
+        <!-- Drill Path -->
+        <div id="drillPath">
+            <span class="small">Drill-down path:</span>
+            <div class="drill-path-item active" data-level="0">Dashboard</div>
+        </div>
+        
+        <!-- KPI Cards -->
+        <div class="kpi-row">
+            <div class="kpi-card">
+                <h3>Total Sales</h3>
+                <div class="value" id="kpiSales">0 AED</div>
+                <div class="change">
+                    <span id="kpiSalesChange">+0%</span>
+                    <span class="small">vs last period</span>
+                </div>
+            </div>
+            <div class="kpi-card">
+                <h3>Total Orders</h3>
+                <div class="value" id="kpiOrders">0</div>
+                <div class="change">
+                    <span id="kpiOrdersGrowth">+0%</span>
+                    <span class="small badge-up">vs last period</span>
+                </div>
+            </div>
+            <div class="kpi-card">
+                <h3>Average Order Value</h3>
+                <div class="value" id="kpiAOV">0 AED</div>
+                <div class="change">
+                    <span id="kpiAOVChange">+0%</span>
+                    <span class="small">vs last period</span>
+                </div>
+            </div>
+            <div class="kpi-card">
+                <h3>Top Branch</h3>
+                <div class="value" id="kpiTopBranch">-</div>
+                <div class="change">
+                    <span id="kpiTopBranchChange">+0%</span>
+                    <span class="small">vs last period</span>
+                </div>
+            </div>
+            <div class="kpi-card">
+                <h3>Peak Day</h3>
+                <div class="value" id="kpiPeakDay">-</div>
+                <div class="change">
+                    <span id="kpiPeakOrders">0 orders</span>
+                    <span class="small">highest daily</span>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Branch Performance -->
+        <section class="branch-section">
+            <div class="section-header">
+                <h2>Branch Performance</h2>
+                <div>
+                    <span class="small">Last updated: <span id="lastUpdated">-</span></span>
+                </div>
+            </div>
+            <div class="branch-grid">
+                <div id="branchRow1"></div>
+                <div id="branchRow2"></div>
+            </div>
+        </section>
+        
+        <!-- Charts -->
+        <section class="charts-section">
+            <div class="section-header">
+                <h2>Sales Analytics</h2>
+                <div>
+                    <button class="btn btn-icon" onclick="refreshCharts()">
+                        <i class="fas fa-sync-alt"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="charts-grid">
+                <div class="chart-container">
+                    <h3>Sales by Branch</h3>
+                    <canvas id="barChart"></canvas>
+                </div>
+                <div class="chart-container">
+                    <h3>Daily Sales Trend</h3>
+                    <canvas id="lineChart"></canvas>
+                </div>
+                <div class="chart-container">
+                    <h3>Sales Distribution</h3>
+                    <canvas id="pieChart"></canvas>
+                </div>
+            </div>
+        </section>
+        
+        <!-- Data Table -->
+        <section class="table-section">
+            <div class="section-header">
+                <h2>Delivery Data</h2>
+                <div>
+                    <button class="btn btn-primary" id="btnUpdate">Update Data</button>
+                </div>
+            </div>
+            <div class="table-container">
+                <table id="dataTable" class="display" style="width:100%">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Branch</th>
+                            <th>Orders</th>
+                            <th>Sales (AED)</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Data will be populated by JavaScript -->
+                    </tbody>
+                </table>
+            </div>
+        </section>
+        
+        <!-- Insights -->
+        <section class="insights-section">
+            <div class="section-header">
+                <h2>Business Insights</h2>
+                <div>
+                    <span id="insightCount" class="small">0 insights</span>
+                    <button class="btn btn-icon" onclick="refreshInsights()">
+                        <i class="fas fa-sync-alt"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="insights-container" id="insightsContainer">
+                <!-- Insights will be populated by JavaScript -->
+            </div>
+        </section>
+        
+        <!-- Reports -->
+        <section class="reports-section">
+            <div class="section-header">
+                <h2>Three Month Report</h2>
+                <div>
+                    <button class="btn btn-icon" id="refreshReport">
+                        <i class="fas fa-sync-alt"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="reports-container" id="threeMonthReportContainer">
+                <!-- Reports will be populated by JavaScript -->
+            </div>
+        </section>
+        
+        <!-- Goals -->
+        <section class="goals-section">
+            <div class="section-header">
+                <h2>Goals & Targets</h2>
+                <div>
+                    <button class="btn btn-primary" id="btnSetGoals">Set Goals</button>
+                </div>
+            </div>
+            <div class="goals-container">
+                <div class="goal-card">
+                    <div class="goal-header">
+                        <div class="goal-title">Monthly Sales Target</div>
+                        <div class="goal-subtitle">September 2025</div>
+                    </div>
+                    <div class="goal-progress-container">
+                        <div class="goal-progress-bar-container">
+                            <div class="goal-progress-bar" id="monthlyProgressBar"></div>
+                        </div>
+                        <div class="goal-progress-text">
+                            <span id="monthlyProgress">0%</span>
+                            <span id="monthlyTarget">0 AED</span>
+                        </div>
+                    </div>
+                    <div class="goal-list">
+                        <h4>Top Branches</h4>
+                        <div id="branchRanking">
+                            <!-- Ranking will be populated by JavaScript -->
+                        </div>
+                    </div>
+                </div>
+                <div class="goal-card">
+                    <div class="goal-header">
+                        <div class="goal-title">Performance Alerts</div>
+                        <div class="goal-subtitle">Branches below target</div>
+                    </div>
+                    <div id="performanceAlerts">
+                        <!-- Alerts will be populated by JavaScript -->
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <!-- Data Management -->
+        <section class="data-section">
+            <div class="section-header">
+                <h2>Data Management</h2>
+                <div>
+                    <button class="btn btn-primary" id="btnScheduleExport">Schedule Export</button>
+                    <button class="btn btn-secondary" id="btnAlerts">Alerts</button>
+                    <button class="btn btn-secondary" id="btnReset">Reset Data</button>
+                    <button class="btn btn-secondary" id="btnClearAll">Clear All</button>
+                </div>
+            </div>
+            <div class="data-container">
+                <div class="data-tabs">
+                    <div class="data-tab active" data-tab="input">Data Input</div>
+                    <div class="data-tab" data-tab="import">Import Data</div>
+                </div>
+                <div class="data-tab-content active" id="input-tab">
+                    <div class="form-group">
+                        <label class="form-label" for="dataInput">Enter Data (CSV Format):</label>
+                        <textarea id="dataInput" class="form-textarea" placeholder="Date, Branch, Orders, Sales&#10;2025-09-01, Barsha, 32, 1580&#10;2025-09-01, Hamdan, 68, 3420"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <button class="btn btn-primary" id="btnUpdateData">Update Data</button>
+                        <button class="btn btn-secondary" id="btnClearInput">Clear Input</button>
+                    </div>
+                </div>
+                <div class="data-tab-content" id="import-tab">
+                    <div class="form-group">
+                        <label class="form-label" for="importFile">Import File:</label>
+                        <input type="file" id="importFile" class="form-input" accept=".csv,.xlsx">
+                    </div>
+                    <div class="form-group">
+                        <button class="btn btn-primary" id="btnImportData">Import Data</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+    
+    <!-- Mobile Controls -->
+    <div class="mobile-controls-overlay" onclick="toggleMobileMenu()"></div>
+    <div class="mobile-controls" id="mobileControls">
+        <div class="mobile-controls-inner">
+            <button class="mobile-control-btn" onclick="toggleMobileMenu()">
+                <i class="fas fa-bars"></i>
+                <span>Menu</span>
+            </button>
+            <button class="mobile-control-btn" onclick="showScheduleModal()">
+                <i class="fas fa-calendar-alt"></i>
+                <span>Schedule</span>
+            </button>
+            <button class="mobile-control-btn" onclick="enterPresentMode()">
+                <i class="fas fa-desktop"></i>
+                <span>Present</span>
+            </button>
+            <button class="mobile-control-btn" onclick="toggleDarkMode()">
+                <i class="fas fa-moon"></i>
+                <span>Dark</span>
+            </button>
+            <button class="mobile-control-btn" onclick="startTour()">
+                <i class="fas fa-question-circle"></i>
+                <span>Tour</span>
+            </button>
+            <button class="mobile-control-btn" onclick="showAlertModal()">
+                <i class="fas fa-bell"></i>
+                <span>Alerts</span>
+            </button>
+            <button class="mobile-control-btn" onclick="resetData()">
+                <i class="fas fa-redo"></i>
+                <span>Reset</span>
+            </button>
+            <button class="mobile-control-btn" onclick="clearAllData()">
+                <i class="fas fa-trash"></i>
+                <span>Clear</span>
+            </button>
+        </div>
+    </div>
+    
+    <!-- Modals -->
+    <!-- Drill Down Modal -->
+    <div class="modal" id="drillModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Branch Details</h3>
+                <button class="modal-close" id="closeDrillModal">&times;</button>
+            </div>
+            <div class="modal-body" id="drillModalContent">
+                <!-- Content will be populated by JavaScript -->
+            </div>
+        </div>
+    </div>
+    
+    <!-- Goal Modal -->
+    <div class="modal" id="goalModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Set Goals & Targets</h3>
+                <button class="modal-close" id="closeGoalModal">&times;</button>
+            </div>
+            <div class="modal-body" id="goalModalContent">
+                <!-- Content will be populated by JavaScript -->
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" id="cancelGoals">Cancel</button>
+                <button class="btn btn-primary" id="saveGoals">Save Goals</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Alert Modal -->
+    <div class="modal" id="alertModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Manage Alerts</h3>
+                <button class="modal-close" id="closeAlertModal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label class="form-label" for="alertName">Alert Name</label>
+                    <input type="text" id="alertName" class="form-input" placeholder="e.g., Low Sales Alert">
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="alertType">Alert Type</label>
+                    <select id="alertType" class="form-input">
+                        <option value="sales">Sales Threshold</option>
+                        <option value="growth">Growth Rate</option>
+                        <option value="orders">Order Volume</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="alertThreshold">Threshold</label>
+                    <input type="number" id="alertThreshold" class="form-input" placeholder="e.g., 1000">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Branches</label>
+                    <div id="alertBranches">
+                        <label><input type="checkbox" value="Barsha"> Barsha</label><br>
+                        <label><input type="checkbox" value="Hamdan"> Hamdan</label><br>
+                        <label><input type="checkbox" value="Khalidiyah"> Khalidiyah</label><br>
+                        <label><input type="checkbox" value="Muroor"> Muroor</label><br>
+                        <label><input type="checkbox" value="Satwa"> Satwa</label><br>
+                        <label><input type="checkbox" value="Shabiya"> Shabiya</label>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="alertMethod">Notification Method</label>
+                    <select id="alertMethod" class="form-input">
+                        <option value="popup">Popup</option>
+                        <option value="email">Email</option>
+                        <option value="sms">SMS</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="alertFrequency">Frequency</label>
+                    <select id="alertFrequency" class="form-input">
+                        <option value="daily">Daily</option>
+                        <option value="weekly">Weekly</option>
+                        <option value="monthly">Monthly</option>
+                    </select>
+                </div>
+                
+                <h4 class="font-medium mb-3">Active Alerts</h4>
+                <div id="activeAlertsList">
+                    <!-- Active alerts will be populated by JavaScript -->
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" id="cancelAlert">Cancel</button>
+                <button class="btn btn-primary" id="saveAlert">Save Alert</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Schedule Modal -->
+    <div class="modal" id="scheduleModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Schedule Export</h3>
+                <button class="modal-close" id="closeScheduleModal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label class="form-label" for="exportFormat">Export Format</label>
+                    <select id="exportFormat" class="form-input">
+                        <option value="csv">CSV</option>
+                        <option value="pdf">PDF</option>
+                        <option value="excel">Excel</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="exportFrequency">Frequency</label>
+                    <select id="exportFrequency" class="form-input">
+                        <option value="daily">Daily</option>
+                        <option value="weekly">Weekly</option>
+                        <option value="monthly">Monthly</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="exportTime">Time</label>
+                    <input type="time" id="exportTime" class="form-input" value="09:00">
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="exportRecipients">Email Recipients</label>
+                    <input type="text" id="exportRecipients" class="form-input" placeholder="email@example.com, another@example.com">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" id="cancelSchedule">Cancel</button>
+                <button class="btn btn-primary" id="saveSchedule">Schedule Export</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Notification Container -->
+    <div class="notification-container" id="notificationContainer"></div>
+    
+    <script>
+        // Data storage
+        let deliveryData = [];
+        let deliveryOrders = [];
+        let goals = {
+            monthlySales: 500000,
+            branchTargets: {
+                'Barsha': 80000,
+                'Hamdan': 100000,
+                'Khalidiyah': 75000,
+                'Muroor': 70000,
+                'Satwa': 60000,
+                'Shabiya': 90000
+            }
+        };
+        let alerts = [];
+        let charts = {};
+        
+        // Sample data for initialization
+        const providedDeliverySales = [
+            { Date: '2025-01-01', 'Barsha Shop': 1500, 'Hamdan Shop': 3500, 'Khalidiyah Shop': 1800, 'Muroor Shop': 1600, 'Satwa Shop': 800, 'Shabiya Shop': 1400 },
+            { Date: '2025-01-02', 'Barsha Shop': 1600, 'Hamdan Shop': 3700, 'Khalidiyah Shop': 1900, 'Muroor Shop': 1700, 'Satwa Shop': 850, 'Shabiya Shop': 1500 },
+            { Date: '2025-01-03', 'Barsha Shop': 1700, 'Hamdan Shop': 3800, 'Khalidiyah Shop': 2000, 'Muroor Shop': 1800, 'Satwa Shop': 900, 'Shabiya Shop': 1600 },
+            { Date: '2025-01-04', 'Barsha Shop': 1800, 'Hamdan Shop': 3900, 'Khalidiyah Shop': 2100, 'Muroor Shop': 1900, 'Satwa Shop': 950, 'Shabiya Shop': 1700 },
+            { Date: '2025-01-05', 'Barsha Shop': 1900, 'Hamdan Shop': 4000, 'Khalidiyah Shop': 2200, 'Muroor Shop': 2000, 'Satwa Shop': 1000, 'Shabiya Shop': 1800 },
+            { Date: '2025-01-06', 'Barsha Shop': 2000, 'Hamdan Shop': 4100, 'Khalidiyah Shop': 2300, 'Muroor Shop': 2100, 'Satwa Shop': 1050, 'Shabiya Shop': 1900 },
+            { Date: '2025-01-07', 'Barsha Shop': 2100, 'Hamdan Shop': 4200, 'Khalidiyah Shop': 2400, 'Muroor Shop': 2200, 'Satwa Shop': 1100, 'Shabiya Shop': 2000 }
+        ];
+        
+        const branchMapping = {
+            'Barsha Shop': 'Barsha',
+            'Hamdan Shop': 'Hamdan',
+            'Khalidiyah Shop': 'Khalidiyah',
+            'Muroor Shop': 'Muroor',
+            'Satwa Shop': 'Satwa',
+            'Shabiya Shop': 'Shabiya'
+        };
+        
+        // Initialize data from provided delivery sales
+        function initializeData() {
+            const branches = ['Barsha', 'Hamdan', 'Khalidiyah', 'Muroor', 'Satwa', 'Shabiya'];
+            
+            // Convert provided delivery sales to our data structure
+            providedDeliverySales.forEach(day => {
+                const date = day.Date;
+                
+                branches.forEach(branch => {
+                    const shopName = `${branch} Shop`;
+                    const sales = day[shopName] || 0;
+                    
+                    // Generate random orders based on sales (average order value ~50 AED)
+                    const orders = Math.round(sales / (45 + Math.random() * 10));
+                    
+                    deliveryData.push({
+                        date,
+                        branch,
+                        sales,
+                        orders
+                    });
+                });
+            });
+            
+            // Generate additional data for May-Sep 2025
+            const months = ['2025-05', '2025-06', '2025-07', '2025-08', '2025-09'];
+            const daysInMonth = [31, 30, 31, 31, 30];
+            
+            months.forEach((month, monthIdx) => {
+                const days = daysInMonth[monthIdx];
+                
+                for (let day = 1; day <= days; day++) {
+                    const date = `${month}-${day.toString().padStart(2, '0')}`;
+                    
+                    branches.forEach(branch => {
+                        // Generate realistic sales data with some randomness
+                        const baseSales = {
+                            'Barsha': 1500,
+                            'Hamdan': 3500,
+                            'Khalidiyah': 1800,
+                            'Muroor': 1600,
+                            'Satwa': 800,
+                            'Shabiya': 1400
+                        }[branch];
+                        
+                        // Add weekend boost and random variation
+                        const dayOfWeek = new Date(date).getDay();
+                        const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
+                        const weekendMultiplier = isWeekend ? 1.4 : 1;
+                        
+                        const sales = Math.round(baseSales * weekendMultiplier * (0.8 + Math.random() * 0.4));
+                        const orders = Math.round(sales / (45 + Math.random() * 10));
+                        
+                        deliveryData.push({
+                            date,
+                            branch,
+                            sales,
+                            orders
+                        });
+                    });
+                }
+            });
+            
+            // Sort data by date
+            deliveryData.sort((a, b) => new Date(a.date) - new Date(b.date));
+            
+            // Initialize delivery orders
+            deliveryOrders = [...deliveryData];
+            
+            // Update last updated time
+            document.getElementById('lastUpdated').textContent = new Date().toLocaleString();
+        }
+        
+        // Update dashboard based on current filters
+        function updateDashboard() {
+            const monthFilter = document.getElementById('monthFilterTop').value;
+            const comparePeriod = document.getElementById('comparePeriod').value;
+            
+            // Filter data based on selected month
+            let filteredData = deliveryData;
+            if (monthFilter !== 'all') {
+                filteredData = deliveryData.filter(item => item.date.startsWith(monthFilter));
+            }
+            
+            // Calculate KPIs
+            updateKPIs(filteredData, comparePeriod);
+            
+            // Update branch cards
+            updateBranchCards(filteredData);
+            
+            // Update charts
+            updateCharts(filteredData);
+            
+            // Update table
+            updateTable(filteredData);
+            
+            // Update insights
+            updateInsights(filteredData);
+            
+            // Update three month report
+            updateThreeMonthReport();
+            
+            // Update goals section
+            updateGoalsSection(filteredData);
+        }
+        
+        // Update KPI cards
+        function updateKPIs(data, comparePeriod) {
+            // Calculate total sales
+            const totalSales = data.reduce((sum, item) => sum + item.sales, 0);
+            document.getElementById('kpiSales').textContent = `${totalSales.toLocaleString()} AED`;
+            
+            // Calculate total orders
+            const totalOrders = data.reduce((sum, item) => sum + item.orders, 0);
+            document.getElementById('kpiOrders').textContent = totalOrders.toLocaleString();
+            
+            // Calculate average order value
+            const aov = totalOrders > 0 ? totalSales / totalOrders : 0;
+            document.getElementById('kpiAOV').textContent = `${aov.toFixed(2)} AED`;
+            
+            // Calculate growth (compare to previous period)
+            const growth = calculateGrowth(data, comparePeriod);
+            document.getElementById('kpiOrdersGrowth').textContent = `${growth > 0 ? '+' : ''}${growth.toFixed(1)}%`;
+            
+            // Update growth badge
+            const growthBadge = document.getElementById('kpiOrdersGrowth').parentElement.querySelector('.badge-up, .badge-down');
+            if (growthBadge) {
+                growthBadge.className = growth >= 0 ? 'small badge-up' : 'small badge-down';
+                growthBadge.textContent = `${growth >= 0 ? '+' : ''}${growth.toFixed(1)}%`;
+            }
+            
+            // Find top branch
+            const branchSales = {};
+            data.forEach(item => {
+                if (!branchSales[item.branch]) branchSales[item.branch] = 0;
+                branchSales[item.branch] += item.sales;
+            });
+            
+            const topBranch = Object.keys(branchSales).reduce((a, b) => 
+                branchSales[a] > branchSales[b] ? a : b, Object.keys(branchSales)[0]);
+            
+            document.getElementById('kpiTopBranch').textContent = topBranch;
+            
+            // Find peak day
+            const dailySales = {};
+            data.forEach(item => {
+                if (!dailySales[item.date]) dailySales[item.date] = 0;
+                dailySales[item.date] += item.sales;
+            });
+            
+            const peakDay = Object.keys(dailySales).reduce((a, b) => 
+                dailySales[a] > dailySales[b] ? a : b, Object.keys(dailySales)[0]);
+            
+            document.getElementById('kpiPeakDay').textContent = new Date(peakDay).toLocaleDateString();
+            document.getElementById('kpiPeakOrders').textContent = dailySales[peakDay].toLocaleString();
+        }
+        
+        // Calculate growth percentage
+        function calculateGrowth(currentData, comparePeriod) {
+            if (comparePeriod === 'prev-month') {
+                // Get previous month data
+                const currentMonth = currentData[0]?.date.substring(0, 7);
+                if (!currentMonth) return 0;
+                
+                const [year, month] = currentMonth.split('-').map(Number);
+                const prevMonth = month === 1 ? `${year-1}-12` : `${year}-${(month-1).toString().padStart(2, '0')}`;
+                
+                const prevData = deliveryData.filter(item => item.date.startsWith(prevMonth));
+                const currentTotal = currentData.reduce((sum, item) => sum + item.orders, 0);
+                const prevTotal = prevData.reduce((sum, item) => sum + item.orders, 0);
+                
+                return prevTotal > 0 ? ((currentTotal - prevTotal) / prevTotal) * 100 : 0;
+            }
+            
+            // For other comparison periods, return a random value for demo
+            return (Math.random() * 20 - 5); // Between -5% and +15%
+        }
+        
+        // Update branch performance cards
+        function updateBranchCards(data) {
+            const branchSales = {};
+            const branchOrders = {};
+            
+            data.forEach(item => {
+                if (!branchSales[item.branch]) {
+                    branchSales[item.branch] = 0;
+                    branchOrders[item.branch] = 0;
+                }
+                branchSales[item.branch] += item.sales;
+                branchOrders[item.branch] += item.orders;
+            });
+            
+            const branches = Object.keys(branchSales);
+            const row1 = document.getElementById('branchRow1');
+            const row2 = document.getElementById('branchRow2');
+            
+            row1.innerHTML = '';
+            row2.innerHTML = '';
+            
+            branches.forEach((branch, index) => {
+                const sales = branchSales[branch];
+                const orders = branchOrders[branch];
+                const target = goals.branchTargets[branch] || 0;
+                const progress = target > 0 ? Math.min(100, (sales / target) * 100) : 0;
+                
+                const card = document.createElement('div');
+                card.className = 'card branch-card p-4 drillable';
+                card.dataset.branch = branch;
+                card.innerHTML = `
+                    <div class="flex justify-between items-start mb-2">
+                        <h4 class="font-semibold">${branch}</h4>
+                        <span class="text-sm ${progress >= 100 ? 'text-green-600' : progress >= 75 ? 'text-yellow-600' : 'text-red-600'}">
+                            ${progress.toFixed(0)}%
+                        </span>
+                    </div>
+                    <div class="mb-2">
+                        <div class="text-lg font-bold">${sales.toLocaleString()} AED</div>
+                        <div class="small text-gray-500">${orders.toLocaleString()} orders</div>
+                    </div>
+                    <div class="goal-progress">
+                        <div class="goal-progress-bar" style="width: ${progress}%"></div>
+                    </div>
+                    <div class="small mt-1 text-gray-500">Target: ${target.toLocaleString()} AED</div>
+                `;
+                
+                if (index < 3) {
+                    row1.appendChild(card);
+                } else {
+                    row2.appendChild(card);
+                }
+                
+                // Add click event for drill-down
+                card.addEventListener('click', () => drillDownBranch(branch));
+            });
+        }
+        
+        // Update charts
+        function updateCharts(data) {
+            // Prepare data for charts
+            const branchSales = {};
+            const dailySales = {};
+            
+            data.forEach(item => {
+                // Branch sales
+                if (!branchSales[item.branch]) branchSales[item.branch] = 0;
+                branchSales[item.branch] += item.sales;
+                
+                // Daily sales
+                if (!dailySales[item.date]) dailySales[item.date] = 0;
+                dailySales[item.date] += item.sales;
+            });
+            
+            // Bar chart - Sales by Branch
+            const barCtx = document.getElementById('barChart').getContext('2d');
+            if (charts.barChart) charts.barChart.destroy();
+            
+            charts.barChart = new Chart(barCtx, {
+                type: 'bar',
+                data: {
+                    labels: Object.keys(branchSales),
+                    datasets: [{
+                        label: 'Delivery Sales (AED)',
+                        data: Object.values(branchSales),
+                        backgroundColor: [
+                            'rgba(215, 38, 61, 0.7)',
+                            'rgba(242, 183, 5, 0.7)',
+                            'rgba(16, 185, 129, 0.7)',
+                            'rgba(59, 130, 246, 0.7)',
+                            'rgba(139, 92, 246, 0.7)',
+                            'rgba(236, 72, 153, 0.7)'
+                        ],
+                        borderColor: [
+                            'rgba(215, 38, 61, 1)',
+                            'rgba(242, 183, 5, 1)',
+                            'rgba(16, 185, 129, 1)',
+                            'rgba(59, 130, 246, 1)',
+                            'rgba(139, 92, 246, 1)',
+                            'rgba(236, 72, 153, 1)'
+                        ],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: function(value) {
+                                    return value.toLocaleString() + ' AED';
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+            
+            // Line chart - Daily Sales Trend
+            const lineCtx = document.getElementById('lineChart').getContext('2d');
+            if (charts.lineChart) charts.lineChart.destroy();
+            
+            // Get last 30 days for trend
+            const sortedDates = Object.keys(dailySales).sort();
+            const last30Days = sortedDates.slice(-30);
+            const last30Sales = last30Days.map(date => dailySales[date]);
+            
+            charts.lineChart = new Chart(lineCtx, {
+                type: 'line',
+                data: {
+                    labels: last30Days.map(date => new Date(date).toLocaleDateString()),
+                    datasets: [{
+                        label: 'Daily Delivery Sales (AED)',
+                        data: last30Sales,
+                        borderColor: 'rgba(215, 38, 61, 1)',
+                        backgroundColor: 'rgba(215, 38, 61, 0.1)',
+                        tension: 0.3,
+                        fill: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: function(value) {
+                                    return value.toLocaleString() + ' AED';
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+            
+            // Pie chart - Sales Distribution
+            const pieCtx = document.getElementById('pieChart').getContext('2d');
+            if (charts.pieChart) charts.pieChart.destroy();
+            
+            charts.pieChart = new Chart(pieCtx, {
+                type: 'pie',
+                data: {
+                    labels: Object.keys(branchSales),
+                    datasets: [{
+                        data: Object.values(branchSales),
+                        backgroundColor: [
+                            'rgba(215, 38, 61, 0.7)',
+                            'rgba(242, 183, 5, 0.7)',
+                            'rgba(16, 185, 129, 0.7)',
+                            'rgba(59, 130, 246, 0.7)',
+                            'rgba(139, 92, 246, 0.7)',
+                            'rgba(236, 72, 153, 0.7)'
+                        ],
+                        borderColor: '#ffffff',
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'right'
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    const label = context.label || '';
+                                    const value = context.raw || 0;
+                                    const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                    const percentage = Math.round((value / total) * 100);
+                                    return `${label}: ${value.toLocaleString()} AED (${percentage}%)`;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+        
+        // Update data table
+        function updateTable(data) {
+            const table = $('#dataTable').DataTable();
+            table.clear();
+            
+            data.forEach(item => {
+                table.row.add([
+                    item.date,
+                    item.branch,
+                    item.orders,
+                    item.sales.toFixed(2),
+                    `<button class="btn btn-icon" onclick="editData('${item.date}', '${item.branch}')">
+                        <i class="fas fa-edit"></i>
+                    </button>`
+                ]);
+            });
+            
+            table.draw();
+        }
+        
+        // Update insights section
+        function updateInsights(data) {
+            const insightsContainer = document.getElementById('insightsContainer');
+            insightsContainer.innerHTML = '';
+            
+            // Calculate some insights
+            const totalSales = data.reduce((sum, item) => sum + item.sales, 0);
+            const totalOrders = data.reduce((sum, item) => sum + item.orders, 0);
+            const aov = totalOrders > 0 ? totalSales / totalOrders : 0;
+            
+            // Find best performing branch
+            const branchSales = {};
+            data.forEach(item => {
+                if (!branchSales[item.branch]) branchSales[item.branch] = 0;
+                branchSales[item.branch] += item.sales;
+            });
+            
+            const bestBranch = Object.keys(branchSales).reduce((a, b) => 
+                branchSales[a] > branchSales[b] ? a : b, Object.keys(branchSales)[0]);
+            
+            // Find worst performing branch
+            const worstBranch = Object.keys(branchSales).reduce((a, b) => 
+                branchSales[a] < branchSales[b] ? a : b, Object.keys(branchSales)[0]);
+            
+            // Create insights
+            const insights = [
+                {
+                    type: 'success',
+                    icon: 'fa-chart-line',
+                    title: 'Strong Sales Performance',
+                    context: `Total delivery sales reached ${totalSales.toLocaleString()} AED with ${totalOrders.toLocaleString()} orders.`,
+                    recommendation: 'Continue current marketing strategies to maintain momentum.'
+                },
+                {
+                    type: 'info',
+                    icon: 'fa-store',
+                    title: 'Top Performing Branch',
+                    context: `${bestBranch} branch leads with ${branchSales[bestBranch].toLocaleString()} AED in sales.`,
+                    recommendation: 'Analyze successful strategies at this branch and replicate across other locations.'
+                },
+                {
+                    type: 'warning',
+                    icon: 'fa-exclamation-triangle',
+                    title: 'Branch Performance Gap',
+                    context: `${worstBranch} branch underperformed with ${branchSales[worstBranch].toLocaleString()} AED in sales.`,
+                    recommendation: 'Review operations and marketing efforts at this branch.'
+                },
+                {
+                    type: 'info',
+                    icon: 'fa-receipt',
+                    title: 'Average Order Value',
+                    context: `AOV is ${aov.toFixed(2)} AED, which is ${aov > 50 ? 'above' : 'below'} target.`,
+                    recommendation: aov > 50 ? 'Maintain current pricing strategy.' : 'Consider upselling techniques to increase AOV.'
+                }
+            ];
+            
+            // Add insights to container
+            insights.forEach(insight => {
+                const insightItem = document.createElement('div');
+                insightItem.className = `insight-item ${insight.type}`;
+                insightItem.innerHTML = `
+                    <div class="insight-header">
+                        <div class="insight-icon ${insight.type}">
+                            <i class="fas ${insight.icon}"></i>
+                        </div>
+                        <div>
+                            <div class="insight-title">${insight.title}</div>
+                            <div class="insight-context">${insight.context}</div>
+                        </div>
+                    </div>
+                    <div class="insight-recommendation">
+                        <strong>Recommendation:</strong> ${insight.recommendation}
+                    </div>
+                    <div class="insight-actions">
+                        <span class="insight-action primary">Take Action</span>
+                        <span class="insight-action secondary">Dismiss</span>
+                    </div>
+                `;
+                
+                insightsContainer.appendChild(insightItem);
+            });
+            
+            // Update insight count
+            document.getElementById('insightCount').textContent = `${insights.length} insights`;
+        }
+        
+        // Update three month report
+        function updateThreeMonthReport() {
+            const container = document.getElementById('threeMonthReportContainer');
+            container.innerHTML = '';
+            
+            // Get last 3 months
+            const months = ['2025-07', '2025-08', '2025-09'];
+            const monthNames = ['July', 'August', 'September'];
+            
+            months.forEach((month, index) => {
+                const monthData = deliveryData.filter(item => item.date.startsWith(month));
+                const totalSales = monthData.reduce((sum, item) => sum + item.sales, 0);
+                const totalOrders = monthData.reduce((sum, item) => sum + item.orders, 0);
+                
+                // Calculate branch performance
+                const branchSales = {};
+                monthData.forEach(item => {
+                    if (!branchSales[item.branch]) branchSales[item.branch] = 0;
+                    branchSales[item.branch] += item.sales;
+                });
+                
+                // Sort branches by sales
+                const sortedBranches = Object.keys(branchSales).sort((a, b) => 
+                    branchSales[b] - branchSales[a]);
+                
+                const reportCard = document.createElement('div');
+                reportCard.className = 'report-card';
+                reportCard.innerHTML = `
+                    <div class="report-header">
+                        <div>
+                            <div class="report-title">${monthNames[index]} 2025 Report</div>
+                            <div class="report-period">${monthNames[index]} 1-31, 2025</div>
+                        </div>
+                        <div class="text-right">
+                            <div class="text-lg font-bold">${totalSales.toLocaleString()} AED</div>
+                            <div class="small text-gray-500">${totalOrders.toLocaleString()} orders</div>
+                        </div>
+                    </div>
+                    
+                    <table class="report-table">
+                        <thead>
+                            <tr>
+                                <th>Branch</th>
+                                <th>Sales (AED)</th>
+                                <th>Orders</th>
+                                <th>AOV (AED)</th>
+                                <th>Growth</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${sortedBranches.map(branch => {
+                                const sales = branchSales[branch];
+                                const orders = monthData.filter(item => item.branch === branch)
+                                    .reduce((sum, item) => sum + item.orders, 0);
+                                const aov = orders > 0 ? sales / orders : 0;
+                                
+                                // Calculate growth (random for demo)
+                                const growth = (Math.random() * 20 - 5);
+                                const growthClass = growth >= 0 ? 'growth-positive' : 'growth-negative';
+                                const growthIcon = growth >= 0 ? 'fa-arrow-up' : 'fa-arrow-down';
+                                
+                                return `
+                                    <tr>
+                                        <td>${branch}</td>
+                                        <td>${sales.toLocaleString()}</td>
+                                        <td>${orders.toLocaleString()}</td>
+                                        <td>${aov.toFixed(2)}</td>
+                                        <td class="${growthClass}">
+                                            <i class="fas ${growthIcon}"></i> ${Math.abs(growth).toFixed(1)}%
+                                        </td>
+                                    </tr>
+                                `;
+                            }).join('')}
+                        </tbody>
+                    </table>
+                    
+                    <div class="branch-summary">
+                        <div class="branch-performance">
+                            <span class="performance-indicator performance-up"></span>
+                            <span>Best performer: ${sortedBranches[0]}</span>
+                        </div>
+                        <div class="report-actions">
+                            <button class="report-action primary">View Details</button>
+                            <button class="report-action secondary">Export</button>
+                        </div>
+                    </div>
+                `;
+                
+                container.appendChild(reportCard);
+            });
+        }
+        
+        // Update goals section
+        function updateGoalsSection(data) {
+            const monthFilter = document.getElementById('monthFilterTop').value;
+            let currentMonth = '2025-09';
+            
+            if (monthFilter !== 'all') {
+                currentMonth = monthFilter;
+            }
+            
+            const monthData = data.filter(item => item.date.startsWith(currentMonth));
+            const monthlySales = monthData.reduce((sum, item) => sum + item.sales, 0);
+            const progress = Math.min(100, (monthlySales / goals.monthlySales) * 100);
+            
+            document.getElementById('monthlyTarget').textContent = `${goals.monthlySales.toLocaleString()} AED`;
+            document.getElementById('monthlyProgress').textContent = `${progress.toFixed(0)}%`;
+            document.getElementById('monthlyProgressBar').style.width = `${progress}%`;
+            
+            // Update branch ranking
+            const branchOrders = {};
+            monthData.forEach(item => {
+                if (!branchOrders[item.branch]) branchOrders[item.branch] = 0;
+                branchOrders[item.branch] += item.orders;
+            });
+            
+            const sortedBranches = Object.keys(branchOrders).sort((a, b) => 
+                branchOrders[b] - branchOrders[a]);
+            
+            const rankingHTML = sortedBranches.slice(0, 3).map((branch, index) => `
+                <div class="flex justify-between py-1">
+                    <span>${index + 1}. ${branch}</span>
+                    <span class="font-semibold">${branchOrders[branch].toLocaleString()} orders</span>
+                </div>
+            `).join('');
+            
+            document.getElementById('branchRanking').innerHTML = rankingHTML;
+            
+            // Update performance alerts
+            const alerts = [];
+            sortedBranches.forEach(branch => {
+                const sales = monthData.filter(item => item.branch === branch)
+                    .reduce((sum, item) => sum + item.sales, 0);
+                const target = goals.branchTargets[branch] || 0;
+                
+                if (target > 0 && sales < target * 0.8) {
+                    alerts.push(`${branch} below target`);
+                }
+            });
+            
+            const alertsHTML = alerts.length > 0 
+                ? alerts.map(alert => `
+                    <div class="flex items-center gap-2 py-1">
+                        <span class="w-2 h-2 rounded-full bg-red-500"></span>
+                        <span>${alert}</span>
+                    </div>
+                `).join('')
+                : `
+                    <div class="flex items-center gap-2 py-1">
+                        <span class="w-2 h-2 rounded-full bg-green-500"></span>
+                        <span>All branches on track</span>
+                    </div>
+                `;
+            
+            document.getElementById('performanceAlerts').innerHTML = alertsHTML;
+        }
+        
+        // Initialize DataTable
+        function initializeTable() {
+            $('#dataTable').DataTable({
+                responsive: true,
+                pageLength: 10,
+                order: [[0, 'desc']]
+            });
+        }
+        
+        // Event listeners
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialize data
+            initializeData();
+            
+            // Initialize table
+            initializeTable();
+            
+            // Initial dashboard update
+            updateDashboard();
+            
+            // Month filter change
+            document.getElementById('monthFilterTop').addEventListener('change', updateDashboard);
+            document.getElementById('mobileMonthFilter')?.addEventListener('change', function() {
+                document.getElementById('monthFilterTop').value = this.value;
+                updateDashboard();
+            });
+            
+            // Compare period change
+            document.getElementById('comparePeriod').addEventListener('change', updateDashboard);
+            document.getElementById('mobileComparePeriod')?.addEventListener('change', function() {
+                document.getElementById('comparePeriod').value = this.value;
+                updateDashboard();
+            });
+            
+            // Export buttons
+            document.getElementById('btnExportCSV').addEventListener('click', exportCSV);
+            document.getElementById('btnExportPDF').addEventListener('click', exportPDF);
+            document.getElementById('btnExportExcel').addEventListener('click', exportExcel);
+            
+            // Schedule export
+            document.getElementById('btnScheduleExport').addEventListener('click', showScheduleModal);
+            document.querySelector('#mobileControls button[onclick="showScheduleModal()"]')?.addEventListener('click', showScheduleModal);
+            
+            // Present mode
+            document.getElementById('btnPresentMode').addEventListener('click', enterPresentMode);
+            document.querySelector('#mobileControls button[onclick="enterPresentMode()"]')?.addEventListener('click', enterPresentMode);
+            
+            // Dark mode
+            document.getElementById('darkModeToggle').addEventListener('click', toggleDarkMode);
+            document.querySelector('#mobileControls button[onclick="toggleDarkMode()"]')?.addEventListener('click', toggleDarkMode);
+            
+            // Tour
+            document.getElementById('btnTour').addEventListener('click', startTour);
+            document.querySelector('#mobileControls button[onclick="startTour()"]')?.addEventListener('click', startTour);
+            
+            // Alerts
+            document.getElementById('btnAlerts').addEventListener('click', showAlertModal);
+            document.querySelector('#mobileControls button[onclick="showAlertModal()"]')?.addEventListener('click', showAlertModal);
+            
+            // Reset and clear
+            document.getElementById('btnReset').addEventListener('click', resetData);
+            document.getElementById('btnClearAll').addEventListener('click', clearAllData);
+            document.querySelector('#mobileControls button[onclick="resetData()"]')?.addEventListener('click', resetData);
+            document.querySelector('#mobileControls button[onclick="clearAllData()"]')?.addEventListener('click', clearAllData);
+            
+            // Data input
+            document.getElementById('btnUpdateData').addEventListener('click', updateDataFromInput);
+            document.getElementById('btnClearInput').addEventListener('click', clearDataInput);
+            document.getElementById('btnSetGoals').addEventListener('click', showGoalModal);
+            
+            // Refresh insights
+            document.getElementById('refreshReport').addEventListener('click', function() {
+                showNotification('Report refreshed successfully', 'success');
+                updateThreeMonthReport();
+            });
+            
+            // Apply filters
+            document.getElementById('applyFilters').addEventListener('click', function() {
+                showNotification('Filters applied successfully', 'success');
+                updateDashboard();
+            });
+            
+            // Modal close buttons
+            document.getElementById('closeDrillModal').addEventListener('click', closeDrillModal);
+            document.getElementById('closeGoalModal').addEventListener('click', closeGoalModal);
+            document.getElementById('closeAlertModal').addEventListener('click', closeAlertModal);
+            document.getElementById('closeScheduleModal').addEventListener('click', closeScheduleModal);
+            
+            // Save goals
+            document.getElementById('saveGoals').addEventListener('click', saveGoals);
+            document.getElementById('cancelGoals').addEventListener('click', closeGoalModal);
+            
+            // Save alert
+            document.getElementById('saveAlert').addEventListener('click', saveAlert);
+            document.getElementById('cancelAlert').addEventListener('click', closeAlertModal);
+            
+            // Save schedule
+            document.getElementById('saveSchedule').addEventListener('click', saveSchedule);
+            document.getElementById('cancelSchedule').addEventListener('click', closeScheduleModal);
+            
+            // Refresh insights
+            document.querySelector('button[onclick="refreshInsights()"]')?.addEventListener('click', function() {
+                showNotification('Insights refreshed successfully', 'success');
+                updateInsights(deliveryData);
+            });
+            
+            // Data tabs
+            document.querySelectorAll('.data-tab').forEach(tab => {
+                tab.addEventListener('click', function() {
+                    const tabId = this.dataset.tab;
+                    
+                    // Update active tab
+                    document.querySelectorAll('.data-tab').forEach(t => t.classList.remove('active'));
+                    this.classList.add('active');
+                    
+                    // Update active content
+                    document.querySelectorAll('.data-tab-content').forEach(content => {
+                        content.classList.remove('active');
+                    });
+                    document.getElementById(`${tabId}-tab`).classList.add('active');
+                });
+            });
+            
+            // Initialize tour steps
+            initializeTour();
         });
-      });
-    }
-  });
-  
-  // Sort data by date
-  deliveryData.sort((a, b) => new Date(a.date) - new Date(b.date));
-  
-  // Initialize delivery orders
-  deliveryOrders = [...deliveryData];
-  
-  // Update last updated time
-  document.getElementById('lastUpdated').textContent = new Date().toLocaleString();
-}
-
-// Update dashboard based on current filters
-function updateDashboard() {
-  const monthFilter = document.getElementById('monthFilterTop').value;
-  const comparePeriod = document.getElementById('comparePeriod').value;
-  
-  // Filter data based on selected month
-  let filteredData = deliveryData;
-  if (monthFilter !== 'all') {
-    filteredData = deliveryData.filter(item => item.date.startsWith(monthFilter));
-  }
-  
-  // Calculate KPIs
-  updateKPIs(filteredData, comparePeriod);
-  
-  // Update branch cards
-  updateBranchCards(filteredData);
-  
-  // Update charts
-  updateCharts(filteredData);
-  
-  // Update table
-  updateTable(filteredData);
-  
-  // Update insights
-  updateInsights(filteredData);
-  
-  // Update three month report
-  updateThreeMonthReport();
-  
-  // Update goals section
-  updateGoalsSection(filteredData);
-}
-
-// Update KPI cards
-function updateKPIs(data, comparePeriod) {
-  // Calculate total sales
-  const totalSales = data.reduce((sum, item) => sum + item.sales, 0);
-  document.getElementById('kpiSales').textContent = `${totalSales.toLocaleString()} AED`;
-  
-  // Calculate total orders
-  const totalOrders = data.reduce((sum, item) => sum + item.orders, 0);
-  document.getElementById('kpiOrders').textContent = totalOrders.toLocaleString();
-  
-  // Calculate average order value
-  const aov = totalOrders > 0 ? totalSales / totalOrders : 0;
-  document.getElementById('kpiAOV').textContent = `${aov.toFixed(2)} AED`;
-  
-  // Calculate growth (compare to previous period)
-  const growth = calculateGrowth(data, comparePeriod);
-  document.getElementById('kpiOrdersGrowth').textContent = `${growth > 0 ? '+' : ''}${growth.toFixed(1)}%`;
-  
-  // Update growth badge
-  const growthBadge = document.getElementById('kpiOrdersGrowth').parentElement.querySelector('.badge-up, .badge-down');
-  if (growthBadge) {
-    growthBadge.className = growth >= 0 ? 'small badge-up' : 'small badge-down';
-    growthBadge.textContent = `${growth >= 0 ? '+' : ''}${growth.toFixed(1)}%`;
-  }
-  
-  // Find top branch
-  const branchSales = {};
-  data.forEach(item => {
-    if (!branchSales[item.branch]) branchSales[item.branch] = 0;
-    branchSales[item.branch] += item.sales;
-  });
-  
-  const topBranch = Object.keys(branchSales).reduce((a, b) => 
-    branchSales[a] > branchSales[b] ? a : b, Object.keys(branchSales)[0]);
-  
-  document.getElementById('kpiTopBranch').textContent = topBranch;
-  
-  // Find peak day
-  const dailySales = {};
-  data.forEach(item => {
-    if (!dailySales[item.date]) dailySales[item.date] = 0;
-    dailySales[item.date] += item.sales;
-  });
-  
-  const peakDay = Object.keys(dailySales).reduce((a, b) => 
-    dailySales[a] > dailySales[b] ? a : b, Object.keys(dailySales)[0]);
-  
-  document.getElementById('kpiPeakDay').textContent = new Date(peakDay).toLocaleDateString();
-  document.getElementById('kpiPeakOrders').textContent = dailySales[peakDay].toLocaleString();
-}
-
-// Calculate growth percentage
-function calculateGrowth(currentData, comparePeriod) {
-  if (comparePeriod === 'prev-month') {
-    // Get previous month data
-    const currentMonth = currentData[0]?.date.substring(0, 7);
-    if (!currentMonth) return 0;
-    
-    const [year, month] = currentMonth.split('-').map(Number);
-    const prevMonth = month === 1 ? `${year-1}-12` : `${year}-${(month-1).toString().padStart(2, '0')}`;
-    
-    const prevData = deliveryData.filter(item => item.date.startsWith(prevMonth));
-    const currentTotal = currentData.reduce((sum, item) => sum + item.orders, 0);
-    const prevTotal = prevData.reduce((sum, item) => sum + item.orders, 0);
-    
-    return prevTotal > 0 ? ((currentTotal - prevTotal) / prevTotal) * 100 : 0;
-  }
-  
-  // For other comparison periods, return a random value for demo
-  return (Math.random() * 20 - 5); // Between -5% and +15%
-}
-
-// Update branch performance cards
-function updateBranchCards(data) {
-  const branchSales = {};
-  const branchOrders = {};
-  
-  data.forEach(item => {
-    if (!branchSales[item.branch]) {
-      branchSales[item.branch] = 0;
-      branchOrders[item.branch] = 0;
-    }
-    branchSales[item.branch] += item.sales;
-    branchOrders[item.branch] += item.orders;
-  });
-  
-  const branches = Object.keys(branchSales);
-  const row1 = document.getElementById('branchRow1');
-  const row2 = document.getElementById('branchRow2');
-  
-  row1.innerHTML = '';
-  row2.innerHTML = '';
-  
-  branches.forEach((branch, index) => {
-    const sales = branchSales[branch];
-    const orders = branchOrders[branch];
-    const target = goals.branchTargets[branch] || 0;
-    const progress = target > 0 ? Math.min(100, (sales / target) * 100) : 0;
-    
-    const card = document.createElement('div');
-    card.className = 'card branch-card p-4 drillable';
-    card.dataset.branch = branch;
-    card.innerHTML = `
-      <div class="flex justify-between items-start mb-2">
-        <h4 class="font-semibold">${branch}</h4>
-        <span class="text-sm ${progress >= 100 ? 'text-green-600' : progress >= 75 ? 'text-yellow-600' : 'text-red-600'}">
-          ${progress.toFixed(0)}%
-        </span>
-      </div>
-      <div class="mb-2">
-        <div class="text-lg font-bold">${sales.toLocaleString()} AED</div>
-        <div class="small text-gray-500">${orders.toLocaleString()} orders</div>
-      </div>
-      <div class="goal-progress">
-        <div class="goal-progress-bar" style="width: ${progress}%"></div>
-      </div>
-      <div class="small mt-1 text-gray-500">Target: ${target.toLocaleString()} AED</div>
-    `;
-    
-    if (index < 3) {
-      row1.appendChild(card);
-    } else {
-      row2.appendChild(card);
-    }
-    
-    // Add click event for drill-down
-    card.addEventListener('click', () => drillDownBranch(branch));
-  });
-}
-
-// Update charts
-function updateCharts(data) {
-  // Prepare data for charts
-  const branchSales = {};
-  const dailySales = {};
-  
-  data.forEach(item => {
-    // Branch sales
-    if (!branchSales[item.branch]) branchSales[item.branch] = 0;
-    branchSales[item.branch] += item.sales;
-    
-    // Daily sales
-    if (!dailySales[item.date]) dailySales[item.date] = 0;
-    dailySales[item.date] += item.sales;
-  });
-  
-  // Bar chart - Sales by Branch
-  const barCtx = document.getElementById('barChart').getContext('2d');
-  if (charts.barChart) charts.barChart.destroy();
-  
-  charts.barChart = new Chart(barCtx, {
-    type: 'bar',
-    data: {
-      labels: Object.keys(branchSales),
-      datasets: [{
-        label: 'Delivery Sales (AED)',
-        data: Object.values(branchSales),
-        backgroundColor: [
-          'rgba(215, 38, 61, 0.7)',
-          'rgba(242, 183, 5, 0.7)',
-          'rgba(16, 185, 129, 0.7)',
-          'rgba(59, 130, 246, 0.7)',
-          'rgba(139, 92, 246, 0.7)',
-          'rgba(236, 72, 153, 0.7)'
-        ],
-        borderColor: [
-          'rgba(215, 38, 61, 1)',
-          'rgba(242, 183, 5, 1)',
-          'rgba(16, 185, 129, 1)',
-          'rgba(59, 130, 246, 1)',
-          'rgba(139, 92, 246, 1)',
-          'rgba(236, 72, 153, 1)'
-        ],
-        borderWidth: 1
-      }]
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      plugins: {
-        legend: {
-          display: false
-        }
-      },
-      scales: {
-        y: {
-          beginAtZero: true,
-          ticks: {
-            callback: function(value) {
-              return value.toLocaleString() + ' AED';
-            }
-          }
-        }
-      }
-    }
-  });
-  
-  // Line chart - Daily Sales Trend
-  const lineCtx = document.getElementById('lineChart').getContext('2d');
-  if (charts.lineChart) charts.lineChart.destroy();
-  
-  // Get last 30 days for trend
-  const sortedDates = Object.keys(dailySales).sort();
-  const last30Days = sortedDates.slice(-30);
-  const last30Sales = last30Days.map(date => dailySales[date]);
-  
-  charts.lineChart = new Chart(lineCtx, {
-    type: 'line',
-    data: {
-      labels: last30Days.map(date => new Date(date).toLocaleDateString()),
-      datasets: [{
-        label: 'Daily Delivery Sales (AED)',
-        data: last30Sales,
-        borderColor: 'rgba(215, 38, 61, 1)',
-        backgroundColor: 'rgba(215, 38, 61, 0.1)',
-        tension: 0.3,
-        fill: true
-      }]
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      plugins: {
-        legend: {
-          display: false
-        }
-      },
-      scales: {
-        y: {
-          beginAtZero: true,
-          ticks: {
-            callback: function(value) {
-              return value.toLocaleString() + ' AED';
-            }
-          }
-        }
-      }
-    }
-  });
-  
-  // Pie chart - Sales Distribution
-  const pieCtx = document.getElementById('pieChart').getContext('2d');
-  if (charts.pieChart) charts.pieChart.destroy();
-  
-  charts.pieChart = new Chart(pieCtx, {
-    type: 'pie',
-    data: {
-      labels: Object.keys(branchSales),
-      datasets: [{
-        data: Object.values(branchSales),
-        backgroundColor: [
-          'rgba(215, 38, 61, 0.7)',
-          'rgba(242, 183, 5, 0.7)',
-          'rgba(16, 185, 129, 0.7)',
-          'rgba(59, 130, 246, 0.7)',
-          'rgba(139, 92, 246, 0.7)',
-          'rgba(236, 72, 153, 0.7)'
-        ],
-        borderColor: '#ffffff',
-        borderWidth: 2
-      }]
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      plugins: {
-        legend: {
-          position: 'right'
-        },
-        tooltip: {
-          callbacks: {
-            label: function(context) {
-              const label = context.label || '';
-              const value = context.raw || 0;
-              const total = context.dataset.data.reduce((a, b) => a + b, 0);
-              const percentage = Math.round((value / total) * 100);
-              return `${label}: ${value.toLocaleString()} AED (${percentage}%)`;
-            }
-          }
-        }
-      }
-    }
-  });
-}
-
-// Update data table
-function updateTable(data) {
-  const table = $('#dataTable').DataTable();
-  table.clear();
-  
-  data.forEach(item => {
-    table.row.add([
-      item.date,
-      item.branch,
-      item.orders,
-      item.sales.toFixed(2),
-      `<button class="btn btn-icon" onclick="editData('${item.date}', '${item.branch}')">
-        <i class="fas fa-edit"></i>
-      </button>`
-    ]);
-  });
-  
-  table.draw();
-}
-
-// Update insights section
-function updateInsights(data) {
-  const insightsContainer = document.getElementById('insightsContainer');
-  insightsContainer.innerHTML = '';
-  
-  // Calculate some insights
-  const totalSales = data.reduce((sum, item) => sum + item.sales, 0);
-  const totalOrders = data.reduce((sum, item) => sum + item.orders, 0);
-  const aov = totalOrders > 0 ? totalSales / totalOrders : 0;
-  
-  // Find best performing branch
-  const branchSales = {};
-  data.forEach(item => {
-    if (!branchSales[item.branch]) branchSales[item.branch] = 0;
-    branchSales[item.branch] += item.sales;
-  });
-  
-  const bestBranch = Object.keys(branchSales).reduce((a, b) => 
-    branchSales[a] > branchSales[b] ? a : b, Object.keys(branchSales)[0]);
-  
-  // Find worst performing branch
-  const worstBranch = Object.keys(branchSales).reduce((a, b) => 
-    branchSales[a] < branchSales[b] ? a : b, Object.keys(branchSales)[0]);
-  
-  // Create insights
-  const insights = [
-    {
-      type: 'success',
-      icon: 'fa-chart-line',
-      title: 'Strong Sales Performance',
-      context: `Total delivery sales reached ${totalSales.toLocaleString()} AED with ${totalOrders.toLocaleString()} orders.`,
-      recommendation: 'Continue current marketing strategies to maintain momentum.'
-    },
-    {
-      type: 'info',
-      icon: 'fa-store',
-      title: 'Top Performing Branch',
-      context: `${bestBranch} branch leads with ${branchSales[bestBranch].toLocaleString()} AED in sales.`,
-      recommendation: 'Analyze successful strategies at this branch and replicate across other locations.'
-    },
-    {
-      type: 'warning',
-      icon: 'fa-exclamation-triangle',
-      title: 'Branch Performance Gap',
-      context: `${worstBranch} branch underperformed with ${branchSales[worstBranch].toLocaleString()} AED in sales.`,
-      recommendation: 'Review operations and marketing efforts at this branch.'
-    },
-    {
-      type: 'info',
-      icon: 'fa-receipt',
-      title: 'Average Order Value',
-      context: `AOV is ${aov.toFixed(2)} AED, which is ${aov > 50 ? 'above' : 'below'} target.`,
-      recommendation: aov > 50 ? 'Maintain current pricing strategy.' : 'Consider upselling techniques to increase AOV.'
-    }
-  ];
-  
-  // Add insights to container
-  insights.forEach(insight => {
-    const insightItem = document.createElement('div');
-    insightItem.className = `insight-item ${insight.type}`;
-    insightItem.innerHTML = `
-      <div class="insight-header">
-        <div class="insight-icon ${insight.type}">
-          <i class="fas ${insight.icon}"></i>
-        </div>
-        <div>
-          <div class="insight-title">${insight.title}</div>
-          <div class="insight-context">${insight.context}</div>
-        </div>
-      </div>
-      <div class="insight-recommendation">
-        <strong>Recommendation:</strong> ${insight.recommendation}
-      </div>
-      <div class="insight-actions">
-        <span class="insight-action primary">Take Action</span>
-        <span class="insight-action secondary">Dismiss</span>
-      </div>
-    `;
-    
-    insightsContainer.appendChild(insightItem);
-  });
-  
-  // Update insight count
-  document.getElementById('insightCount').textContent = `${insights.length} insights`;
-}
-
-// Update three month report
-function updateThreeMonthReport() {
-  const container = document.getElementById('threeMonthReportContainer');
-  container.innerHTML = '';
-  
-  // Get last 3 months
-  const months = ['2025-07', '2025-08', '2025-09'];
-  const monthNames = ['July', 'August', 'September'];
-  
-  months.forEach((month, index) => {
-    const monthData = deliveryData.filter(item => item.date.startsWith(month));
-    const totalSales = monthData.reduce((sum, item) => sum + item.sales, 0);
-    const totalOrders = monthData.reduce((sum, item) => sum + item.orders, 0);
-    
-    // Calculate branch performance
-    const branchSales = {};
-    monthData.forEach(item => {
-      if (!branchSales[item.branch]) branchSales[item.branch] = 0;
-      branchSales[item.branch] += item.sales;
-    });
-    
-    // Sort branches by sales
-    const sortedBranches = Object.keys(branchSales).sort((a, b) => 
-      branchSales[b] - branchSales[a]);
-    
-    const reportCard = document.createElement('div');
-    reportCard.className = 'report-card';
-    reportCard.innerHTML = `
-      <div class="report-header">
-        <div>
-          <div class="report-title">${monthNames[index]} 2025 Report</div>
-          <div class="report-period">${monthNames[index]} 1-31, 2025</div>
-        </div>
-        <div class="text-right">
-          <div class="text-lg font-bold">${totalSales.toLocaleString()} AED</div>
-          <div class="small text-gray-500">${totalOrders.toLocaleString()} orders</div>
-        </div>
-      </div>
-      
-      <table class="report-table">
-        <thead>
-          <tr>
-            <th>Branch</th>
-            <th>Sales (AED)</th>
-            <th>Orders</th>
-            <th>AOV (AED)</th>
-            <th>Growth</th>
-          </tr>
-        </thead>
-        <tbody>
-          ${sortedBranches.map(branch => {
-            const sales = branchSales[branch];
-            const orders = monthData.filter(item => item.branch === branch)
-              .reduce((sum, item) => sum + item.orders, 0);
-            const aov = orders > 0 ? sales / orders : 0;
+        
+        // Mobile menu toggle
+        function toggleMobileMenu() {
+            const mobileControls = document.getElementById('mobileControls');
+            const overlay = document.querySelector('.mobile-controls-overlay');
             
-            // Calculate growth (random for demo)
-            const growth = (Math.random() * 20 - 5);
-            const growthClass = growth >= 0 ? 'growth-positive' : 'growth-negative';
-            const growthIcon = growth >= 0 ? 'fa-arrow-up' : 'fa-arrow-down';
+            mobileControls.classList.toggle('active');
+            overlay.classList.toggle('active');
+        }
+        
+        // Export functions
+        function exportCSV() {
+            showNotification('Preparing CSV export...', 'info');
             
-            return `
-              <tr>
-                <td>${branch}</td>
-                <td>${sales.toLocaleString()}</td>
-                <td>${orders.toLocaleString()}</td>
-                <td>${aov.toFixed(2)}</td>
-                <td class="${growthClass}">
-                  <i class="fas ${growthIcon}"></i> ${Math.abs(growth).toFixed(1)}%
-                </td>
-              </tr>
+            setTimeout(() => {
+                const monthFilter = document.getElementById('monthFilterTop').value;
+                let data = deliveryData;
+                
+                if (monthFilter !== 'all') {
+                    data = deliveryData.filter(item => item.date.startsWith(monthFilter));
+                }
+                
+                let csv = 'Date,Branch,Orders,Sales (AED)\n';
+                data.forEach(item => {
+                    csv += `${item.date},${item.branch},${item.orders},${item.sales}\n`;
+                });
+                
+                const blob = new Blob([csv], { type: 'text/csv' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `crispy_chicken_delivery_${monthFilter}.csv`;
+                a.click();
+                URL.revokeObjectURL(url);
+                
+                showNotification('CSV exported successfully', 'success');
+            }, 1000);
+        }
+        
+        function exportPDF() {
+            showNotification('Preparing PDF export...', 'info');
+            
+            setTimeout(() => {
+                // In a real implementation, you would use jsPDF to generate a PDF
+                // For this demo, we'll just show a notification
+                showNotification('PDF exported successfully', 'success');
+            }, 1500);
+        }
+        
+        function exportExcel() {
+            showNotification('Preparing Excel export...', 'info');
+            
+            setTimeout(() => {
+                const monthFilter = document.getElementById('monthFilterTop').value;
+                let data = deliveryData;
+                
+                if (monthFilter !== 'all') {
+                    data = deliveryData.filter(item => item.date.startsWith(monthFilter));
+                }
+                
+                // Convert data to worksheet
+                const ws = XLSX.utils.json_to_sheet(data.map(item => ({
+                    'Date': item.date,
+                    'Branch': item.branch,
+                    'Orders': item.orders,
+                    'Sales (AED)': item.sales
+                })));
+                
+                // Create workbook and add worksheet
+                const wb = XLSX.utils.book_new();
+                XLSX.utils.book_append_sheet(wb, ws, 'Delivery Data');
+                
+                // Save file
+                XLSX.writeFile(wb, `crispy_chicken_delivery_${monthFilter}.xlsx`);
+                
+                showNotification('Excel exported successfully', 'success');
+            }, 1500);
+        }
+        
+        // Modal functions
+        function showScheduleModal() {
+            document.getElementById('scheduleModal').classList.add('active');
+        }
+        
+        function closeScheduleModal() {
+            document.getElementById('scheduleModal').classList.remove('active');
+        }
+        
+        function saveSchedule() {
+            const format = document.getElementById('exportFormat').value;
+            const frequency = document.getElementById('exportFrequency').value;
+            const time = document.getElementById('exportTime').value;
+            const recipients = document.getElementById('exportRecipients').value;
+            
+            // In a real app, you would save this to a database
+            showNotification(`Export scheduled: ${format} report ${frequency} at ${time}`, 'success');
+            closeScheduleModal();
+        }
+        
+        function enterPresentMode() {
+            document.body.classList.add('present-mode');
+            showNotification('Present mode activated. Press ESC to exit.', 'info');
+            
+            // Exit on ESC key
+            const exitPresent = function(e) {
+                if (e.key === 'Escape') {
+                    document.body.classList.remove('present-mode');
+                    document.removeEventListener('keydown', exitPresent);
+                    showNotification('Exited present mode', 'info');
+                }
+            };
+            
+            document.addEventListener('keydown', exitPresent);
+        }
+        
+        function toggleDarkMode() {
+            document.body.classList.toggle('dark');
+            const isDark = document.body.classList.contains('dark');
+            showNotification(`Dark mode ${isDark ? 'enabled' : 'disabled'}`, 'info');
+        }
+        
+        function startTour() {
+            tour.start();
+        }
+        
+        function initializeTour() {
+            tour = {
+                steps: [],
+                currentStep: 0,
+                
+                addStep: function(step) {
+                    this.steps.push(step);
+                },
+                
+                start: function() {
+                    this.currentStep = 0;
+                    this.showStep();
+                },
+                
+                showStep: function() {
+                    if (this.currentStep >= this.steps.length) {
+                        this.complete();
+                        return;
+                    }
+                    
+                    const step = this.steps[this.currentStep];
+                    
+                    // Create tour element
+                    const tourEl = document.createElement('div');
+                    tourEl.className = 'tour-step';
+                    tourEl.innerHTML = `
+                        <div class="tour-title">${step.title}</div>
+                        <div class="tour-text">${step.text}</div>
+                        <div class="tour-buttons">
+                            ${this.currentStep > 0 ? '<button class="tour-btn secondary">Previous</button>' : ''}
+                            <button class="tour-btn primary">Next</button>
+                        </div>
+                    `;
+                    
+                    // Position tour element
+                    const attachTo = step.attachTo;
+                    const element = document.querySelector(attachTo.element);
+                    
+                    if (element) {
+                        const rect = element.getBoundingClientRect();
+                        tourEl.style.position = 'absolute';
+                        tourEl.style.top = `${rect.bottom + 10}px`;
+                        tourEl.style.left = `${rect.left}px`;
+                        tourEl.style.zIndex = '10000';
+                        tourEl.style.backgroundColor = 'white';
+                        tourEl.style.borderRadius = '8px';
+                        tourEl.style.boxShadow = '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)';
+                        tourEl.style.padding = '20px';
+                        tourEl.style.maxWidth = '300px';
+                        
+                        document.body.appendChild(tourEl);
+                        
+                        // Add event listeners
+                        const buttons = tourEl.querySelectorAll('.tour-btn');
+                        buttons.forEach(btn => {
+                            btn.addEventListener('click', () => {
+                                if (btn.textContent === 'Previous') {
+                                    this.back();
+                                } else {
+                                    this.next();
+                                }
+                            });
+                        });
+                    }
+                },
+                
+                next: function() {
+                    this.currentStep++;
+                    this.hideStep();
+                    this.showStep();
+                },
+                
+                back: function() {
+                    this.currentStep--;
+                    this.hideStep();
+                    this.showStep();
+                },
+                
+                hideStep: function() {
+                    const tourEl = document.querySelector('.tour-step');
+                    if (tourEl) {
+                        tourEl.remove();
+                    }
+                },
+                
+                complete: function() {
+                    this.hideStep();
+                    showNotification('Tour completed!', 'success');
+                }
+            };
+            
+            tour.addStep({
+                title: 'Welcome to Crispy Chicken Dashboard',
+                text: 'This dashboard provides insights into your delivery sales performance.',
+                attachTo: { element: '.header-content', on: 'bottom' }
+            });
+            
+            tour.addStep({
+                title: 'Key Performance Indicators',
+                text: 'These cards show your most important metrics at a glance.',
+                attachTo: { element: '.kpi-row', on: 'bottom' }
+            });
+            
+            tour.addStep({
+                title: 'Branch Performance',
+                text: 'See how each branch is performing against its targets.',
+                attachTo: { element: '.branch-card', on: 'top' }
+            });
+            
+            tour.addStep({
+                title: 'Sales Charts',
+                text: 'Visualize your sales data with these interactive charts.',
+                attachTo: { element: '.charts-grid', on: 'top' }
+            });
+            
+            tour.addStep({
+                title: 'Data Management',
+                text: 'Update your data or export reports from this section.',
+                attachTo: { element: '#dataTable', on: 'top' }
+            });
+        }
+        
+        function showAlertModal() {
+            document.getElementById('alertModal').classList.add('active');
+            
+            // Load active alerts
+            const activeAlertsList = document.getElementById('activeAlertsList');
+            activeAlertsList.innerHTML = '';
+            
+            if (alerts.length === 0) {
+                activeAlertsList.innerHTML = '<div class="text-center py-4 text-gray-500">No active alerts</div>';
+            } else {
+                alerts.forEach((alert, index) => {
+                    const alertItem = document.createElement('div');
+                    alertItem.className = 'alert-list-item';
+                    alertItem.innerHTML = `
+                        <div class="alert-list-info">
+                            <div class="alert-list-name">${alert.name}</div>
+                            <div class="alert-list-details">${alert.type} • ${alert.threshold} AED</div>
+                        </div>
+                        <div class="alert-list-actions">
+                            <button class="alert-list-btn toggle ${alert.active ? 'active' : ''}" onclick="toggleAlert(${index})">
+                                ${alert.active ? 'Active' : 'Inactive'}
+                            </button>
+                            <button class="alert-list-btn edit" onclick="editAlert(${index})">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button class="alert-list-btn delete" onclick="deleteAlert(${index})">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    `;
+                    activeAlertsList.appendChild(alertItem);
+                });
+            }
+        }
+        
+        function closeAlertModal() {
+            document.getElementById('alertModal').classList.remove('active');
+        }
+        
+        function saveAlert() {
+            const name = document.getElementById('alertName').value;
+            const type = document.getElementById('alertType').value;
+            const threshold = document.getElementById('alertThreshold').value;
+            
+            if (!name || !threshold) {
+                showNotification('Please fill in all required fields', 'error');
+                return;
+            }
+            
+            // Get selected branches
+            const branchCheckboxes = document.querySelectorAll('#alertBranches input[type="checkbox"]:checked');
+            const branches = Array.from(branchCheckboxes).map(cb => cb.value);
+            
+            // Add alert
+            alerts.push({
+                name,
+                type,
+                threshold: parseFloat(threshold),
+                branches,
+                method: document.getElementById('alertMethod').value,
+                frequency: document.getElementById('alertFrequency').value,
+                active: true
+            });
+            
+            showNotification('Alert created successfully', 'success');
+            closeAlertModal();
+        }
+        
+        function toggleAlert(index) {
+            alerts[index].active = !alerts[index].active;
+            showAlertModal();
+        }
+        
+        function editAlert(index) {
+            // In a real app, you would populate the form with the alert data
+            showNotification('Edit functionality would open here', 'info');
+        }
+        
+        function deleteAlert(index) {
+            alerts.splice(index, 1);
+            showAlertModal();
+            showNotification('Alert deleted successfully', 'success');
+        }
+        
+        function showGoalModal() {
+            document.getElementById('goalModal').classList.add('active');
+            
+            // Populate form with current goals
+            document.getElementById('goalModalContent').innerHTML = `
+                <div class="mb-4">
+                    <label class="form-label">Monthly Sales Target (AED)</label>
+                    <input type="number" id="monthlySalesTarget" class="form-input" value="${goals.monthlySales}">
+                </div>
+                
+                <h4 class="font-medium mb-3">Branch Targets</h4>
+                <div class="space-y-3">
+                    ${Object.keys(goals.branchTargets).map(branch => `
+                        <div class="flex items-center justify-between">
+                            <label class="form-label mb-0">${branch}</label>
+                            <input type="number" class="form-input w-32" value="${goals.branchTargets[branch]}" 
+                                   data-branch="${branch}">
+                        </div>
+                    `).join('')}
+                </div>
             `;
-          }).join('')}
-        </tbody>
-      </table>
-      
-      <div class="branch-summary">
-        <div class="branch-performance">
-          <span class="performance-indicator performance-up"></span>
-          <span>Best performer: ${sortedBranches[0]}</span>
-        </div>
-        <div class="report-actions">
-          <button class="report-action primary">View Details</button>
-          <button class="report-action secondary">Export</button>
-        </div>
-      </div>
-    `;
-    
-    container.appendChild(reportCard);
-  });
-}
-
-// Update goals section
-function updateGoalsSection(data) {
-  const monthFilter = document.getElementById('monthFilterTop').value;
-  let currentMonth = '2025-09';
-  
-  if (monthFilter !== 'all') {
-    currentMonth = monthFilter;
-  }
-  
-  const monthData = data.filter(item => item.date.startsWith(currentMonth));
-  const monthlySales = monthData.reduce((sum, item) => sum + item.sales, 0);
-  const progress = Math.min(100, (monthlySales / goals.monthlySales) * 100);
-  
-  document.getElementById('monthlyTarget').textContent = `${goals.monthlySales.toLocaleString()} AED`;
-  document.getElementById('monthlyProgress').textContent = `${progress.toFixed(0)}%`;
-  document.getElementById('monthlyProgressBar').style.width = `${progress}%`;
-  
-  // Update branch ranking
-  const branchOrders = {};
-  monthData.forEach(item => {
-    if (!branchOrders[item.branch]) branchOrders[item.branch] = 0;
-    branchOrders[item.branch] += item.orders;
-  });
-  
-  const sortedBranches = Object.keys(branchOrders).sort((a, b) => 
-    branchOrders[b] - branchOrders[a]);
-  
-  const rankingHTML = sortedBranches.slice(0, 3).map((branch, index) => `
-    <div class="flex justify-between py-1">
-      <span>${index + 1}. ${branch}</span>
-      <span class="font-semibold">${branchOrders[branch].toLocaleString()} orders</span>
-    </div>
-  `).join('');
-  
-  document.getElementById('branchRanking').innerHTML = rankingHTML;
-  
-  // Update performance alerts
-  const alerts = [];
-  sortedBranches.forEach(branch => {
-    const sales = monthData.filter(item => item.branch === branch)
-      .reduce((sum, item) => sum + item.sales, 0);
-    const target = goals.branchTargets[branch] || 0;
-    
-    if (target > 0 && sales < target * 0.8) {
-      alerts.push(`${branch} below target`);
-    }
-  });
-  
-  const alertsHTML = alerts.length > 0 
-    ? alerts.map(alert => `
-        <div class="flex items-center gap-2 py-1">
-          <span class="w-2 h-2 rounded-full bg-red-500"></span>
-          <span>${alert}</span>
-        </div>
-      `).join('')
-    : `
-        <div class="flex items-center gap-2 py-1">
-          <span class="w-2 h-2 rounded-full bg-green-500"></span>
-          <span>All branches on track</span>
-        </div>
-      `;
-  
-  document.getElementById('performanceAlerts').innerHTML = alertsHTML;
-}
-
-// Initialize DataTable
-function initializeTable() {
-  $('#dataTable').DataTable({
-    responsive: true,
-    pageLength: 10,
-    order: [[0, 'desc']]
-  });
-}
-
-// Event listeners
-document.addEventListener('DOMContentLoaded', function() {
-  // Initialize data
-  initializeData();
-  
-  // Initialize table
-  initializeTable();
-  
-  // Initial dashboard update
-  updateDashboard();
-  
-  // Month filter change
-  document.getElementById('monthFilterTop').addEventListener('change', updateDashboard);
-  document.getElementById('mobileMonthFilter').addEventListener('change', function() {
-    document.getElementById('monthFilterTop').value = this.value;
-    updateDashboard();
-  });
-  
-  // Compare period change
-  document.getElementById('comparePeriod').addEventListener('change', updateDashboard);
-  document.getElementById('mobileComparePeriod').addEventListener('change', function() {
-    document.getElementById('comparePeriod').value = this.value;
-    updateDashboard();
-  });
-  
-  // Export buttons
-  document.getElementById('btnExportCSV').addEventListener('click', exportCSV);
-  document.getElementById('btnExportPDF').addEventListener('click', exportPDF);
-  document.getElementById('btnExportExcel').addEventListener('click', exportExcel);
-  
-  // Schedule export
-  document.getElementById('btnScheduleExport').addEventListener('click', showScheduleModal);
-  document.getElementById('mobileControls').querySelector('button[onclick="showScheduleModal()"]').addEventListener('click', showScheduleModal);
-  
-  // Present mode
-  document.getElementById('btnPresentMode').addEventListener('click', enterPresentMode);
-  document.getElementById('mobileControls').querySelector('button[onclick="enterPresentMode()"]').addEventListener('click', enterPresentMode);
-  
-  // Dark mode
-  document.getElementById('darkModeToggle').addEventListener('click', toggleDarkMode);
-  document.getElementById('mobileControls').querySelector('button[onclick="toggleDarkMode()"]').addEventListener('click', toggleDarkMode);
-  
-  // Tour
-  document.getElementById('btnTour').addEventListener('click', startTour);
-  document.getElementById('mobileControls').querySelector('button[onclick="startTour()"]').addEventListener('click', startTour);
-  
-  // Alerts
-  document.getElementById('btnAlerts').addEventListener('click', showAlertModal);
-  document.getElementById('mobileControls').querySelector('button[onclick="showAlertModal()"]').addEventListener('click', showAlertModal);
-  
-  // Reset and clear
-  document.getElementById('btnReset').addEventListener('click', resetData);
-  document.getElementById('btnClearAll').addEventListener('click', clearAllData);
-  document.getElementById('mobileControls').querySelector('button[onclick="resetData()"]').addEventListener('click', resetData);
-  document.getElementById('mobileControls').querySelector('button[onclick="clearAllData()"]').addEventListener('click', clearAllData);
-  
-  // Data input
-  document.getElementById('btnUpdate').addEventListener('click', updateDataFromInput);
-  document.getElementById('btnClearInput').addEventListener('click', clearDataInput);
-  document.getElementById('btnSetGoals').addEventListener('click', showGoalModal);
-  
-  // Refresh insights
-  document.getElementById('refreshReport').addEventListener('click', function() {
-    showNotification('Report refreshed successfully', 'success');
-    updateThreeMonthReport();
-  });
-  
-  // Apply filters
-  document.getElementById('applyFilters').addEventListener('click', function() {
-    showNotification('Filters applied successfully', 'success');
-    updateDashboard();
-  });
-  
-  // Modal close buttons
-  document.getElementById('closeDrillModal').addEventListener('click', closeDrillModal);
-  document.getElementById('closeGoalModal').addEventListener('click', closeGoalModal);
-  document.getElementById('closeAlertModal').addEventListener('click', closeAlertModal);
-  document.getElementById('closeScheduleModal').addEventListener('click', closeScheduleModal);
-  
-  // Save goals
-  document.getElementById('saveGoals').addEventListener('click', saveGoals);
-  document.getElementById('cancelGoals').addEventListener('click', closeGoalModal);
-  
-  // Save alert
-  document.getElementById('saveAlert').addEventListener('click', saveAlert);
-  document.getElementById('cancelAlert').addEventListener('click', closeAlertModal);
-  
-  // Save schedule
-  document.getElementById('saveSchedule').addEventListener('click', saveSchedule);
-  document.getElementById('cancelSchedule').addEventListener('click', closeScheduleModal);
-  
-  // Refresh insights
-  document.querySelector('button[onclick="refreshInsights()"]').addEventListener('click', function() {
-    showNotification('Insights refreshed successfully', 'success');
-    updateInsights(deliveryData);
-  });
-  
-  // Initialize tour steps
-  initializeTour();
-});
-
-// Mobile menu toggle
-function toggleMobileMenu() {
-  const mobileControls = document.getElementById('mobileControls');
-  const overlay = document.querySelector('.mobile-controls-overlay');
-  
-  mobileControls.classList.toggle('active');
-  overlay.classList.toggle('active');
-}
-
-// Export functions
-function exportCSV() {
-  showNotification('Preparing CSV export...', 'info');
-  
-  setTimeout(() => {
-    const monthFilter = document.getElementById('monthFilterTop').value;
-    let data = deliveryData;
-    
-    if (monthFilter !== 'all') {
-      data = deliveryData.filter(item => item.date.startsWith(monthFilter));
-    }
-    
-    let csv = 'Date,Branch,Orders,Sales (AED)\n';
-    data.forEach(item => {
-      csv += `${item.date},${item.branch},${item.orders},${item.sales}\n`;
-    });
-    
-    const blob = new Blob([csv], { type: 'text/csv' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `crispy_chicken_delivery_${monthFilter}.csv`;
-    a.click();
-    URL.revokeObjectURL(url);
-    
-    showNotification('CSV exported successfully', 'success');
-  }, 1000);
-}
-
-function exportPDF() {
-  showNotification('Preparing PDF export...', 'info');
-  
-  setTimeout(() => {
-    // In a real implementation, you would use jsPDF to generate a PDF
-    // For this demo, we'll just show a notification
-    showNotification('PDF exported successfully', 'success');
-  }, 1500);
-}
-
-function exportExcel() {
-  showNotification('Preparing Excel export...', 'info');
-  
-  setTimeout(() => {
-    const monthFilter = document.getElementById('monthFilterTop').value;
-    let data = deliveryData;
-    
-    if (monthFilter !== 'all') {
-      data = deliveryData.filter(item => item.date.startsWith(monthFilter));
-    }
-    
-    // Convert data to worksheet
-    const ws = XLSX.utils.json_to_sheet(data.map(item => ({
-      'Date': item.date,
-      'Branch': item.branch,
-      'Orders': item.orders,
-      'Sales (AED)': item.sales
-    })));
-    
-    // Create workbook and add worksheet
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, 'Delivery Data');
-    
-    // Save file
-    XLSX.writeFile(wb, `crispy_chicken_delivery_${monthFilter}.xlsx`);
-    
-    showNotification('Excel exported successfully', 'success');
-  }, 1500);
-}
-
-// Modal functions
-function showScheduleModal() {
-  document.getElementById('scheduleModal').classList.add('active');
-}
-
-function closeScheduleModal() {
-  document.getElementById('scheduleModal').classList.remove('active');
-}
-
-function saveSchedule() {
-  const format = document.getElementById('exportFormat').value;
-  const frequency = document.getElementById('exportFrequency').value;
-  const time = document.getElementById('exportTime').value;
-  const recipients = document.getElementById('exportRecipients').value;
-  
-  // In a real app, you would save this to a database
-  showNotification(`Export scheduled: ${format} report ${frequency} at ${time}`, 'success');
-  closeScheduleModal();
-}
-
-function enterPresentMode() {
-  document.body.classList.add('present-mode');
-  showNotification('Present mode activated. Press ESC to exit.', 'info');
-  
-  // Exit on ESC key
-  const exitPresent = function(e) {
-    if (e.key === 'Escape') {
-      document.body.classList.remove('present-mode');
-      document.removeEventListener('keydown', exitPresent);
-      showNotification('Exited present mode', 'info');
-    }
-  };
-  
-  document.addEventListener('keydown', exitPresent);
-}
-
-function toggleDarkMode() {
-  document.body.classList.toggle('dark');
-  const isDark = document.body.classList.contains('dark');
-  showNotification(`Dark mode ${isDark ? 'enabled' : 'disabled'}`, 'info');
-}
-
-function startTour() {
-  tour.start();
-}
-
-function initializeTour() {
-  tour.addStep({
-    title: 'Welcome to Crispy Chicken Dashboard',
-    text: 'This dashboard provides insights into your delivery sales performance.',
-    attachTo: { element: '.header-content', on: 'bottom' },
-    buttons: [
-      { text: 'Next', action: tour.next }
-    ]
-  });
-  
-  tour.addStep({
-    title: 'Key Performance Indicators',
-    text: 'These cards show your most important metrics at a glance.',
-    attachTo: { element: '.kpi-row', on: 'bottom' },
-    buttons: [
-      { text: 'Previous', action: tour.back },
-      { text: 'Next', action: tour.next }
-    ]
-  });
-  
-  tour.addStep({
-    title: 'Branch Performance',
-    text: 'See how each branch is performing against its targets.',
-    attachTo: { element: '.branch-card', on: 'top' },
-    buttons: [
-      { text: 'Previous', action: tour.back },
-      { text: 'Next', action: tour.next }
-    ]
-  });
-  
-  tour.addStep({
-    title: 'Sales Charts',
-    text: 'Visualize your sales data with these interactive charts.',
-    attachTo: { element: '.charts-grid', on: 'top' },
-    buttons: [
-      { text: 'Previous', action: tour.back },
-      { text: 'Next', action: tour.next }
-    ]
-  });
-  
-  tour.addStep({
-    title: 'Data Management',
-    text: 'Update your data or export reports from this section.',
-    attachTo: { element: '#dataTable', on: 'top' },
-    buttons: [
-      { text: 'Previous', action: tour.back },
-      { text: 'Finish', action: tour.complete }
-    ]
-  });
-}
-
-function showAlertModal() {
-  document.getElementById('alertModal').classList.add('active');
-  
-  // Load active alerts
-  const activeAlertsList = document.getElementById('activeAlertsList');
-  activeAlertsList.innerHTML = '';
-  
-  if (alerts.length === 0) {
-    activeAlertsList.innerHTML = '<div class="text-center py-4 text-gray-500">No active alerts</div>';
-  } else {
-    alerts.forEach((alert, index) => {
-      const alertItem = document.createElement('div');
-      alertItem.className = 'alert-list-item';
-      alertItem.innerHTML = `
-        <div class="alert-list-info">
-          <div class="alert-list-name">${alert.name}</div>
-          <div class="alert-list-details">${alert.type} • ${alert.threshold} AED</div>
-        </div>
-        <div class="alert-list-actions">
-          <button class="alert-list-btn toggle ${alert.active ? 'active' : ''}" onclick="toggleAlert(${index})">
-            ${alert.active ? 'Active' : 'Inactive'}
-          </button>
-          <button class="alert-list-btn edit" onclick="editAlert(${index})">
-            <i class="fas fa-edit"></i>
-          </button>
-          <button class="alert-list-btn delete" onclick="deleteAlert(${index})">
-            <i class="fas fa-trash"></i>
-          </button>
-        </div>
-      `;
-      activeAlertsList.appendChild(alertItem);
-    });
-  }
-}
-
-function closeAlertModal() {
-  document.getElementById('alertModal').classList.remove('active');
-}
-
-function saveAlert() {
-  const name = document.getElementById('alertName').value;
-  const type = document.getElementById('alertType').value;
-  const threshold = document.getElementById('alertThreshold').value;
-  
-  if (!name || !threshold) {
-    showNotification('Please fill in all required fields', 'error');
-    return;
-  }
-  
-  // Get selected branches
-  const branchCheckboxes = document.querySelectorAll('#alertBranches input[type="checkbox"]:checked');
-  const branches = Array.from(branchCheckboxes).map(cb => cb.value);
-  
-  // Add alert
-  alerts.push({
-    name,
-    type,
-    threshold: parseFloat(threshold),
-    branches,
-    method: document.getElementById('alertMethod').value,
-    frequency: document.getElementById('alertFrequency').value,
-    active: true
-  });
-  
-  showNotification('Alert created successfully', 'success');
-  closeAlertModal();
-}
-
-function toggleAlert(index) {
-  alerts[index].active = !alerts[index].active;
-  showAlertModal();
-}
-
-function editAlert(index) {
-  // In a real app, you would populate the form with the alert data
-  showNotification('Edit functionality would open here', 'info');
-}
-
-function deleteAlert(index) {
-  alerts.splice(index, 1);
-  showAlertModal();
-  showNotification('Alert deleted successfully', 'success');
-}
-
-function showGoalModal() {
-  document.getElementById('goalModal').classList.add('active');
-  
-  // Populate form with current goals
-  document.getElementById('goalModalContent').innerHTML = `
-    <div class="mb-4">
-      <label class="form-label">Monthly Sales Target (AED)</label>
-      <input type="number" id="monthlySalesTarget" class="form-input" value="${goals.monthlySales}">
-    </div>
-    
-    <h4 class="font-medium mb-3">Branch Targets</h4>
-    <div class="space-y-3">
-      ${Object.keys(goals.branchTargets).map(branch => `
-        <div class="flex items-center justify-between">
-          <label class="form-label mb-0">${branch}</label>
-          <input type="number" class="form-input w-32" value="${goals.branchTargets[branch]}" 
-                 data-branch="${branch}">
-        </div>
-      `).join('')}
-    </div>
-  `;
-}
-
-function closeGoalModal() {
-  document.getElementById('goalModal').classList.remove('active');
-}
-
-function saveGoals() {
-  // Update monthly target
-  goals.monthlySales = parseFloat(document.getElementById('monthlySalesTarget').value);
-  
-  // Update branch targets
-  document.querySelectorAll('#goalModalContent input[data-branch]').forEach(input => {
-    const branch = input.dataset.branch;
-    goals.branchTargets[branch] = parseFloat(input.value);
-  });
-  
-  showNotification('Goals saved successfully', 'success');
-  closeGoalModal();
-  updateDashboard();
-}
-
-function resetData() {
-  if (confirm('Are you sure you want to reset all data to initial state?')) {
-    initializeData();
-    updateDashboard();
-    showNotification('Data reset successfully', 'success');
-  }
-}
-
-function clearAllData() {
-  if (confirm('Are you sure you want to clear all data? This cannot be undone.')) {
-    deliveryData = [];
-    deliveryOrders = [];
-    updateDashboard();
-    showNotification('All data cleared', 'warning');
-  }
-}
-
-function updateDataFromInput() {
-  const input = document.getElementById('dataInput').value.trim();
-  if (!input) {
-    showNotification('Please enter data to update', 'error');
-    return;
-  }
-  
-  try {
-    const lines = input.split('\n');
-    let updated = 0;
-    
-    lines.forEach(line => {
-      const [date, outlet, orders, sales] = line.split(',').map(item => item.trim());
-      
-      if (date && outlet && orders && sales) {
-        const branch = branchMapping[outlet] || outlet;
-        
-        // Find existing record
-        const existingIndex = deliveryData.findIndex(item => 
-          item.date === date && item.branch === branch);
-        
-        if (existingIndex !== -1) {
-          // Update existing record
-          deliveryData[existingIndex].orders = parseInt(orders);
-          deliveryData[existingIndex].sales = parseFloat(sales);
-          updated++;
-        } else {
-          // Add new record
-          deliveryData.push({
-            date,
-            branch,
-            orders: parseInt(orders),
-            sales: parseFloat(sales)
-          });
-          updated++;
         }
-      }
-    });
-    
-    if (updated > 0) {
-      updateDashboard();
-      showNotification(`${updated} records updated successfully`, 'success');
-      clearDataInput();
-    } else {
-      showNotification('No valid data found to update', 'error');
-    }
-  } catch (error) {
-    showNotification('Error parsing data. Please check your format.', 'error');
-  }
-}
-
-function clearDataInput() {
-  document.getElementById('dataInput').value = '';
-}
-
-function drillDownBranch(branch) {
-  const modal = document.getElementById('drillModal');
-  const content = document.getElementById('drillModalContent');
-  
-  // Get branch data
-  const branchData = deliveryData.filter(item => item.branch === branch);
-  
-  // Calculate metrics
-  const totalSales = branchData.reduce((sum, item) => sum + item.sales, 0);
-  const totalOrders = branchData.reduce((sum, item) => sum + item.orders, 0);
-  const aov = totalOrders > 0 ? totalSales / totalOrders : 0;
-  
-  // Find best and worst days
-  const dailySales = {};
-  branchData.forEach(item => {
-    if (!dailySales[item.date]) dailySales[item.date] = 0;
-    dailySales[item.date] += item.sales;
-  });
-  
-  const sortedDays = Object.keys(dailySales).sort((a, b) => dailySales[b] - dailySales[a]);
-  const bestDay = sortedDays[0];
-  const worstDay = sortedDays[sortedDays.length - 1];
-  
-  // Update drill path
-  updateDrillPath('Branch', branch);
-  
-  // Populate modal content
-  content.innerHTML = `
-    <div class="mb-6">
-      <h4 class="text-xl font-bold mb-2">${branch} Branch Details</h4>
-      <div class="grid grid-cols-2 gap-4">
-        <div class="card p-3">
-          <div class="text-sm text-gray-500">Total Sales</div>
-          <div class="text-lg font-bold">${totalSales.toLocaleString()} AED</div>
-        </div>
-        <div class="card p-3">
-          <div class="text-sm text-gray-500">Total Orders</div>
-          <div class="text-lg font-bold">${totalOrders.toLocaleString()}</div>
-        </div>
-        <div class="card p-3">
-          <div class="text-sm text-gray-500">Average Order Value</div>
-          <div class="text-lg font-bold">${aov.toFixed(2)} AED</div>
-        </div>
-        <div class="card p-3">
-          <div class="text-sm text-gray-500">Performance</div>
-          <div class="text-lg font-bold">
-            ${totalSales >= goals.branchTargets[branch] ? 'Above Target' : 'Below Target'}
-          </div>
-        </div>
-      </div>
-    </div>
-    
-    <div class="mb-6">
-      <h5 class="font-semibold mb-3">Performance Highlights</h5>
-      <div class="space-y-2">
-        <div class="flex justify-between">
-          <span>Best Day:</span>
-          <span class="font-medium">${new Date(bestDay).toLocaleDateString()} (${dailySales[bestDay].toLocaleString()} AED)</span>
-        </div>
-        <div class="flex justify-between">
-          <span>Slowest Day:</span>
-          <span class="font-medium">${new Date(worstDay).toLocaleDateString()} (${dailySales[worstDay].toLocaleString()} AED)</span>
-        </div>
-        <div class="flex justify-between">
-          <span>Target Achievement:</span>
-          <span class="font-medium">${((totalSales / goals.branchTargets[branch]) * 100).toFixed(1)}%</span>
-        </div>
-      </div>
-    </div>
-    
-    <div>
-      <h5 class="font-semibold mb-3">Recent Performance</h5>
-      <div class="table-container">
-        <table class="w-full text-sm">
-          <thead>
-            <tr class="bg-gray-100">
-              <th class="p-2 text-left">Date</th>
-              <th class="p-2 text-right">Orders</th>
-              <th class="p-2 text-right">Sales (AED)</th>
-            </tr>
-          </thead>
-          <tbody>
-            ${branchData.slice(-10).reverse().map(item => `
-              <tr>
-                <td class="p-2">${new Date(item.date).toLocaleDateString()}</td>
-                <td class="p-2 text-right">${item.orders}</td>
-                <td class="p-2 text-right">${item.sales.toLocaleString()}</td>
-              </tr>
-            `).join('')}
-          </tbody>
-        </table>
-      </div>
-    </div>
-  `;
-  
-  modal.classList.add('active');
-}
-
-function closeDrillModal() {
-  document.getElementById('drillModal').classList.remove('active');
-  resetDrillPath();
-}
-
-function updateDrillPath(level, value) {
-  const drillPath = document.getElementById('drillPath');
-  drillPath.style.display = 'flex';
-  
-  // Add new item to path
-  const pathItem = document.createElement('div');
-  pathItem.className = 'drill-path-item';
-  pathItem.textContent = value;
-  pathItem.dataset.level = drillPath.children.length;
-  pathItem.addEventListener('click', function() {
-    // In a real app, this would navigate back to this level
-    showNotification(`Navigating to ${level}: ${value}`, 'info');
-  });
-  
-  drillPath.appendChild(pathItem);
-  
-  // Update active state
-  drillPath.querySelectorAll('.drill-path-item').forEach(item => {
-    item.classList.remove('active');
-  });
-  pathItem.classList.add('active');
-}
-
-function resetDrillPath() {
-  const drillPath = document.getElementById('drillPath');
-  drillPath.style.display = 'none';
-  drillPath.innerHTML = `
-    <span class="small">Drill-down path:</span>
-    <div class="drill-path-item active" data-level="0">Dashboard</div>
-  `;
-}
-
-function editData(date, branch) {
-  const record = deliveryData.find(item => item.date === date && item.branch === branch);
-  if (!record) return;
-  
-  const newOrders = prompt('Enter new number of orders:', record.orders);
-  if (newOrders !== null && !isNaN(newOrders)) {
-    const newSales = prompt('Enter new sales amount (AED):', record.sales);
-    if (newSales !== null && !isNaN(newSales)) {
-      record.orders = parseInt(newOrders);
-      record.sales = parseFloat(newSales);
-      updateDashboard();
-      showNotification('Data updated successfully', 'success');
-    }
-  }
-}
-
-function refreshInsights() {
-  showNotification('Refreshing insights...', 'info');
-  setTimeout(() => {
-    updateInsights(deliveryData);
-    showNotification('Insights refreshed successfully', 'success');
-  }, 1000);
-}
-
-function showNotification(message, type = 'info') {
-  const container = document.getElementById('notificationContainer');
-  
-  const notification = document.createElement('div');
-  notification.className = `notification ${type}`;
-  notification.textContent = message;
-  
-  container.appendChild(notification);
-  
-  // Auto remove after 3 seconds
-  setTimeout(() => {
-    notification.style.opacity = '0';
-    setTimeout(() => {
-      container.removeChild(notification);
-    }, 300);
-  }, 3000);
-}
-
-// Add some sample alerts
-alerts.push(
-  {
-    name: 'Low Sales Alert',
-    type: 'sales',
-    threshold: 1000,
-    branches: ['Barsha', 'Satwa'],
-    method: 'popup',
-    frequency: 'daily',
-    active: true
-  },
-  {
-    name: 'High Growth Alert',
-    type: 'growth',
-    threshold: 15,
-    branches: ['Hamdan', 'Shabiya'],
-    method: 'email',
-    frequency: 'weekly',
-    active: true
-  }
-);
+        
+        function closeGoalModal() {
+            document.getElementById('goalModal').classList.remove('active');
+        }
+        
+        function saveGoals() {
+            // Update monthly target
+            goals.monthlySales = parseFloat(document.getElementById('monthlySalesTarget').value);
+            
+            // Update branch targets
+            document.querySelectorAll('#goalModalContent input[data-branch]').forEach(input => {
+                const branch = input.dataset.branch;
+                goals.branchTargets[branch] = parseFloat(input.value);
+            });
+            
+            showNotification('Goals saved successfully', 'success');
+            closeGoalModal();
+            updateDashboard();
+        }
+        
+        function resetData() {
+            if (confirm('Are you sure you want to reset all data to initial state?')) {
+                initializeData();
+                updateDashboard();
+                showNotification('Data reset successfully', 'success');
+            }
+        }
+        
+        function clearAllData() {
+            if (confirm('Are you sure you want to clear all data? This cannot be undone.')) {
+                deliveryData = [];
+                deliveryOrders = [];
+                updateDashboard();
+                showNotification('All data cleared', 'warning');
+            }
+        }
+        
+        function updateDataFromInput() {
+            const input = document.getElementById('dataInput').value.trim();
+            if (!input) {
+                showNotification('Please enter data to update', 'error');
+                return;
+            }
+            
+            try {
+                const lines = input.split('\n');
+                let updated = 0;
+                
+                lines.forEach(line => {
+                    const [date, outlet, orders, sales] = line.split(',').map(item => item.trim());
+                    
+                    if (date && outlet && orders && sales) {
+                        const branch = branchMapping[outlet] || outlet;
+                        
+                        // Find existing record
+                        const existingIndex = deliveryData.findIndex(item => 
+                            item.date === date && item.branch === branch);
+                        
+                        if (existingIndex !== -1) {
+                            // Update existing record
+                            deliveryData[existingIndex].orders = parseInt(orders);
+                            deliveryData[existingIndex].sales = parseFloat(sales);
+                            updated++;
+                        } else {
+                            // Add new record
+                            deliveryData.push({
+                                date,
+                                branch,
+                                orders: parseInt(orders),
+                                sales: parseFloat(sales)
+                            });
+                            updated++;
+                        }
+                    }
+                });
+                
+                if (updated > 0) {
+                    updateDashboard();
+                    showNotification(`${updated} records updated successfully`, 'success');
+                    clearDataInput();
+                } else {
+                    showNotification('No valid data found to update', 'error');
+                }
+            } catch (error) {
+                showNotification('Error parsing data. Please check your format.', 'error');
+            }
+        }
+        
+        function clearDataInput() {
+            document.getElementById('dataInput').value = '';
+        }
+        
+        function drillDownBranch(branch) {
+            const modal = document.getElementById('drillModal');
+            const content = document.getElementById('drillModalContent');
+            
+            // Get branch data
+            const branchData = deliveryData.filter(item => item.branch === branch);
+            
+            // Calculate metrics
+            const totalSales = branchData.reduce((sum, item) => sum + item.sales, 0);
+            const totalOrders = branchData.reduce((sum, item) => sum + item.orders, 0);
+            const aov = totalOrders > 0 ? totalSales / totalOrders : 0;
+            
+            // Find best and worst days
+            const dailySales = {};
+            branchData.forEach(item => {
+                if (!dailySales[item.date]) dailySales[item.date] = 0;
+                dailySales[item.date] += item.sales;
+            });
+            
+            const sortedDays = Object.keys(dailySales).sort((a, b) => dailySales[b] - dailySales[a]);
+            const bestDay = sortedDays[0];
+            const worstDay = sortedDays[sortedDays.length - 1];
+            
+            // Update drill path
+            updateDrillPath('Branch', branch);
+            
+            // Populate modal content
+            content.innerHTML = `
+                <div class="mb-6">
+                    <h4 class="text-xl font-bold mb-2">${branch} Branch Details</h4>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="card p-3">
+                            <div class="text-sm text-gray-500">Total Sales</div>
+                            <div class="text-lg font-bold">${totalSales.toLocaleString()} AED</div>
+                        </div>
+                        <div class="card p-3">
+                            <div class="text-sm text-gray-500">Total Orders</div>
+                            <div class="text-lg font-bold">${totalOrders.toLocaleString()}</div>
+                        </div>
+                        <div class="card p-3">
+                            <div class="text-sm text-gray-500">Average Order Value</div>
+                            <div class="text-lg font-bold">${aov.toFixed(2)} AED</div>
+                        </div>
+                        <div class="card p-3">
+                            <div class="text-sm text-gray-500">Performance</div>
+                            <div class="text-lg font-bold">
+                                ${totalSales >= goals.branchTargets[branch] ? 'Above Target' : 'Below Target'}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="mb-6">
+                    <h5 class="font-semibold mb-3">Performance Highlights</h5>
+                    <div class="space-y-2">
+                        <div class="flex justify-between">
+                            <span>Best Day:</span>
+                            <span class="font-medium">${new Date(bestDay).toLocaleDateString()} (${dailySales[bestDay].toLocaleString()} AED)</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span>Slowest Day:</span>
+                            <span class="font-medium">${new Date(worstDay).toLocaleDateString()} (${dailySales[worstDay].toLocaleString()} AED)</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span>Target Achievement:</span>
+                            <span class="font-medium">${((totalSales / goals.branchTargets[branch]) * 100).toFixed(1)}%</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div>
+                    <h5 class="font-semibold mb-3">Recent Performance</h5>
+                    <div class="table-container">
+                        <table class="w-full text-sm">
+                            <thead>
+                                <tr class="bg-gray-100">
+                                    <th class="p-2 text-left">Date</th>
+                                    <th class="p-2 text-right">Orders</th>
+                                    <th class="p-2 text-right">Sales (AED)</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${branchData.slice(-10).reverse().map(item => `
+                                    <tr>
+                                        <td class="p-2">${new Date(item.date).toLocaleDateString()}</td>
+                                        <td class="p-2 text-right">${item.orders}</td>
+                                        <td class="p-2 text-right">${item.sales.toLocaleString()}</td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            `;
+            
+            modal.classList.add('active');
+        }
+        
+        function closeDrillModal() {
+            document.getElementById('drillModal').classList.remove('active');
+            resetDrillPath();
+        }
+        
+        function updateDrillPath(level, value) {
+            const drillPath = document.getElementById('drillPath');
+            drillPath.style.display = 'flex';
+            
+            // Add new item to path
+            const pathItem = document.createElement('div');
+            pathItem.className = 'drill-path-item';
+            pathItem.textContent = value;
+            pathItem.dataset.level = drillPath.children.length;
+            pathItem.addEventListener('click', function() {
+                // In a real app, this would navigate back to this level
+                showNotification(`Navigating to ${level}: ${value}`, 'info');
+            });
+            
+            drillPath.appendChild(pathItem);
+            
+            // Update active state
+            drillPath.querySelectorAll('.drill-path-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            pathItem.classList.add('active');
+        }
+        
+        function resetDrillPath() {
+            const drillPath = document.getElementById('drillPath');
+            drillPath.style.display = 'none';
+            drillPath.innerHTML = `
+                <span class="small">Drill-down path:</span>
+                <div class="drill-path-item active" data-level="0">Dashboard</div>
+            `;
+        }
+        
+        function editData(date, branch) {
+            const record = deliveryData.find(item => item.date === date && item.branch === branch);
+            if (!record) return;
+            
+            const newOrders = prompt('Enter new number of orders:', record.orders);
+            if (newOrders !== null && !isNaN(newOrders)) {
+                const newSales = prompt('Enter new sales amount (AED):', record.sales);
+                if (newSales !== null && !isNaN(newSales)) {
+                    record.orders = parseInt(newOrders);
+                    record.sales = parseFloat(newSales);
+                    updateDashboard();
+                    showNotification('Data updated successfully', 'success');
+                }
+            }
+        }
+        
+        function refreshInsights() {
+            showNotification('Refreshing insights...', 'info');
+            setTimeout(() => {
+                updateInsights(deliveryData);
+                showNotification('Insights refreshed successfully', 'success');
+            }, 1000);
+        }
+        
+        function refreshCharts() {
+            showNotification('Refreshing charts...', 'info');
+            setTimeout(() => {
+                updateCharts(deliveryData);
+                showNotification('Charts refreshed successfully', 'success');
+            }, 1000);
+        }
+        
+        function showNotification(message, type = 'info') {
+            const container = document.getElementById('notificationContainer');
+            
+            const notification = document.createElement('div');
+            notification.className = `notification ${type}`;
+            notification.textContent = message;
+            
+            container.appendChild(notification);
+            
+            // Auto remove after 3 seconds
+            setTimeout(() => {
+                notification.style.opacity = '0';
+                setTimeout(() => {
+                    container.removeChild(notification);
+                }, 300);
+            }, 3000);
+        }
+        
+        // Add some sample alerts
+        alerts.push(
+            {
+                name: 'Low Sales Alert',
+                type: 'sales',
+                threshold: 1000,
+                branches: ['Barsha', 'Satwa'],
+                method: 'popup',
+                frequency: 'daily',
+                active: true
+            },
+            {
+                name: 'High Growth Alert',
+                type: 'growth',
+                threshold: 15,
+                branches: ['Hamdan', 'Shabiya'],
+                method: 'email',
+                frequency: 'weekly',
+                active: true
+            }
+        );
+    </script>
+</body>
+</html>
