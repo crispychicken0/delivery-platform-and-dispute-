@@ -106,6 +106,15 @@
             background-color: #4b5563;
         }
         
+        .btn-danger {
+            background-color: var(--danger);
+            color: white;
+        }
+        
+        .btn-danger:hover {
+            background-color: #dc2626;
+        }
+        
         .btn-icon {
             background: transparent;
             color: var(--gray);
@@ -1147,7 +1156,8 @@
                     <button class="btn btn-primary" id="btnScheduleExport">Schedule Export</button>
                     <button class="btn btn-secondary" id="btnAlerts">Alerts</button>
                     <button class="btn btn-secondary" id="btnReset">Reset Data</button>
-                    <button class="btn btn-secondary" id="btnClearAll">Clear All</button>
+                    <button class="btn btn-danger" id="btnClearAll">Clear All</button>
+                    <button class="btn btn-danger" id="btnClearDataNow">Clear Now</button>
                 </div>
             </div>
             <div class="data-container">
@@ -1167,7 +1177,7 @@
                 </div>
                 <div class="data-tab-content" id="import-tab">
                     <div class="form-group">
-                        <label class="form-label" for="importFile">Import File:</label>
+                        <label class="form-label" for="importFile">Import File (CSV or Excel):</label>
                         <input type="file" id="importFile" class="form-input" accept=".csv,.xlsx">
                     </div>
                     <div class="form-group">
@@ -1464,6 +1474,126 @@
             
             // Update last updated time
             document.getElementById('lastUpdated').textContent = new Date().toLocaleString();
+        }
+        
+        // Function to read Excel files
+        function readExcelFile(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                
+                reader.onload = function(e) {
+                    try {
+                        const data = new Uint8Array(e.target.result);
+                        const workbook = XLSX.read(data, { type: 'array' });
+                        const firstSheetName = workbook.SheetNames[0];
+                        const worksheet = workbook.Sheets[firstSheetName];
+                        const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+                        resolve(jsonData);
+                    } catch (error) {
+                        reject(error);
+                    }
+                };
+                
+                reader.onerror = function(error) {
+                    reject(error);
+                };
+                
+                reader.readAsArrayBuffer(file);
+            });
+        }
+        
+        // Function to process imported data (both CSV and Excel)
+        function processImportedData(dataArray) {
+            // The first row is the header
+            const header = dataArray[0];
+            const dataRows = dataArray.slice(1);
+            
+            // Find the indices of the required columns (with more flexible matching)
+            const dateIndex = header.findIndex(col => 
+                col.toString().toLowerCase().includes('date') || 
+                col.toString().toLowerCase().includes('تاريخ'));
+            
+            const branchIndex = header.findIndex(col => 
+                col.toString().toLowerCase().includes('branch') || 
+                col.toString().toLowerCase().includes('فرع'));
+            
+            const ordersIndex = header.findIndex(col => 
+                col.toString().toLowerCase().includes('orders') || 
+                col.toString().toLowerCase().includes('طلبات') ||
+                col.toString().toLowerCase().includes('order'));
+            
+            const salesIndex = header.findIndex(col => 
+                col.toString().toLowerCase().includes('sales') || 
+                col.toString().toLowerCase().includes('مبيعات') ||
+                col.toString().toLowerCase().includes('revenue'));
+            
+            if (dateIndex === -1 || branchIndex === -1 || 
+                ordersIndex === -1 || salesIndex === -1) {
+                throw new Error('File must contain columns: Date, Branch, Orders, Sales');
+            }
+            
+            const validBranches = ['Barsha', 'Hamdan', 'Khalidiyah', 'Muroor', 'Satwa', 'Shabiya'];
+            
+            const dashboardData = [];
+            
+            for (const row of dataRows) {
+                if (row.length < Math.max(dateIndex, branchIndex, ordersIndex, salesIndex) + 1) {
+                    continue; // Skip rows that don't have enough columns
+                }
+                
+                const date = row[dateIndex];
+                const branch = row[branchIndex];
+                const orders = row[ordersIndex];
+                const sales = row[salesIndex];
+                
+                // Skip if any required field is empty
+                if (!date || !branch || orders === undefined || sales === undefined) {
+                    continue;
+                }
+                
+                // Validate date format (YYYY-MM-DD)
+                if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) {
+                    continue;
+                }
+                
+                // Map branch name if needed
+                const mappedBranch = branchMapping[branch] || branch;
+                
+                // Validate branch name
+                if (!validBranches.includes(mappedBranch)) {
+                    continue;
+                }
+                
+                // Convert orders and sales to numbers
+                const ordersNum = parseInt(orders, 10);
+                const salesNum = parseFloat(sales);
+                
+                if (isNaN(ordersNum) || isNaN(salesNum)) {
+                    continue;
+                }
+                
+                dashboardData.push({
+                    date: date,
+                    branch: mappedBranch,
+                    orders: ordersNum,
+                    sales: salesNum
+                });
+            }
+            
+            return dashboardData;
+        }
+        
+        // Function to process CSV text data
+        function processCSVText(csvText) {
+            // Split the CSV text into lines
+            const lines = csvText.trim().split('\n');
+            
+            // Convert to array of arrays (same format as Excel)
+            const dataArray = lines.map(line => 
+                line.split(',').map(cell => cell.trim())
+            );
+            
+            return dataArray;
         }
         
         // Update dashboard based on current filters
@@ -2109,6 +2239,7 @@
             // Reset and clear
             document.getElementById('btnReset').addEventListener('click', resetData);
             document.getElementById('btnClearAll').addEventListener('click', clearAllData);
+            document.getElementById('btnClearDataNow').addEventListener('click', clearAllDataNow);
             document.querySelector('#mobileControls button[onclick="resetData()"]')?.addEventListener('click', resetData);
             document.querySelector('#mobileControls button[onclick="clearAllData()"]')?.addEventListener('click', clearAllData);
             
@@ -2116,6 +2247,56 @@
             document.getElementById('btnUpdateData').addEventListener('click', updateDataFromInput);
             document.getElementById('btnClearInput').addEventListener('click', clearDataInput);
             document.getElementById('btnSetGoals').addEventListener('click', showGoalModal);
+            
+            // Import data
+            document.getElementById('btnImportData').addEventListener('click', async function() {
+                const fileInput = document.getElementById('importFile');
+                const file = fileInput.files[0];
+                
+                if (!file) {
+                    showNotification('Please select a file to import', 'error');
+                    return;
+                }
+                
+                try {
+                    let dataArray;
+                    
+                    if (file.name.endsWith('.csv')) {
+                        // Read CSV file
+                        const text = await file.text();
+                        // Parse CSV into array of arrays
+                        dataArray = processCSVText(text);
+                    } else if (file.name.endsWith('.xlsx')) {
+                        // Read Excel file
+                        dataArray = await readExcelFile(file);
+                    } else {
+                        showNotification('Unsupported file format. Please use CSV or Excel (.xlsx)', 'error');
+                        return;
+                    }
+                    
+                    // Process the data
+                    const dashboardData = processImportedData(dataArray);
+                    
+                    if (dashboardData.length === 0) {
+                        showNotification('No valid data found in the file', 'warning');
+                        return;
+                    }
+                    
+                    // Add the data to the deliveryData array
+                    deliveryData.push(...dashboardData);
+                    
+                    // Update the dashboard
+                    updateDashboard();
+                    
+                    showNotification(`${dashboardData.length} records imported successfully`, 'success');
+                    
+                    // Clear the file input
+                    fileInput.value = '';
+                } catch (error) {
+                    console.error('Error importing file:', error);
+                    showNotification(`Error importing file: ${error.message}`, 'error');
+                }
+            });
             
             // Refresh insights
             document.getElementById('refreshReport').addEventListener('click', function() {
@@ -2172,6 +2353,42 @@
             
             // Initialize tour steps
             initializeTour();
+            
+            // Fix Clear All button event listener
+            const clearAllBtn = document.getElementById('btnClearAll');
+            if (clearAllBtn) {
+                // Remove any existing event listeners
+                clearAllBtn.replaceWith(clearAllBtn.cloneNode(true));
+                
+                // Add new event listener
+                document.getElementById('btnClearAll').addEventListener('click', function() {
+                    if (confirm('Are you sure you want to clear all data? This cannot be undone.')) {
+                        deliveryData = [];
+                        deliveryOrders = [];
+                        updateDashboard();
+                        showNotification('All data cleared', 'warning');
+                    }
+                });
+                
+                console.log("Clear All button event listener attached successfully");
+            } else {
+                console.error("Clear All button not found");
+            }
+            
+            // Fix Clear Data Now button event listener
+            const clearDataNowBtn = document.getElementById('btnClearDataNow');
+            if (clearDataNowBtn) {
+                clearDataNowBtn.addEventListener('click', function() {
+                    deliveryData = [];
+                    deliveryOrders = [];
+                    updateDashboard();
+                    showNotification('All data cleared immediately', 'success');
+                });
+                
+                console.log("Clear Data Now button event listener attached successfully");
+            } else {
+                console.error("Clear Data Now button not found");
+            }
         });
         
         // Mobile menu toggle
@@ -2563,6 +2780,14 @@
             }
         }
         
+        function clearAllDataNow() {
+            // Clear data without confirmation
+            deliveryData = [];
+            deliveryOrders = [];
+            updateDashboard();
+            showNotification('All data cleared immediately', 'success');
+        }
+        
         function updateDataFromInput() {
             const input = document.getElementById('dataInput').value.trim();
             if (!input) {
@@ -2571,34 +2796,31 @@
             }
             
             try {
-                const lines = input.split('\n');
+                // Process CSV text data
+                const dataArray = processCSVText(input);
+                const dashboardData = processImportedData(dataArray);
+                
+                if (dashboardData.length === 0) {
+                    showNotification('No valid data found to update', 'error');
+                    return;
+                }
+                
+                // Add or update records
                 let updated = 0;
                 
-                lines.forEach(line => {
-                    const [date, outlet, orders, sales] = line.split(',').map(item => item.trim());
+                dashboardData.forEach(newRecord => {
+                    // Find existing record
+                    const existingIndex = deliveryData.findIndex(item => 
+                        item.date === newRecord.date && item.branch === newRecord.branch);
                     
-                    if (date && outlet && orders && sales) {
-                        const branch = branchMapping[outlet] || outlet;
-                        
-                        // Find existing record
-                        const existingIndex = deliveryData.findIndex(item => 
-                            item.date === date && item.branch === branch);
-                        
-                        if (existingIndex !== -1) {
-                            // Update existing record
-                            deliveryData[existingIndex].orders = parseInt(orders);
-                            deliveryData[existingIndex].sales = parseFloat(sales);
-                            updated++;
-                        } else {
-                            // Add new record
-                            deliveryData.push({
-                                date,
-                                branch,
-                                orders: parseInt(orders),
-                                sales: parseFloat(sales)
-                            });
-                            updated++;
-                        }
+                    if (existingIndex !== -1) {
+                        // Update existing record
+                        deliveryData[existingIndex] = newRecord;
+                        updated++;
+                    } else {
+                        // Add new record
+                        deliveryData.push(newRecord);
+                        updated++;
                     }
                 });
                 
@@ -2610,7 +2832,7 @@
                     showNotification('No valid data found to update', 'error');
                 }
             } catch (error) {
-                showNotification('Error parsing data. Please check your format.', 'error');
+                showNotification(`Error processing data: ${error.message}`, 'error');
             }
         }
         
@@ -2703,127 +2925,4 @@
                                 ${branchData.slice(-10).reverse().map(item => `
                                     <tr>
                                         <td class="p-2">${new Date(item.date).toLocaleDateString()}</td>
-                                        <td class="p-2 text-right">${item.orders}</td>
-                                        <td class="p-2 text-right">${item.sales.toLocaleString()}</td>
-                                    </tr>
-                                `).join('')}
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            `;
-            
-            modal.classList.add('active');
-        }
-        
-        function closeDrillModal() {
-            document.getElementById('drillModal').classList.remove('active');
-            resetDrillPath();
-        }
-        
-        function updateDrillPath(level, value) {
-            const drillPath = document.getElementById('drillPath');
-            drillPath.style.display = 'flex';
-            
-            // Add new item to path
-            const pathItem = document.createElement('div');
-            pathItem.className = 'drill-path-item';
-            pathItem.textContent = value;
-            pathItem.dataset.level = drillPath.children.length;
-            pathItem.addEventListener('click', function() {
-                // In a real app, this would navigate back to this level
-                showNotification(`Navigating to ${level}: ${value}`, 'info');
-            });
-            
-            drillPath.appendChild(pathItem);
-            
-            // Update active state
-            drillPath.querySelectorAll('.drill-path-item').forEach(item => {
-                item.classList.remove('active');
-            });
-            pathItem.classList.add('active');
-        }
-        
-        function resetDrillPath() {
-            const drillPath = document.getElementById('drillPath');
-            drillPath.style.display = 'none';
-            drillPath.innerHTML = `
-                <span class="small">Drill-down path:</span>
-                <div class="drill-path-item active" data-level="0">Dashboard</div>
-            `;
-        }
-        
-        function editData(date, branch) {
-            const record = deliveryData.find(item => item.date === date && item.branch === branch);
-            if (!record) return;
-            
-            const newOrders = prompt('Enter new number of orders:', record.orders);
-            if (newOrders !== null && !isNaN(newOrders)) {
-                const newSales = prompt('Enter new sales amount (AED):', record.sales);
-                if (newSales !== null && !isNaN(newSales)) {
-                    record.orders = parseInt(newOrders);
-                    record.sales = parseFloat(newSales);
-                    updateDashboard();
-                    showNotification('Data updated successfully', 'success');
-                }
-            }
-        }
-        
-        function refreshInsights() {
-            showNotification('Refreshing insights...', 'info');
-            setTimeout(() => {
-                updateInsights(deliveryData);
-                showNotification('Insights refreshed successfully', 'success');
-            }, 1000);
-        }
-        
-        function refreshCharts() {
-            showNotification('Refreshing charts...', 'info');
-            setTimeout(() => {
-                updateCharts(deliveryData);
-                showNotification('Charts refreshed successfully', 'success');
-            }, 1000);
-        }
-        
-        function showNotification(message, type = 'info') {
-            const container = document.getElementById('notificationContainer');
-            
-            const notification = document.createElement('div');
-            notification.className = `notification ${type}`;
-            notification.textContent = message;
-            
-            container.appendChild(notification);
-            
-            // Auto remove after 3 seconds
-            setTimeout(() => {
-                notification.style.opacity = '0';
-                setTimeout(() => {
-                    container.removeChild(notification);
-                }, 300);
-            }, 3000);
-        }
-        
-        // Add some sample alerts
-        alerts.push(
-            {
-                name: 'Low Sales Alert',
-                type: 'sales',
-                threshold: 1000,
-                branches: ['Barsha', 'Satwa'],
-                method: 'popup',
-                frequency: 'daily',
-                active: true
-            },
-            {
-                name: 'High Growth Alert',
-                type: 'growth',
-                threshold: 15,
-                branches: ['Hamdan', 'Shabiya'],
-                method: 'email',
-                frequency: 'weekly',
-                active: true
-            }
-        );
-    </script>
-</body>
-</html>
+                                        <td class="p
